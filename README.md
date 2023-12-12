@@ -12,13 +12,13 @@
     <td><img src="https://avatars.githubusercontent.com/u/114281631?v=4" width="140" height="140"/></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/kcwww">홍규선</a>
+    <td align="center"><a href="https://github.com/guune">홍규선</a>
     </td>
-    <td align="center"><a href="https://github.com/esthel7">이승효</a>
+    <td align="center"><a href="https://github.com/sngsho">이승효</a>
     </td>
     <td align="center"><a href="https://github.com/YunjooCho">조윤주</a>
     </td>
-    <td align="center"><a href="https://github.com/yunuo46">정희호</a>
+    <td align="center"><a href="https://github.com/heehoh">정희호</a>
     </td>
   </tr>
 </table>
