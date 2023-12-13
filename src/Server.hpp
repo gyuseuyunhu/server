@@ -12,6 +12,7 @@ class Server
   private:
     const int mSocketFd;
     const unsigned int mPort;
+    const std::string mListenIp;
     const std::vector<ServerBlock> mServerBlocks;
 
   public:
