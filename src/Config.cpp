@@ -1,9 +1,34 @@
 #include "Config.hpp"
 
-Config::Config(std::string &path)
+void Config::trimLine(std::string &line)
+{
+    size_t begin = line.find_first_not_of(" \n\r\t\f\v");
+    size_t end = line.find_last_not_of(" \n\r\t\f\v");
+    if (begin == std::string::npos || end == std::string::npos)
+    {
+        line = line.substr(begin, end - begin + 1);
+    }
+}
+
+void Config::checkHttpBlock()
+{
+    std::string line;
+    while (!mFile.eof())
+    {
+        std::getline(mFile, line);
+        deleteComments(line);
+        trimLine(line);
+        if (line.size() == 0)
+            continue;
+        // line에 http 헤더가 있는지 검사하고 { } 블록이 들어왔는지 검사
+    }
+    throw(std::runtime_error("http block need"));
+}
+
+Config::Config(const char *path)
 {
     mFile.open(path);
-    if (!mFile)
+    if (!mFile.is_open())
     {
         throw(std::runtime_error("conf file opne error"));
     }
@@ -31,31 +56,27 @@ Config::Config(std::string &path)
 // { 이거 하나 만날때 마다 depth 변수를 증가시킬까...
 //
 
-bool Config::isWhiteLine(std::string &line)
+void Config::deleteComments(std::string &line)
 {
-    if (line.find_first_not_of(" \n\r\t\f\v") == std::string::npos)
-        return true;
-    return false;
+    size_t pos = line.find("#");
+    if (pos != std::string::npos)
+    {
+        line = line.substr(0, pos);
+    }
 }
 
 void Config::parse()
 {
-    bool isFirstRead = false;
-    // 이제 getline으로 받으면서 parsing 하나요? - nae
-    // 해주세요
     std::string line;
+    checkHttpBlock();
     while (!mFile.eof())
     {
         std::getline(mFile, line);
-        // whitespace 이후에 #이 오는 경우 처리가 안 됨
-        if (isWhiteLine(line) || line.find_first_of('#') == 0 || line.size() == 0)
+        deleteComments(line);
+        trimLine(line);
+        if (line.size() == 0)
         {
             continue;
-        }
-
-        if (line.find_first_of('http') != std::npos && isFirstRead == false)
-        {
-            throw(std::runtime_error("http block need"));
         }
     }
 }

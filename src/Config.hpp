@@ -6,23 +6,26 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <stack> //TODO - {} 확인용, 필요없으면 삭제
 #include <vector>
 
 class Config
 {
   private:
-    const std::ifstream mFile; // path로 연 파일
+    std::ifstream mFile; // path로 연 파일
     std::vector<ServerBlock> mServerBlocks;
 
     void parse();
     void parseServer();
     void parseLocation();
     void errorCheck();
-    bool isWhiteLine(std::string &line);
+    void deleteComments(std::string &line);
+    void trimLine(std::string &line);
+    void checkHttpBlock();
 
   public:
-    Config(std::string &path);
+    Config(const char *path);
 };
 // parse을 언제 호출할까요?>
 // 1. config 생성자에서..

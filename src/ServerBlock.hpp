@@ -20,6 +20,7 @@ class ServerBlock
     const std::vector<LocationBlock> mLocationBlocks;
 
   public:
+    ServerBlock();
 };
 
 #endif
