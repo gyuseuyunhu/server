@@ -11,11 +11,7 @@ class ServerBlock : public HttpBlock
 {
   private:
     // clang-format off
-    std::map<std::string, int> checkDirective = {
-			{std::string("listen"), 1}, 
-			{std::string("server_name"), 1}, 
-			{std::string("return"), 1},
-			};
+
 		//clang-format on
 		//listen의 중복을 허용하지 않고 port로 받음
 		const std::string mPort;

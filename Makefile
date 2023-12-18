@@ -1,5 +1,13 @@
 NAME = webserv
-SRCS = main.cpp 
+SRCS = main.cpp \
+			 Config.cpp \
+			 Directive.cpp \
+			 HttpBlock.cpp \
+			 LocationBlock.cpp \
+			 Parse.cpp \
+			 Server.cpp \
+			 ServerBlock.cpp \
+			 util.cpp
 
 INC = include
 
@@ -18,7 +26,7 @@ all : $(NAME)
 $(OBJ_DIR) :
 	@mkdir -p $(OBJ_DIR)
 
-$(OBJ_DIR)/%.o : $(SRC_DIR)%.cpp | $(OBJ_DIR)
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	@$(CXX) $(CXXFLAGS) -c $< -o $@ -I $(INC)
 
 $(NAME) : $(OBJS_FILES)

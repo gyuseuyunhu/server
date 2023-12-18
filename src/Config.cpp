@@ -1,93 +1,121 @@
 #include "Config.hpp"
 
-void Config::trimLine(std::string &line)
-{
-    size_t begin = line.find_first_not_of(" \n\r\t\f\v");
-    size_t end = line.find_last_not_of(" \n\r\t\f\v");
-    if (begin == std::string::npos || end == std::string::npos)
-    {
-        line = line.substr(begin, end - begin + 1);
-    }
-}
-
-void Config::checkHttpBlock()
-{
-    std::string line;
-    while (!mFile.eof())
-    {
-        std::getline(mFile, line);
-        deleteComments(line);
-        trimLine(line);
-        if (line.size() == 0)
-            continue;
-        // line에 http 헤더가 있는지 검사하고 { } 블록이 들어왔는지 검사
-    }
-    throw(std::runtime_error("http block need"));
-}
-
-Config::Config(const char *path)
-{
-    mFile.open(path);
-    if (!mFile.is_open())
-    {
-        throw(std::runtime_error("conf file opne error"));
-    }
-    parse();
-}
-// http {
-// 	server {
-//  	       listen       host:8080
-//    	     server_name  localhost
-
-//	         location / {
-//  	           root   html
-//    	         index  index.html index.htm
-//       		 }
-//	}
+Directive Config::mDirective;     // Definition of mDirective
+Config *Config::mInstance = NULL; // Definition of mInstance
+// clang-format off
+//Config::Config(HttpBlock httpBlock, std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups)
+//{
+//	
 //}
+// clang-format on
 
-// {} 이거는 블락만 쓰는데 http server location만 쓰는 거지?
-// location의 http 허용 메서드 지시어도 쓰는데 우린 안 할거임
-// 일단 그렇게 생각하면 될 듯
-
-// location / Delete {} <- 요거 안쓴다고?
-// parse을 어떻게 짜야하는지 고민중 ...
-// http { 이게 필수
-// { 이거 하나 만날때 마다 depth 변수를 증가시킬까...
-//
-
-void Config::deleteComments(std::string &line)
+// clang-format off
+void Config::createInstance(std::string httpString)
+                                 //std::vector<std::pair<std::string, std::vector<std::string> > > mServerStr)
+// clang-format on
 {
-    size_t pos = line.find("#");
-    if (pos != std::string::npos)
-    {
-        line = line.substr(0, pos);
-    }
+    HttpBlock httpBlock = createHttpBlock(httpString);
+    // mInstance = new Config(httpBlock);
 }
 
-void Config::parse()
+Config &Config::getInstance()
 {
-    std::string line;
-    checkHttpBlock();
-    while (!mFile.eof())
+    if (mInstance == NULL)
     {
-        std::getline(mFile, line);
-        deleteComments(line);
-        trimLine(line);
-        if (line.size() == 0)
+        throw std::runtime_error("Before calling getInstance, it is necessary to createInstance first.");
+    }
+    return *mInstance;
+}
+
+void Config::deleteInstance()
+{
+    if (mInstance == NULL)
+    {
+        throw std::runtime_error("Before calling deleteInstance, it is necessary to createInstance first.");
+    }
+    delete mInstance;
+    mInstance = NULL;
+}
+
+std::string Config::reduceMultipleSpaces(std::string token)
+{
+    std::string cleanedToken;
+    bool previousWasSpace = false;
+    char c;
+    for (std::size_t i = 0; i < token.size(); ++i)
+    {
+        c = token[i];
+        if (c != ' ' && c != '\t')
         {
-            continue;
+            cleanedToken += c;
+            previousWasSpace = false;
+        }
+        else
+        {
+            if (!previousWasSpace)
+            {
+                cleanedToken += ' ';
+            }
+            previousWasSpace = true;
         }
     }
+    return cleanedToken;
 }
 
-void Config::parseServer()
+HttpBlock Config::createHttpBlock(std::string httpStr)
 {
-    mServerBlocks.push_back(ServerBlock());
-}
+    std::istringstream iss(httpStr);
+    std::string token;
+    std::string root;
+    std::vector<std::string> indexs;
+    std::vector<std::string> errorPages;
+    unsigned int clientMaxBodySize;
+    while (std::getline(iss, token, ';'))
+    {
+        std::istringstream tokenStream(reduceMultipleSpaces(token));
+        std::string subtoken;
+        std::string keyValue;
+        bool isKeyValue = true;
+        bool isValue = false;
+        // 빈칸 처리가 되는듯?
+        while (tokenStream >> subtoken)
+        {
+            if (isKeyValue == true && mDirective.checkHttpStr(subtoken))
+            {
+                isKeyValue = false;
+                keyValue = subtoken;
+                continue;
+            }
 
-void Config::errorCheck()
-{
+            if (keyValue == "root")
+            {
+                root = subtoken;
+                isValue = true;
+            }
+            else if (keyValue == "index")
+            {
+                indexs.push_back(subtoken);
+                isValue = true;
+            }
+            else if (keyValue == "error_page")
+            {
+                errorPages.push_back(subtoken);
+                isValue = true;
+            }
+            else
+            {
+                // 이거 생각할 필요가 있음
+                clientMaxBodySize = atoi(subtoken.c_str());
+                isValue = true;
+            }
+        }
+        if (tokenStream.fail())
+        {
+            if (isValue == false)
+            {
+                throw std::runtime_error("no value");
+            }
+        }
+    }
+    return HttpBlock(root, indexs, errorPages, clientMaxBodySize);
 }
-
-// fin
