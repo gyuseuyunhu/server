@@ -1,5 +1,14 @@
 #include "util.hpp"
 
+bool isWhiteSpace(const char c)
+{
+    if (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\f' || c == '\v')
+    {
+        return true;
+    }
+    return false;
+}
+
 void trimLine(std::string &line)
 {
     size_t begin = line.find_first_not_of(" \n\r\t\f\v");

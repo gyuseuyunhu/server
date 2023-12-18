@@ -8,17 +8,19 @@
 class Parse
 {
   private:
+    typedef std::vector<std::string> LocationVec;
+    typedef std::pair<std::string, LocationVec> ServerLocPair;
     std::ifstream mFile;
+    int mDepth;
     std::string mHttpStr;
-    // clang-format off
-    std::vector<std::pair<std::string, std::vector<std::string> > > mServerStr;
-    // clang-format on
-    void storeHttpStr();
-    void storeServerStr();
-    void storeLocationStr();
+    std::vector<ServerLocPair> mServerLocPairs; // location 블록 경로는 LocationVec의 요소의 첫번째로 저장 ;으로 구분
+    void storeHttpStr(std::string &line);
+    void storeServerStr(std::string &line);
+    const std::string &storeLocationStr(std::string &line);
 
   public:
     Parse(const char *path);
+    ~Parse();
 };
 
 #endif
