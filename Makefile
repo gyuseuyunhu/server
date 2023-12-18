@@ -1,9 +1,12 @@
 NAME = webserv
 SRCS = main.cpp 
 
+INC = include
+
 OBJS = $(SRCS:.cpp=.o)
 
 OBJ_DIR = obj
+SRC_DIR = src
 
 OBJS_FILES = $(addprefix $(OBJ_DIR)/, $(OBJS))
 
@@ -15,8 +18,8 @@ all : $(NAME)
 $(OBJ_DIR) :
 	@mkdir -p $(OBJ_DIR)
 
-$(OBJ_DIR)/%.o : %.cpp | $(OBJ_DIR)
-	@$(CXX) $(CXXFLAGS) -c $< -o $@
+$(OBJ_DIR)/%.o : $(SRC_DIR)%.cpp | $(OBJ_DIR)
+	@$(CXX) $(CXXFLAGS) -c $< -o $@ -I $(INC)
 
 $(NAME) : $(OBJS_FILES)
 	@$(CXX) $(CXXFLAGS) $(OBJS_FILES) -o $(NAME)
