@@ -1,26 +1,36 @@
 #ifndef SERVER_BLOCK_HPP
 #define SERVER_BLOCK_HPP
 
+#include "HttpBlock.hpp"
 #include <iostream>
 #include <vector>
 
 class LocationBlock;
 
-class ServerBlock
+class ServerBlock : public HttpBlock
 {
   private:
-    // listen [Ip주소][:mPort];
-    // nginx 해보니깐 listen 지시어 중복 가능, port 중복 가능, root는 중복이 불가능 // 노노 포트 덮어씌우고 하나만 저장
-    // listen 80; listen 8080; 두개가 들어오면 localhost:80, localhost:8080이 둘 다 접속이 가능하다 // 아니다
-    // 8080만가능하다 즉 port는 여러개를 들고 있어야 할듯
-    const std::string mServerName; // 안들어올수도 있음 server_name
-    const std::string mHost;
-    const unsigned int mPort;
-    const std::string mRoot;
-    const std::vector<LocationBlock> mLocationBlocks;
+    // clang-format off
+    std::map<std::string, int> checkDirective = {
+			{std::string("listen"), 1}, 
+			{std::string("server_name"), 1}, 
+			{std::string("return"), 1},
+			};
+		//clang-format on
+		//listen의 중복을 허용하지 않고 port로 받음
+		const std::string mPort;
+		//server_name도 중복이 되지만 허용 안하는것으로
+		const std::string mServerName;
+  protected:
+		// return은 http redirection에 사용하는 지시어
+		// 보통  location /old-path {
+    //     return 301 /new-path;
+    // }
+		// 301(영구 이동)나 302(임시 이동)
+		// 이런식으로 쓰임
+		int mRedirectionCode;
+		std::string mRedirectionPath;
 
-  public:
-    ServerBlock();
 };
 
 #endif
