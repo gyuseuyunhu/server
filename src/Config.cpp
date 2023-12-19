@@ -15,6 +15,7 @@ void Config::createInstance(std::string httpString)
 // clang-format on
 {
     HttpBlock httpBlock = createHttpBlock(httpString);
+    std::cout << httpBlock;
     // mInstance = new Config(httpBlock);
 }
 
@@ -62,14 +63,61 @@ std::string Config::reduceMultipleSpaces(std::string token)
     return cleanedToken;
 }
 
+unsigned int Config::convertBodySize(std::string &valueString)
+{
+    char *checkPtr;
+    int value;
+
+    value = std::strtod(valueString.c_str(), &checkPtr);
+    if (value < 0)
+    {
+        throw std::runtime_error(std::to_string(value) + ": invalid max_body_size1");
+    }
+    else if (value == 0 && checkPtr != '\0')
+    {
+        throw std::runtime_error(valueString + ": invalid max_body_size2");
+    }
+
+    switch (*checkPtr)
+    {
+    case 'k':
+        // 의도적인 fallthrough
+    case 'K':
+        value *= killo;
+        break;
+    case 'm':
+        // 의도적인 fallthrough
+    case 'M':
+        value *= mega;
+        break;
+    case 'g':
+        // 의도적인 fallthrough
+    case 'G':
+        value *= giga;
+        break;
+    case '\0':
+        break;
+    default:
+        throw std::runtime_error(valueString + ": invalid max_body_size3");
+        break;
+    }
+    if (*checkPtr != '\0' && *(checkPtr + 1) != '\0')
+    {
+        throw std::runtime_error(valueString + ": invalid max_body_size4");
+    }
+    return static_cast<unsigned int>(value);
+}
+
 HttpBlock Config::createHttpBlock(std::string httpStr)
 {
+    // root 기본값 html, index index.html, errorpage ""(없음), client_max_body_size = 1m;
     std::istringstream iss(httpStr);
     std::string token;
-    std::string root;
+    std::string root = "html";
     std::vector<std::string> indexs;
     std::vector<std::string> errorPages;
-    unsigned int clientMaxBodySize;
+    unsigned int clientMaxBodySize = 1000000;
+
     while (std::getline(iss, token, ';'))
     {
         std::istringstream tokenStream(reduceMultipleSpaces(token));
@@ -77,7 +125,6 @@ HttpBlock Config::createHttpBlock(std::string httpStr)
         std::string keyValue;
         bool isKeyValue = true;
         bool isValue = false;
-        // 빈칸 처리가 되는듯?
         while (tokenStream >> subtoken)
         {
             if (isKeyValue == true && mDirective.checkHttpStr(subtoken))
@@ -90,24 +137,20 @@ HttpBlock Config::createHttpBlock(std::string httpStr)
             if (keyValue == "root")
             {
                 root = subtoken;
-                isValue = true;
             }
             else if (keyValue == "index")
             {
                 indexs.push_back(subtoken);
-                isValue = true;
             }
             else if (keyValue == "error_page")
             {
                 errorPages.push_back(subtoken);
-                isValue = true;
             }
             else
             {
-                // 이거 생각할 필요가 있음
-                clientMaxBodySize = atoi(subtoken.c_str());
-                isValue = true;
+                clientMaxBodySize = convertBodySize(subtoken);
             }
+            isValue = true;
         }
         if (tokenStream.fail())
         {
@@ -117,5 +160,11 @@ HttpBlock Config::createHttpBlock(std::string httpStr)
             }
         }
     }
+    // indexs 값이 안 들어왔을때 기본값
+    if (indexs.size() == 0)
+    {
+        indexs.push_back("index.html");
+    }
+
     return HttpBlock(root, indexs, errorPages, clientMaxBodySize);
 }

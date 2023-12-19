@@ -18,3 +18,29 @@ HttpBlock &HttpBlock::operator=(const HttpBlock &rhs)
     }
     return *this;
 }
+
+std::ostream &operator<<(std::ostream &os, HttpBlock &httpBlock)
+{
+    os << "root : " << httpBlock.mRoot << std::endl;
+
+    std::vector<std::string>::iterator it = httpBlock.mIndexs.begin();
+
+    os << "index : ";
+    for (; it != httpBlock.mIndexs.end(); ++it)
+    {
+        os << *it << " ";
+    }
+    os << std::endl;
+
+    os << "errorPages : ";
+    it = httpBlock.mErrorPages.begin();
+    for (; it != httpBlock.mErrorPages.end(); ++it)
+    {
+        os << *it << " ";
+    }
+    os << std::endl;
+
+    os << "clientMaxBodySize : " << httpBlock.mClientMaxBodySize << std::endl;
+
+    return os;
+}
