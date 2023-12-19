@@ -15,7 +15,7 @@
 class HttpBlock
 {
   protected:
-    // string 기본값 "", index "", errorpage "", client_max_body_size = 0;
+    // root 기본값 html, index index.html, errorpage ""(없음), client_max_body_size = 1m;
     std::string mRoot;
     std::vector<std::string> mIndexs;
     std::vector<std::string> mErrorPages;
@@ -25,6 +25,8 @@ class HttpBlock
     HttpBlock(std::string root, std::vector<std::string> index, std::vector<std::string> errorpage,
               unsigned int clientMaxBodySize);
     HttpBlock &operator=(const HttpBlock &rhs);
+    // todo : friend 없애야함
+    friend std::ostream &operator<<(std::ostream &os, HttpBlock &httpBlock);
 };
 
 #endif
