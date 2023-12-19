@@ -27,6 +27,11 @@ Parse::Parse(const char *path)
         throw std::runtime_error("conf file syntax error: 괄호 짝 안맞음");
 }
 
+Parse::~Parse()
+{
+    mServerLocPairs.clear();
+}
+
 void Parse::storeHttpStr(std::string &line)
 {
     mHttpStr = "";
@@ -51,6 +56,7 @@ void Parse::storeHttpStr(std::string &line)
             --mDepth;
             if (line.size() == 1)
             {
+                ftGetLine(mFile, line);
                 return;
             }
             else
@@ -72,7 +78,14 @@ void Parse::storeHttpStr(std::string &line)
         else
         {
             size_t pos;
-            if ((pos = line.find("server")) != std::string::npos || (pos = line.find("}")) != std::string::npos)
+            if ((pos = line.find(";")) != std::string::npos)
+            {
+                ++pos;
+                mHttpStr += line.substr(0, pos);
+                line = line.substr(pos);
+                trimLine(line);
+            }
+            else if ((pos = line.find("}")) != std::string::npos)
             {
                 mHttpStr += line.substr(0, pos);
                 line = line.substr(pos);
@@ -99,7 +112,7 @@ void Parse::storeServerStr(std::string &line)
     }
     if (mFile.eof() || line[0] != '{')
     {
-        throw std::runtime_error("conf file syntax error: 괄호 이상함");
+        throw std::runtime_error("server syntax error: needs {}");
     }
     ++mDepth;
     line = line.substr(1);
@@ -126,8 +139,25 @@ void Parse::storeServerStr(std::string &line)
         }
         else
         {
-            serverStr += line;
-            ftGetLine(mFile, line);
+            size_t pos = 0;
+            if ((pos = line.find(";")) != std::string::npos)
+            {
+                ++pos;
+                serverStr += line.substr(0, pos);
+                line = line.substr(pos);
+                trimLine(line);
+            }
+            else if ((pos = line.find("}")) != std::string::npos)
+            {
+                serverStr += line.substr(0, pos);
+                line = line.substr(pos);
+                trimLine(line);
+            }
+            else
+            {
+                serverStr += line;
+                ftGetLine(mFile, line);
+            }
         }
     }
     if (locationStrVec.size() == 0)
@@ -137,13 +167,13 @@ void Parse::storeServerStr(std::string &line)
     mServerLocPairs.push_back(std::make_pair(serverStr, locationStrVec));
 }
 
-const std::string &Parse::storeLocationStr(std::string &line)
+std::string Parse::storeLocationStr(std::string &line)
 {
     std::string locationStr;
     line = line.substr(8);
     if (!isWhiteSpace(line[0]))
     {
-        std::runtime_error("location syntax error: location과 디렉토리 사이의 공백문자 필수");
+        throw std::runtime_error("location syntax error: location과 디렉토리 사이의 공백문자 필수");
     }
     trimLine(line);
     while (!mFile.eof() && line.size() == 0)
@@ -152,26 +182,27 @@ const std::string &Parse::storeLocationStr(std::string &line)
     }
     if (mFile.eof())
     {
-        throw std::runtime_error("conf file syntax error: 괄호 이상함");
+        throw std::runtime_error("conf file syntax error: location 블록 실종");
     }
-    if (line.find("/") == std::string::npos)
+    if (line[0] != '/')
     {
-        throw std::runtime_error("locaiton block syntax error: location 실종");
+        throw std::runtime_error("locaiton block syntax error: location 경로 에러");
     }
     size_t pos;
-    if ((pos = line.find("{")) == std::string::npos)
-    {
-        locationStr += line + ";";
-        ftGetLine(mFile, line);
-    }
-    else
+    if ((pos = line.find("{")) != std::string::npos)
     {
         std::string tmp = line.substr(0, pos);
         trimLine(tmp);
         locationStr += tmp + ";";
         line = line.substr(pos);
     }
-    while (!mFile.eof() || line.size() == 0)
+    else
+    {
+        locationStr += line + ";";
+        ftGetLine(mFile, line);
+    }
+
+    while (!mFile.eof() && line.size() == 0)
     {
         ftGetLine(mFile, line);
     }
@@ -180,6 +211,7 @@ const std::string &Parse::storeLocationStr(std::string &line)
         throw std::runtime_error("conf file syntax error: 괄호 에러");
     }
     ++mDepth;
+
     line = line.substr(1);
     trimLine(line);
     while (!mFile.eof())
@@ -189,13 +221,43 @@ const std::string &Parse::storeLocationStr(std::string &line)
             --mDepth;
             if (line.size() == 1)
             {
-                return locationStr;
+                ftGetLine(mFile, line);
             }
             else
             {
                 line = line.substr(1);
                 trimLine(line);
             }
+            return locationStr;
+        }
+        else
+        {
+            pos = line.find("}");
+            if (pos != std::string::npos)
+            {
+                locationStr += line.substr(0, pos);
+                line = line.substr(pos);
+                trimLine(line);
+            }
+            else
+            {
+                locationStr += line;
+                ftGetLine(mFile, line);
+            }
+        }
+    }
+    throw std::runtime_error("location block error: location 블록이 안닫힘");
+}
+
+void Parse::test()
+{
+    std::cout << "http 스트링: " << mHttpStr << std::endl;
+    for (auto tmp : mServerLocPairs)
+    {
+        std::cout << "server 스트링: " << tmp.first << std::endl;
+        for (auto tmp2 : tmp.second)
+        {
+            std::cout << "location 스트링: " << tmp2 << std::endl;
         }
     }
 }

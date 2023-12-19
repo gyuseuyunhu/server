@@ -21,6 +21,7 @@ class Parse
   public:
     Parse(const char *path);
     ~Parse();
+    void test();
 };
 
 #endif
