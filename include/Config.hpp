@@ -1,10 +1,13 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include "Directive.hpp"
+#include "ADirective.hpp"
 #include "HttpBlock.hpp"
+#include "HttpDirective.hpp"
 #include "LocationBlock.hpp"
+#include "LocationDirective.hpp"
 #include "ServerBlock.hpp"
+#include "ServerDirective.hpp"
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -25,7 +28,6 @@ class Config
     Config();
     Config &operator=(const Config &rhs);
     static Config *mInstance;
-    static Directive mDirective;
     static HttpBlock mHttpBlock;
     // clang-format off
 		const std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups;

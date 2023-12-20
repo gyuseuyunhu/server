@@ -1,7 +1,7 @@
 #include "Config.hpp"
 
-Directive Config::mDirective;     // Definition of mDirective
 Config *Config::mInstance = NULL; // Definition of mInstance
+
 // clang-format off
 //Config::Config(HttpBlock httpBlock, std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups)
 //{
@@ -117,6 +117,7 @@ HttpBlock Config::createHttpBlock(std::string httpStr)
     std::vector<std::string> indexs;
     std::vector<std::string> errorPages;
     unsigned int clientMaxBodySize = 1000000;
+    HttpDirective h;
 
     while (std::getline(iss, token, ';'))
     {
@@ -127,8 +128,9 @@ HttpBlock Config::createHttpBlock(std::string httpStr)
         bool isValue = false;
         while (tokenStream >> subtoken)
         {
-            if (isKeyValue == true && mDirective.checkHttpStr(subtoken))
+            if (isKeyValue == true)
             {
+                h.checkDirective(subtoken);
                 isKeyValue = false;
                 keyValue = subtoken;
                 continue;

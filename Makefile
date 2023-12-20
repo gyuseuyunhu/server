@@ -1,13 +1,17 @@
 NAME = webserv
+
 SRCS = main.cpp \
 			 Config.cpp \
-			 Directive.cpp \
+			 ADirective.cpp \
 			 HttpBlock.cpp \
 			 LocationBlock.cpp \
+			 HttpDirective.cpp \
+			 ServerDirective.cpp \
+			 LocationDirective.cpp \
 			 Parse.cpp \
 			 Server.cpp \
 			 ServerBlock.cpp \
-			 util.cpp
+			 util.cpp 
 
 INC = include
 
