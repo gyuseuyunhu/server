@@ -63,7 +63,7 @@ std::string Config::reduceMultipleSpaces(std::string token)
     return cleanedToken;
 }
 
-unsigned int Config::convertBodySize(std::string &valueString)
+unsigned int Config::convertNumber(std::string &valueString, bool hasUnit)
 {
     char *checkPtr;
     int value;
@@ -78,32 +78,42 @@ unsigned int Config::convertBodySize(std::string &valueString)
         throw std::runtime_error(valueString + ": invalid max_body_size2");
     }
 
-    switch (*checkPtr)
+    if (hasUnit == true)
     {
-    case 'k':
-        // 의도적인 fallthrough
-    case 'K':
-        value *= killo;
-        break;
-    case 'm':
-        // 의도적인 fallthrough
-    case 'M':
-        value *= mega;
-        break;
-    case 'g':
-        // 의도적인 fallthrough
-    case 'G':
-        value *= giga;
-        break;
-    case '\0':
-        break;
-    default:
-        throw std::runtime_error(valueString + ": invalid max_body_size3");
-        break;
+        switch (*checkPtr)
+        {
+        case 'k':
+            // 의도적인 fallthrough
+        case 'K':
+            value *= killo;
+            break;
+        case 'm':
+            // 의도적인 fallthrough
+        case 'M':
+            value *= mega;
+            break;
+        case 'g':
+            // 의도적인 fallthrough
+        case 'G':
+            value *= giga;
+            break;
+        case '\0':
+            break;
+        default:
+            throw std::runtime_error(valueString + ": invalid max_body_size3");
+            break;
+        }
+        if (*checkPtr != '\0' && *(checkPtr + 1) != '\0')
+        {
+            throw std::runtime_error(valueString + ": invalid max_body_size4");
+        }
     }
-    if (*checkPtr != '\0' && *(checkPtr + 1) != '\0')
+    else
     {
-        throw std::runtime_error(valueString + ": invalid max_body_size4");
+        if (*checkPtr != '\0')
+        {
+            throw std::runtime_error(valueString + ": invalid Value");
+        }
     }
     return static_cast<unsigned int>(value);
 }
@@ -150,7 +160,7 @@ HttpBlock Config::createHttpBlock(std::string httpStr)
             }
             else
             {
-                clientMaxBodySize = convertBodySize(subtoken);
+                clientMaxBodySize = convertNumber(subtoken, true);
             }
             isValue = true;
         }
@@ -169,4 +179,154 @@ HttpBlock Config::createHttpBlock(std::string httpStr)
     }
 
     return HttpBlock(root, indexs, errorPages, clientMaxBodySize);
+}
+
+// LocationBlock Config::createLocationBlock(ServerBlock serverBlock, std::string locationStr)
+// {
+//     LocationDirective locationDirective;
+//     assert(locationStr.size() != 0);
+
+//     // 서버 블록 만들기 인데 httpBlock이 필요하겠네?
+//     std::istringstream iss(locationStr);
+//     std::string mLocationPath;
+//     bool mIsAutoIndex = false;
+//     bool mIsAllowedGet = true;
+//     bool mIsAllowedPost = true;
+//     bool mIsAllowedDelete = true;
+//     std::string token;
+
+//     // /hi;
+//     while (std::getline(iss, token, ';'))
+//     {
+//         std::istringstream tokenStream(reduceMultipleSpaces(token));
+//         std::string subtoken;
+//         std::string keyValue;
+//         bool isKeyValue = true;
+//         bool isValue = false;
+//         while (tokenStream >> subtoken)
+//         {
+//             if (isKeyValue == true)
+//             {
+//                 locationDirective.checkDirective(subtoken);
+//                 isKeyValue = false;
+//                 keyValue = subtoken;
+//                 continue;
+//             }
+
+//             if (keyValue == "server_name")
+//             {
+//                 serverName = subtoken;
+//             }
+//             else if (keyValue == "return")
+//             {
+//                 if (isRedirectionCode == true)
+//                 {
+//                     redirectionCode = convertNumber(subtoken, false);
+//                     isRedirectionCode = false;
+//                 }
+//                 else
+//                 {
+//                     redirectionPath = subtoken;
+//                 }
+//             }
+//             else
+//             {
+//                 port = convertNumber(subtoken, false);
+//             }
+//             isValue = true;
+//         }
+//         if (tokenStream.fail())
+//         {
+//             if (isValue == false)
+//             {
+//                 throw std::runtime_error("no value");
+//             }
+//         }
+//     }
+// }
+
+ServerWithLocations Config::createServerWithLocations(HttpBlock httpBlock,
+                                                      std::pair<std::string, LocationVec> serverLocPair)
+{
+    std::string serverString;
+    ServerDirective serverDirective;
+    serverString = serverLocPair.first;
+    assert(serverString.size() != 0);
+
+    // 서버 블록 만들기 인데 httpBlock이 필요하겠네?
+    std::istringstream iss(serverString);
+    unsigned int port = 80;
+    std::string serverName = "";
+    unsigned int redirectionCode;
+    std::string redirectionPath;
+    std::string token;
+
+    while (std::getline(iss, token, ';'))
+    {
+        std::istringstream tokenStream(reduceMultipleSpaces(token));
+        std::string subtoken;
+        std::string keyValue;
+        bool isKeyValue = true;
+        bool isValue = false;
+        bool isRedirectionCode = true;
+        // return 301 /hi2
+        // subtoken return
+        // tokenStream 301 /hi2
+        while (tokenStream >> subtoken)
+        {
+            if (isKeyValue == true)
+            {
+                serverDirective.checkDirective(subtoken);
+                isKeyValue = false;
+                keyValue = subtoken;
+                continue;
+            }
+
+            if (keyValue == "server_name")
+            {
+                serverName = subtoken;
+            }
+            else if (keyValue == "return")
+            {
+                if (isRedirectionCode == true)
+                {
+                    redirectionCode = convertNumber(subtoken, false);
+                    isRedirectionCode = false;
+                }
+                else
+                {
+                    redirectionPath = subtoken;
+                }
+            }
+            else
+            {
+                port = convertNumber(subtoken, false);
+            }
+            isValue = true;
+        }
+        if (tokenStream.fail())
+        {
+            if (isValue == false)
+            {
+                throw std::runtime_error("no value");
+            }
+        }
+    }
+
+    ServerBlock serverBlock(httpBlock, port, serverName, redirectionCode, redirectionPath);
+
+    std::vector<LocationBlock> locations;
+    std::vector<std::string> locationStrs = serverLocPair.second;
+    std::vector<std::string>::iterator it = locationStrs.begin();
+
+    // location 돌면서 다 만들기. 함수로 빼도 가능
+    for (; it != locationStrs.end(); ++it)
+    {
+        // 함수가 돌아버린다
+        // 반환값이 locationBlock
+        // 이걸 locations에 pushback
+    }
+    std::pair<ServerBlock, LocationList> tmp = std::make_pair(serverBlock, locations);
+
+    return tmp;
 }

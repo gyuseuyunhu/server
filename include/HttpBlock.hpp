@@ -24,6 +24,7 @@ class HttpBlock
   public:
     HttpBlock(std::string root, std::vector<std::string> index, std::vector<std::string> errorpage,
               unsigned int clientMaxBodySize);
+    HttpBlock(const HttpBlock &other);
     HttpBlock &operator=(const HttpBlock &rhs);
     // todo : friend 없애야함
     friend std::ostream &operator<<(std::ostream &os, HttpBlock &httpBlock);
