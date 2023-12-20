@@ -1,30 +1,125 @@
 #include "Parse.hpp"
 #include "util.hpp"
 
+void Parse::skipBeforeHttp(std::string &line)
+{
+    while (!mFile.eof() && line.size() == 0)
+    {
+        ftGetLine(mFile, line);
+    }
+    if (mFile.eof())
+    {
+        return;
+    }
+    if (line.find("http") != 0)
+    {
+        throw std::runtime_error("Error Parse::skipBeforeHttp(): http 지시어가 없습니다.\n" + line);
+    }
+}
+
+void Parse::checkOpenBrace(std::string &line)
+{
+    while (!mFile.eof() && line.size() == 0)
+    {
+        ftGetLine(mFile, line);
+    }
+    if (line[0] != '{')
+    {
+        throw std::runtime_error("Error Parse::checkOpenBrace(): '{' 이 없습니다.\n" + line);
+    }
+    ++mDepth;
+    line = line.substr(1);
+    trimLine(line);
+}
+
+void Parse::checkCloseBrace(std::string &line)
+{
+    --mDepth;
+    line = line.substr(1);
+    trimLine(line);
+}
+
+void Parse::skipDirective(std::string &line, int num)
+{
+    line = line.substr(num);
+    trimLine(line);
+    checkOpenBrace(line);
+}
+
+void Parse::checkLocationPath(std::string &line, std::string &locationStr)
+{
+    while (!mFile.eof() && line.size() == 0)
+    {
+        ftGetLine(mFile, line);
+    }
+
+    if (line.size() == 0)
+    {
+        throw std::runtime_error("Error Parse::checkLocationPath(): Location path가 없습니다.");
+    }
+
+    size_t pos;
+    if ((pos = line.find("{")) != std::string::npos)
+    {
+        std::string tmp = line.substr(0, pos);
+        trimLine(tmp);
+        if (tmp.size() == 0)
+        {
+            throw std::runtime_error("Error Parse::checkLocationPath(): Location Path가 없습니다.");
+        }
+        locationStr += tmp + ";";
+        line = line.substr(pos);
+    }
+    else
+    {
+        locationStr += line + ";";
+        ftGetLine(mFile, line);
+    }
+}
+
+void Parse::parseElseLine(std::string &str, std::string &line)
+{
+    size_t pos;
+    if ((pos = line.find(";")) != std::string::npos)
+    {
+        str += line.substr(0, pos + 1);
+        line = line.substr(pos + 1);
+        trimLine(line);
+    }
+    else if ((pos = line.find("}")) != std::string::npos)
+    {
+        str += line.substr(0, pos);
+        line = line.substr(pos);
+        trimLine(line);
+    }
+    else
+    {
+        if (line.size() != 0)
+        {
+            str += line + " ";
+        }
+        ftGetLine(mFile, line);
+    }
+}
+
 Parse::Parse(const char *path)
 {
     mFile.open(path);
     if (!mFile.is_open())
     {
-        throw std::runtime_error("conf file open error");
+        throw std::runtime_error("Error Parse::Parse(): 파일이 열리지 않습니다.");
     }
     mDepth = 0;
     std::string line;
-    while (!mFile.eof())
+    while (!mFile.eof() || line.size() != 0)
     {
-        ftGetLine(mFile, line);
-        if (line.size() == 0)
-        {
-            continue;
-        }
-        if (line.find("http") != 0)
-        {
-            throw std::runtime_error("conf file syntax error");
-        }
+        skipBeforeHttp(line);
+        if (mFile.eof() && line.size() == 0)
+            break;
         storeHttpStr(line);
     }
     if (mDepth != 0)
-        throw std::runtime_error("conf file syntax error: 괄호 짝 안맞음");
+        throw std::runtime_error("Error Parse::Parse(): 괄호가 닫히지 않았습니다.");
 }
 
 Parse::~Parse()
@@ -36,40 +131,18 @@ void Parse::storeHttpStr(std::string &line)
 {
     mHttpStr = "";
     mServerLocPairs.clear();
-    line = line.substr(4);
-    trimLine(line);
-    while (!mFile.eof() && line.size() == 0)
+
+    skipDirective(line, std::strlen("http"));
+    while (!mFile.eof() || line.size() != 0)
     {
-        ftGetLine(mFile, line);
-    }
-    if (mFile.eof() || line[0] != '{')
-    {
-        throw std::runtime_error("conf file syntax error: 괄호 이상함");
-    }
-    ++mDepth;
-    line = line.substr(1);
-    trimLine(line);
-    while (!mFile.eof())
-    {
+        if (line.size() == 0)
+        {
+            ftGetLine(mFile, line);
+        }
         if (line[0] == '}')
         {
-            --mDepth;
-            if (line.size() == 1)
-            {
-                ftGetLine(mFile, line);
-                return;
-            }
-            else
-            {
-                line = line.substr(1);
-                trimLine(line);
-                if (line.find("http") == 0)
-                {
-                    storeHttpStr(line);
-                    return;
-                }
-                throw std::runtime_error("일단 에러");
-            }
+            checkCloseBrace(line);
+            return;
         }
         else if (line.find("server") == 0)
         {
@@ -77,25 +150,7 @@ void Parse::storeHttpStr(std::string &line)
         }
         else
         {
-            size_t pos;
-            if ((pos = line.find(";")) != std::string::npos)
-            {
-                ++pos;
-                mHttpStr += line.substr(0, pos);
-                line = line.substr(pos);
-                trimLine(line);
-            }
-            else if ((pos = line.find("}")) != std::string::npos)
-            {
-                mHttpStr += line.substr(0, pos);
-                line = line.substr(pos);
-                trimLine(line);
-            }
-            else
-            {
-                mHttpStr += line;
-                ftGetLine(mFile, line);
-            }
+            parseElseLine(mHttpStr, line);
         }
     }
 }
@@ -104,34 +159,19 @@ void Parse::storeServerStr(std::string &line)
 {
     std::string serverStr;
     LocationVec locationStrVec;
-    line = line.substr(6);
-    trimLine(line);
-    while (!mFile.eof() && line.size() == 0)
+
+    skipDirective(line, std::strlen("server"));
+
+    while (!mFile.eof() || line.size() != 0)
     {
-        ftGetLine(mFile, line);
-    }
-    if (mFile.eof() || line[0] != '{')
-    {
-        throw std::runtime_error("server syntax error: needs {}");
-    }
-    ++mDepth;
-    line = line.substr(1);
-    trimLine(line);
-    while (!mFile.eof())
-    {
+        if (line.size() == 0)
+        {
+            ftGetLine(mFile, line);
+        }
         if (line[0] == '}')
         {
-            --mDepth;
-            if (line.size() == 1)
-            {
-                ftGetLine(mFile, line);
-            }
-            else
-            {
-                line = line.substr(1);
-                trimLine(line);
-            }
-            break;
+            checkCloseBrace(line);
+            mServerLocPairs.push_back(std::make_pair(serverStr, locationStrVec));
         }
         else if (line.find("location") == 0)
         {
@@ -139,32 +179,9 @@ void Parse::storeServerStr(std::string &line)
         }
         else
         {
-            size_t pos = 0;
-            if ((pos = line.find(";")) != std::string::npos)
-            {
-                ++pos;
-                serverStr += line.substr(0, pos);
-                line = line.substr(pos);
-                trimLine(line);
-            }
-            else if ((pos = line.find("}")) != std::string::npos)
-            {
-                serverStr += line.substr(0, pos);
-                line = line.substr(pos);
-                trimLine(line);
-            }
-            else
-            {
-                serverStr += line;
-                ftGetLine(mFile, line);
-            }
+            parseElseLine(serverStr, line);
         }
     }
-    if (locationStrVec.size() == 0)
-    {
-        throw std::runtime_error("http syntax error: location 블록은 필수적인 값임");
-    }
-    mServerLocPairs.push_back(std::make_pair(serverStr, locationStrVec));
 }
 
 std::string Parse::storeLocationStr(std::string &line)
@@ -173,91 +190,39 @@ std::string Parse::storeLocationStr(std::string &line)
     line = line.substr(8);
     if (!isWhiteSpace(line[0]))
     {
-        throw std::runtime_error("location syntax error: location과 디렉토리 사이의 공백문자 필수");
+        throw std::runtime_error("");
     }
     trimLine(line);
-    while (!mFile.eof() && line.size() == 0)
-    {
-        ftGetLine(mFile, line);
-    }
-    if (mFile.eof())
-    {
-        throw std::runtime_error("conf file syntax error: location 블록 실종");
-    }
-    if (line[0] != '/')
-    {
-        throw std::runtime_error("locaiton block syntax error: location 경로 에러");
-    }
-    size_t pos;
-    if ((pos = line.find("{")) != std::string::npos)
-    {
-        std::string tmp = line.substr(0, pos);
-        trimLine(tmp);
-        locationStr += tmp + ";";
-        line = line.substr(pos);
-    }
-    else
-    {
-        locationStr += line + ";";
-        ftGetLine(mFile, line);
-    }
+    checkLocationPath(line, locationStr);
+    checkOpenBrace(line);
 
-    while (!mFile.eof() && line.size() == 0)
+    while (!mFile.eof() || line.size() != 0)
     {
-        ftGetLine(mFile, line);
-    }
-    if (mFile.eof() || line[0] != '{')
-    {
-        throw std::runtime_error("conf file syntax error: 괄호 에러");
-    }
-    ++mDepth;
-
-    line = line.substr(1);
-    trimLine(line);
-    while (!mFile.eof())
-    {
+        if (line.size() == 0)
+        {
+            ftGetLine(mFile, line);
+        }
         if (line[0] == '}')
         {
-            --mDepth;
-            if (line.size() == 1)
-            {
-                ftGetLine(mFile, line);
-            }
-            else
-            {
-                line = line.substr(1);
-                trimLine(line);
-            }
+            checkCloseBrace(line);
             return locationStr;
         }
         else
         {
-            pos = line.find("}");
-            if (pos != std::string::npos)
-            {
-                locationStr += line.substr(0, pos);
-                line = line.substr(pos);
-                trimLine(line);
-            }
-            else
-            {
-                locationStr += line;
-                ftGetLine(mFile, line);
-            }
+            parseElseLine(locationStr, line);
         }
     }
-    throw std::runtime_error("location block error: location 블록이 안닫힘");
 }
 
 void Parse::test()
 {
-    std::cout << "http 스트링: " << mHttpStr << std::endl;
+    std::cout << "http 스트링:" << mHttpStr << std::endl;
     for (auto tmp : mServerLocPairs)
     {
-        std::cout << "server 스트링: " << tmp.first << std::endl;
+        std::cout << "server 스트링:" << tmp.first << std::endl;
         for (auto tmp2 : tmp.second)
         {
-            std::cout << "location 스트링: " << tmp2 << std::endl;
+            std::cout << "location 스트링:" << tmp2 << std::endl;
         }
     }
 }
