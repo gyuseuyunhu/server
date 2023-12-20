@@ -16,7 +16,7 @@ class Parse
     std::vector<ServerLocPair> mServerLocPairs; // location 블록 경로는 LocationVec의 요소의 첫번째로 저장 ;으로 구분
     void storeHttpStr(std::string &line);
     void storeServerStr(std::string &line);
-    const std::string &storeLocationStr(std::string &line);
+    std::string storeLocationStr(std::string &line);
 
   public:
     Parse(const char *path);
