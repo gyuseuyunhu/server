@@ -5,10 +5,8 @@
 
 class LocationDirective : public ADirective
 {
-  protected:
-    virtual void initDirectiveMap();
-
   public:
     LocationDirective();
+    virtual void initDirectiveMap();
 };
 #endif

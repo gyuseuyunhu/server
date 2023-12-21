@@ -5,10 +5,8 @@
 
 class ServerDirective : public ADirective
 {
-  protected:
-    virtual void initDirectiveMap();
-
   public:
     ServerDirective();
+    virtual void initDirectiveMap();
 };
 #endif
