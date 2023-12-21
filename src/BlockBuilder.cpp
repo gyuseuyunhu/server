@@ -6,7 +6,6 @@ BlockBuilder::BlockBuilder()
     : mRoot("html"), mClientMaxBodySize(1000000), mPort(80), mServerName(""), mRedirectionCode(200),
       mIsAutoIndex(false), mIsAllowedGet(true), mIsAllowedPost(true), mIsAllowedDelete(true)
 {
-    mIndexs.push_back("index.html");
 }
 
 std::string BlockBuilder::reduceMultipleSpaces(std::string token)
@@ -42,11 +41,11 @@ unsigned int BlockBuilder::convertNumber(const std::string &valueString, bool ha
     value = std::strtod(valueString.c_str(), &checkPtr);
     if (value < 0)
     {
-        throw std::runtime_error(std::to_string(value) + ": invalid max_body_size1");
+        throw std::runtime_error("Error : BlockBuilder::convertNumber() invalid max_body_size" + valueString);
     }
     else if (value == 0 && *checkPtr != '\0')
     {
-        throw std::runtime_error(valueString + ": invalid max_body_size2");
+        throw std::runtime_error("Error : BlockBuilder::convertNumber() invalid max_body_size" + valueString);
     }
 
     if (hasUnit == true)
@@ -54,29 +53,29 @@ unsigned int BlockBuilder::convertNumber(const std::string &valueString, bool ha
         switch (*checkPtr)
         {
         case 'k':
-            // 의도적인 fallthrough
+            /*fall through*/
         case 'K':
             value *= killo;
             break;
         case 'm':
-            // 의도적인 fallthrough
+            /*fall through*/
         case 'M':
             value *= mega;
             break;
         case 'g':
-            // 의도적인 fallthrough
+            /*fall through*/
         case 'G':
             value *= giga;
             break;
         case '\0':
             break;
         default:
-            throw std::runtime_error(valueString + ": invalid max_body_size3");
+            throw std::runtime_error("Error : BlockBuilder::convertNumber() invalid max_body_size" + valueString);
             break;
         }
         if (*checkPtr != '\0' && *(checkPtr + 1) != '\0')
         {
-            throw std::runtime_error(valueString + ": invalid max_body_size4");
+            throw std::runtime_error("Error : BlockBuilder::convertNumber() invalid max_body_size" + valueString);
         }
     }
     else
@@ -91,9 +90,11 @@ unsigned int BlockBuilder::convertNumber(const std::string &valueString, bool ha
 
 void BlockBuilder::parseConfig(const enum blockType blockType, const std::string &configString)
 {
-
     std::istringstream iss(configString);
     std::string token;
+    bool isFirstIndex = true;
+    bool isFirstErrorPage = true;
+
     mServerDirective.initDirectiveMap();
     mLocationDirective.initDirectiveMap();
 
@@ -125,7 +126,7 @@ void BlockBuilder::parseConfig(const enum blockType blockType, const std::string
                 keyValue = subtoken;
                 continue;
             }
-            updateConfig(keyValue, subtoken, isFirstValue);
+            updateConfig(keyValue, subtoken, isFirstValue, isFirstIndex, isFirstErrorPage);
             isValue = true;
             isFirstValue = false;
         }
@@ -136,10 +137,15 @@ void BlockBuilder::parseConfig(const enum blockType blockType, const std::string
                 throw std::runtime_error("Error: BlockBuilder::parseConfig() no value\n" + subtoken);
             }
         }
+        if (mIndexs.size() == 0)
+        {
+            mIndexs.push_back("index.html");
+        }
     }
 }
 
-void BlockBuilder::updateConfig(const std::string &key, const std::string &value, bool isFirstValue)
+void BlockBuilder::updateConfig(const std::string &key, const std::string &value, bool isFirstValue, bool &isFirstIndex,
+                                bool &isFirstErrorPage)
 {
     if (key == "root")
     {
@@ -147,17 +153,19 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     }
     else if (key == "index")
     {
-        if (isFirstValue == true)
+        if (isFirstIndex == true)
         {
             mIndexs.clear();
+            isFirstIndex = false;
         }
         mIndexs.push_back(value);
     }
     else if (key == "error_page")
     {
-        if (isFirstValue == true)
+        if (isFirstErrorPage == true)
         {
             mErrorPages.clear();
+            isFirstErrorPage = false;
         }
         mErrorPages.push_back(value);
     }

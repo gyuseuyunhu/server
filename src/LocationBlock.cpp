@@ -33,6 +33,7 @@ LocationBlock &LocationBlock::operator=(const LocationBlock &rhs)
 
 std::ostream &operator<<(std::ostream &os, LocationBlock &locationBlock)
 {
+    os << "LocationPath : " << locationBlock.mLocationPath << std::endl;
     os << "root : " << locationBlock.mRoot << std::endl;
 
     std::vector<std::string>::iterator it = locationBlock.mIndexs.begin();
@@ -59,7 +60,6 @@ std::ostream &operator<<(std::ostream &os, LocationBlock &locationBlock)
     os << "redirectionCode : " << locationBlock.mRedirectionCode << "    ";
     os << "redirectionPath : " << locationBlock.mRedirectionPath << std::endl;
 
-    os << "LocationPath : " << locationBlock.mLocationPath << std::endl;
     os << "isAutoIndex : " << std::boolalpha << locationBlock.mIsAutoIndex << std::endl;
     os << "isAllowedGet: " << std::boolalpha << locationBlock.mIsAllowedGet << std::endl;
     os << "isAllowedPost : " << std::boolalpha << locationBlock.mIsAllowedPost << std::endl;

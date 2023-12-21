@@ -48,7 +48,8 @@ class BlockBuilder
     HttpDirective mHttpDirective;
     ServerDirective mServerDirective;
     LocationDirective mLocationDirective;
-    void updateConfig(const std::string &key, const std::string &value, bool isFirstValue);
+    void updateConfig(const std::string &key, const std::string &value, bool isFirstValue, bool &isFirstIndex,
+                      bool &isFirstErrorPage);
     std::string reduceMultipleSpaces(std::string token);
     unsigned int convertNumber(const std::string &valueString, bool hasUnit);
 
