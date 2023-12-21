@@ -172,6 +172,7 @@ void Parse::storeServerStr(std::string &line)
         {
             checkCloseBrace(line);
             mServerLocPairs.push_back(std::make_pair(serverStr, locationStrVec));
+            return;
         }
         else if (line.find("location") == 0)
         {
