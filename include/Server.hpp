@@ -5,15 +5,19 @@
 #include <sys/socket.h>
 #include <vector>
 
+#include "LocationBlock.hpp"
+#include "ServerBlock.hpp"
+
 class ServerBlock;
 
 class Server
 {
   private:
-    // const int mSocketFd;
-    // const unsigned int mPort;
-    // std::string mListenIp;
-    // std::vector<ServerBlock> mServerBlocks;
+    typedef std::vector<LocationBlock> LocationBlocks;
+    const int mSocket;
+    const unsigned int mPort;
+    std::vector<ServerBlock> mServerBlocks;
+    std::vector<LocationBlocks> mLocationBlocks;
 
   public:
 };
