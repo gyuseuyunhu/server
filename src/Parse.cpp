@@ -206,24 +206,22 @@ std::string Parse::storeLocationStr(std::string &line)
         if (line[0] == '}')
         {
             checkCloseBrace(line);
-            return locationStr;
+            break;
         }
         else
         {
             parseElseLine(locationStr, line);
         }
     }
+    return locationStr;
 }
 
-void Parse::test()
+const std::string &Parse::getHttpStr() const
 {
-    std::cout << "http 스트링:" << mHttpStr << std::endl;
-    for (auto tmp : mServerLocPairs)
-    {
-        std::cout << "server 스트링:" << tmp.first << std::endl;
-        for (auto tmp2 : tmp.second)
-        {
-            std::cout << "location 스트링:" << tmp2 << std::endl;
-        }
-    }
+    return mHttpStr;
+}
+
+const std::vector<Parse::ServerLocPair> &Parse::getServerLocPairs() const
+{
+    return mServerLocPairs;
 }
