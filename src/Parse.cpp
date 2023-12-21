@@ -67,12 +67,12 @@ void Parse::checkLocationPath(std::string &line, std::string &locationStr)
         {
             throw std::runtime_error("Error Parse::checkLocationPath(): Location Path가 없습니다.");
         }
-        locationStr += tmp + ";";
+        locationStr += "path " + tmp + ";";
         line = line.substr(pos);
     }
     else
     {
-        locationStr += line + ";";
+        locationStr += "path " + line + ";";
         ftGetLine(mFile, line);
     }
 }
