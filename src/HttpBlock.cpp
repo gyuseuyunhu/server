@@ -7,6 +7,14 @@ HttpBlock::HttpBlock(std::string root, std::vector<std::string> indexs, std::vec
 {
 }
 
+HttpBlock::HttpBlock(const HttpBlock &other)
+{
+    if (this != &other)
+    {
+        *this = other;
+    }
+}
+
 HttpBlock &HttpBlock::operator=(const HttpBlock &rhs)
 {
     if (this != &rhs)

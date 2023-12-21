@@ -22,20 +22,31 @@ enum unit
     giga = 100000000,
 };
 
+typedef std::vector<std::string> LocationVec;
+typedef std::pair<std::string, LocationVec> ServerLocPair;
+typedef std::vector<LocationBlock> LocationList;
+typedef std::pair<ServerBlock, LocationList> ServerWithLocations;
+
 class Config
 {
   private:
     Config();
     Config &operator=(const Config &rhs);
+    // clang-format off
+    Config(HttpBlock httpBlock, std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups);
+    // clang-format on
+
     static Config *mInstance;
     static HttpBlock mHttpBlock;
+    std::vector<ServerWithLocations> ServerList;
     // clang-format off
-		const std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups;
-		Config(HttpBlock httpBlock, std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups);
+    //std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups;
     // clang-format on
     static HttpBlock createHttpBlock(std::string httpStr);
+    static ServerWithLocations createServerWithLocations(HttpBlock httpBlock, ServerLocPair serverLocPair);
+    static LocationBlock createLocationBlock(ServerBlock serverBlock, std::string locationStr);
     static std::string reduceMultipleSpaces(std::string token);
-    static unsigned int convertBodySize(std::string &valueString);
+    static unsigned int convertNumber(std::string &valueString, bool hasUnit);
 
   public:
     // ~Config();
