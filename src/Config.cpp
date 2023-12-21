@@ -31,6 +31,7 @@ Config::Config(std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > >
         std::vector<LocationBlock> locationBlocks;
         for (size_t j = 0; j < locationStrings.size(); ++j)
         {
+            builder.resetLocationBlockConfig();
             builder.parseConfig(Location, locationStrings[j]);
             LocationBlock locationBlock = builder.buildLocationBlock();
             // 디버그용 print

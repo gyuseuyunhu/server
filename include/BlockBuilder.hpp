@@ -59,6 +59,7 @@ class BlockBuilder
     ServerBlock buildServerBlock() const;
     LocationBlock buildLocationBlock() const;
     void resetServerBlockConfig();
+    void resetLocationBlockConfig();
 };
 
 #endif // BLOCKBUILDER_HPP

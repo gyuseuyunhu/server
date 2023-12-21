@@ -3,8 +3,8 @@
 #include <sstream>
 
 BlockBuilder::BlockBuilder()
-    : mRoot("html"), mClientMaxBodySize(1000000), mPort(80), mServerName(""), mRedirectionCode(42), mIsAutoIndex(false),
-      mIsAllowedGet(true), mIsAllowedPost(true), mIsAllowedDelete(true)
+    : mRoot("html"), mClientMaxBodySize(1000000), mPort(80), mServerName(""), mRedirectionCode(200),
+      mIsAutoIndex(false), mIsAllowedGet(true), mIsAllowedPost(true), mIsAllowedDelete(true)
 {
     mIndexs.push_back("index.html");
 }
@@ -273,8 +273,16 @@ void BlockBuilder::resetServerBlockConfig()
 {
     mPort = 80;
     mServerName = "";
-    mRedirectionCode = 42;
+    mRedirectionCode = 200;
     mRedirectionPath.clear();
+}
+
+void BlockBuilder::resetLocationBlockConfig()
+{
+    mIsAutoIndex = false;
+    mIsAllowedGet = true;
+    mIsAllowedPost = true;
+    mIsAllowedDelete = true;
 }
 
 HttpBlock BlockBuilder::buildHttpBlock() const
