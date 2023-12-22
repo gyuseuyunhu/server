@@ -277,16 +277,28 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     }
 }
 
-void BlockBuilder::resetServerBlockConfig()
+void BlockBuilder::resetServerBlockConfig(const HttpBlock &httpBlock)
 {
+    mRoot = httpBlock.getRoot();
+    mIndexs = httpBlock.getIndexs();
+    mErrorPages = httpBlock.getErrorPages();
+    mClientMaxBodySize = httpBlock.getClientMaxBodySize();
     mPort = 80;
     mServerName = "";
     mRedirectionCode = 200;
     mRedirectionPath.clear();
 }
 
-void BlockBuilder::resetLocationBlockConfig()
+void BlockBuilder::resetLocationBlockConfig(const ServerBlock &serverBlock)
 {
+    mRoot = serverBlock.getRoot();
+    mIndexs = serverBlock.getIndexs();
+    mErrorPages = serverBlock.getErrorPages();
+    mClientMaxBodySize = serverBlock.getClientMaxBodySize();
+    mPort = serverBlock.getPort();
+    mServerName = serverBlock.getServerName();
+    mRedirectionCode = serverBlock.getRedirectionCode();
+    mRedirectionPath = serverBlock.getRedirectionPath();
     mIsAutoIndex = false;
     mIsAllowedGet = true;
     mIsAllowedPost = true;

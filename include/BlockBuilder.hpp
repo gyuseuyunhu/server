@@ -59,8 +59,8 @@ class BlockBuilder
     HttpBlock buildHttpBlock() const;
     ServerBlock buildServerBlock() const;
     LocationBlock buildLocationBlock() const;
-    void resetServerBlockConfig();
-    void resetLocationBlockConfig();
+    void resetServerBlockConfig(const HttpBlock &httpBlock);
+    void resetLocationBlockConfig(const ServerBlock &serverBLock);
 };
 
 #endif // BLOCKBUILDER_HPP
