@@ -8,10 +8,11 @@ SRCS = main.cpp \
 			 HttpDirective.cpp \
 			 ServerDirective.cpp \
 			 LocationDirective.cpp \
-			 Parse.cpp \
 			 Server.cpp \
 			 ServerBlock.cpp \
-			 util.cpp 
+			 util.cpp \
+			 BlockBuilder.cpp \
+			 Parse.cpp \
 
 INC = include
 

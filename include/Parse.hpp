@@ -28,7 +28,8 @@ class Parse
   public:
     Parse(const char *path);
     ~Parse();
-    void test();
+    const std::string &getHttpStr() const;
+    const std::vector<ServerLocPair> &getServerLocPairs() const;
 };
 
 #endif

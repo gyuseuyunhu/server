@@ -7,6 +7,8 @@ LocationDirective::LocationDirective() : ADirective()
 
 void LocationDirective::initDirectiveMap()
 {
+    // location /hi 면 /hi가 path
+    mDirective["path"] = 1;
     mDirective["root"] = 1;
     mDirective["index"] = std::numeric_limits<int>::max();
     mDirective["error_page"] = std::numeric_limits<int>::max();
