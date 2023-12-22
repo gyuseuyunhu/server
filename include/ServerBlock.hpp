@@ -22,7 +22,11 @@ class ServerBlock : public HttpBlock
                 std::string redirectionPath);
     ServerBlock(const ServerBlock &other);
     ServerBlock &operator=(const ServerBlock &rhs);
-    friend std::ostream &operator<<(std::ostream &os, ServerBlock &serverBlock);
+    unsigned int getPort() const;
+    const std::string &getServerName() const;
+    unsigned int getRedirectionCode() const;
+    const std::string &getRedirectionPath() const;
+    friend std::ostream &operator<<(std::ostream &os, const ServerBlock &serverBlock);
 };
 
 #endif

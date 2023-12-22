@@ -31,12 +31,12 @@ LocationBlock &LocationBlock::operator=(const LocationBlock &rhs)
     return *this;
 }
 
-std::ostream &operator<<(std::ostream &os, LocationBlock &locationBlock)
+std::ostream &operator<<(std::ostream &os, const LocationBlock &locationBlock)
 {
     os << "LocationPath : " << locationBlock.mLocationPath << std::endl;
     os << "root : " << locationBlock.mRoot << std::endl;
 
-    std::vector<std::string>::iterator it = locationBlock.mIndexs.begin();
+    std::vector<std::string>::const_iterator it = locationBlock.mIndexs.begin();
 
     os << "index : ";
     for (; it != locationBlock.mIndexs.end(); ++it)

@@ -27,11 +27,31 @@ HttpBlock &HttpBlock::operator=(const HttpBlock &rhs)
     return *this;
 }
 
-std::ostream &operator<<(std::ostream &os, HttpBlock &httpBlock)
+const std::string &HttpBlock::getRoot() const
+{
+    return mRoot;
+}
+
+const std::vector<std::string> &HttpBlock::getIndexs() const
+{
+    return mIndexs;
+}
+
+const std::vector<std::string> &HttpBlock::getErrorPages() const
+{
+    return mErrorPages;
+}
+
+unsigned int HttpBlock::getClientMaxBodySize() const
+{
+    return mClientMaxBodySize;
+}
+
+std::ostream &operator<<(std::ostream &os, const HttpBlock &httpBlock)
 {
     os << "root : " << httpBlock.mRoot << std::endl;
 
-    std::vector<std::string>::iterator it = httpBlock.mIndexs.begin();
+    std::vector<std::string>::const_iterator it = httpBlock.mIndexs.begin();
 
     os << "index : ";
     for (; it != httpBlock.mIndexs.end(); ++it)

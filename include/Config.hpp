@@ -5,6 +5,7 @@
 #include "HttpBlock.hpp"
 #include "LocationBlock.hpp"
 #include "ServerBlock.hpp"
+#include "ServerInfo.hpp"
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -14,8 +15,6 @@
 
 typedef std::vector<std::string> LocationVec;
 typedef std::pair<std::string, LocationVec> ServerLocPair;
-typedef std::vector<LocationBlock> LocationList;
-typedef std::pair<ServerBlock, LocationList> ServerWithLocations;
 
 class Config
 {
@@ -23,10 +22,11 @@ class Config
     Config();
     Config &operator=(const Config &rhs);
     // clang-format off
-    Config(std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups);
-		static std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups;
+    Config(std::vector<ServerInfo> serverInfos);
+		static std::vector<ServerInfo> mServerInfos;
+    // Config(std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups);
+		// static std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups;
     // clang-format on
-
     static Config *mInstance;
 
   public:
@@ -35,7 +35,6 @@ class Config
     // clang-format on
     static Config &getInstance();
     static void deleteInstance(); // 새로운 config를 만들고 싶을때?
-
-    static const std::vector<ServerWithLocations> &getServerBlockGroups();
+    static const std::vector<ServerInfo> &getServerInfos();
 };
 #endif

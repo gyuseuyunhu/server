@@ -1,46 +1,49 @@
 #include "Config.hpp"
 
-Config *Config::mInstance = NULL;                            // Definition of mInstance
-std::vector<ServerWithLocations> Config::mServerBlockGroups; // Definition of ServerBlockGroups
+Config *Config::mInstance = NULL;             // Definition of mInstance
+std::vector<ServerInfo> Config::mServerInfos; // Definition of ServerBlockGroups
 
-// clang-format off
-Config::Config(std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > serverBlockGroups)
-// clang-format on
+Config::Config(std::vector<ServerInfo> serverInfos)
 {
-    mServerBlockGroups = serverBlockGroups;
+    mServerInfos = serverInfos;
+    // 디버그용 프린트
+    std::vector<ServerInfo>::const_iterator it = mServerInfos.begin();
+    for (; it != mServerInfos.end(); ++it)
+    {
+        std::cout << "*------------*" << std::endl;
+        std::cout << *it << std::endl;
+        std::cout << "*------------*" << std::endl;
+    }
 }
 
 // clang-format off
-	void Config::createInstance(std::string httpString, std::vector<std::pair<std::string, std::vector<std::string> > > mServerStr)
+void Config::createInstance(std::string httpString, std::vector<std::pair<std::string, std::vector<std::string> > > mServerStr)
 // clang-format on
 {
     BlockBuilder builder;
     builder.parseConfig(Http, httpString);
+    const HttpBlock httpblock = builder.buildHttpBlock();
 
     for (size_t i = 0; i < mServerStr.size(); ++i)
     {
-        builder.resetServerBlockConfig();
+        builder.resetServerBlockConfig(httpblock);
         const std::string &serverString = mServerStr[i].first;
         const std::vector<std::string> &locationStrings = mServerStr[i].second;
 
         builder.parseConfig(Server, serverString);
         ServerBlock serverBlock = builder.buildServerBlock();
-        // 디버그용 print
-        std::cout << "server : " << std::endl << serverBlock << std::endl;
 
         std::vector<LocationBlock> locationBlocks;
         for (size_t j = 0; j < locationStrings.size(); ++j)
         {
-            builder.resetLocationBlockConfig();
+            builder.resetLocationBlockConfig(serverBlock);
             builder.parseConfig(Location, locationStrings[j]);
             LocationBlock locationBlock = builder.buildLocationBlock();
-            // 디버그용 print
-            std::cout << "location :" << std::endl << locationBlock << std::endl;
             locationBlocks.push_back(locationBlock);
         }
-        mServerBlockGroups.push_back(std::make_pair(serverBlock, locationBlocks));
+        mServerInfos.push_back(ServerInfo(serverBlock, locationBlocks));
     }
-    mInstance = new Config(mServerBlockGroups);
+    mInstance = new Config(mServerInfos);
 }
 
 Config &Config::getInstance()
@@ -62,7 +65,7 @@ void Config::deleteInstance()
     mInstance = NULL;
 }
 
-const std::vector<ServerWithLocations> &Config::getServerBlockGroups()
+const std::vector<ServerInfo> &Config::getServerInfos()
 {
-    return mServerBlockGroups;
+    return mServerInfos;
 }
