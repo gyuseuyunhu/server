@@ -11,6 +11,7 @@ class AEvent
     const Server &mServer;
 
   public:
+    AEvent(const Server &server);
     virtual void handle() = 0;
 };
 
