@@ -26,8 +26,13 @@ class HttpBlock
               unsigned int clientMaxBodySize);
     HttpBlock(const HttpBlock &other);
     HttpBlock &operator=(const HttpBlock &rhs);
+
+    const std::string &getRoot() const;
+    const std::vector<std::string> &getIndexs() const;
+    const std::vector<std::string> &getErrorPages() const;
+    unsigned int getClientMaxBodySize() const;
     // todo : friend 없애야함
-    friend std::ostream &operator<<(std::ostream &os, HttpBlock &httpBlock);
+    friend std::ostream &operator<<(std::ostream &os, const HttpBlock &httpBlock);
 };
 
 #endif

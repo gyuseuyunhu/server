@@ -33,3 +33,54 @@ ServerBlock &ServerBlock::operator=(const ServerBlock &rhs)
     }
     return *this;
 }
+
+unsigned int ServerBlock::getPort() const
+{
+    return mPort;
+}
+
+const std::string &ServerBlock::getServerName() const
+{
+    return mServerName;
+}
+
+unsigned int ServerBlock::getRedirectionCode() const
+{
+    return mRedirectionCode;
+}
+
+const std::string &ServerBlock::getRedirectionPath() const
+{
+    return mRedirectionPath;
+}
+
+std::ostream &operator<<(std::ostream &os, const ServerBlock &serverBlock)
+{
+    os << "root : " << serverBlock.mRoot << std::endl;
+
+    std::vector<std::string>::const_iterator it = serverBlock.mIndexs.begin();
+
+    os << "index : ";
+    for (; it != serverBlock.mIndexs.end(); ++it)
+    {
+        os << *it << " ";
+    }
+    os << std::endl;
+
+    os << "errorPages : ";
+    it = serverBlock.mErrorPages.begin();
+    for (; it != serverBlock.mErrorPages.end(); ++it)
+    {
+        os << *it << " ";
+    }
+    os << std::endl;
+
+    os << "clientMaxBodySize : " << serverBlock.mClientMaxBodySize << std::endl;
+
+    os << "port : " << serverBlock.mPort << std::endl;
+    os << "serverName : " << serverBlock.mServerName << std::endl;
+    os << "redirectionCode : " << serverBlock.mRedirectionCode << "    ";
+    os << "redirectionPath : " << serverBlock.mRedirectionPath << std::endl;
+
+    return os;
+}

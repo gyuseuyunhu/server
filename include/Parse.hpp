@@ -1,19 +1,17 @@
 #ifndef PARSE_HPP
 #define PARSE_HPP
 
+#include "ServerInfoStr.hpp"
 #include <fstream>
 #include <iostream>
-#include <vector>
 
 class Parse
 {
   private:
-    typedef std::vector<std::string> LocationVec;
-    typedef std::pair<std::string, LocationVec> ServerLocPair;
     std::ifstream mFile;
     int mDepth;
     std::string mHttpStr;
-    std::vector<ServerLocPair> mServerLocPairs;
+    std::vector<ServerInfoStr> mServerInfoStrs;
     void storeHttpStr(std::string &line);
     void storeServerStr(std::string &line);
     std::string storeLocationStr(std::string &line);
@@ -28,7 +26,8 @@ class Parse
   public:
     Parse(const char *path);
     ~Parse();
-    void test();
+    const std::string &getHttpStr() const;
+    const std::vector<ServerInfoStr> &getServerInfoStrs() const;
 };
 
 #endif

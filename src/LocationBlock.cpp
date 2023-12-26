@@ -30,3 +30,39 @@ LocationBlock &LocationBlock::operator=(const LocationBlock &rhs)
     }
     return *this;
 }
+
+std::ostream &operator<<(std::ostream &os, const LocationBlock &locationBlock)
+{
+    os << "LocationPath : " << locationBlock.mLocationPath << std::endl;
+    os << "root : " << locationBlock.mRoot << std::endl;
+
+    std::vector<std::string>::const_iterator it = locationBlock.mIndexs.begin();
+
+    os << "index : ";
+    for (; it != locationBlock.mIndexs.end(); ++it)
+    {
+        os << *it << " ";
+    }
+    os << std::endl;
+
+    os << "errorPages : ";
+    it = locationBlock.mErrorPages.begin();
+    for (; it != locationBlock.mErrorPages.end(); ++it)
+    {
+        os << *it << " ";
+    }
+    os << std::endl;
+
+    os << "clientMaxBodySize : " << locationBlock.mClientMaxBodySize << std::endl;
+
+    os << "port : " << locationBlock.mPort << std::endl;
+    os << "serverName : " << locationBlock.mServerName << std::endl;
+    os << "redirectionCode : " << locationBlock.mRedirectionCode << "    ";
+    os << "redirectionPath : " << locationBlock.mRedirectionPath << std::endl;
+
+    os << "isAutoIndex : " << std::boolalpha << locationBlock.mIsAutoIndex << std::endl;
+    os << "isAllowedGet: " << std::boolalpha << locationBlock.mIsAllowedGet << std::endl;
+    os << "isAllowedPost : " << std::boolalpha << locationBlock.mIsAllowedPost << std::endl;
+    os << "isAllowedDelete : " << std::boolalpha << locationBlock.mIsAllowedDelete << std::endl;
+    return os;
+}

@@ -67,12 +67,12 @@ void Parse::checkLocationPath(std::string &line, std::string &locationStr)
         {
             throw std::runtime_error("Error Parse::checkLocationPath(): Location Path가 없습니다.");
         }
-        locationStr += tmp + ";";
+        locationStr += "path " + tmp + ";";
         line = line.substr(pos);
     }
     else
     {
-        locationStr += line + ";";
+        locationStr += "path " + line + ";";
         ftGetLine(mFile, line);
     }
 }
@@ -124,13 +124,13 @@ Parse::Parse(const char *path)
 
 Parse::~Parse()
 {
-    mServerLocPairs.clear();
+    mServerInfoStrs.clear();
 }
 
 void Parse::storeHttpStr(std::string &line)
 {
     mHttpStr = "";
-    mServerLocPairs.clear();
+    mServerInfoStrs.clear();
 
     skipDirective(line, std::strlen("http"));
     while (!mFile.eof() || line.size() != 0)
@@ -158,7 +158,7 @@ void Parse::storeHttpStr(std::string &line)
 void Parse::storeServerStr(std::string &line)
 {
     std::string serverStr;
-    LocationVec locationStrVec;
+    std::vector<std::string> locationStrVec;
 
     skipDirective(line, std::strlen("server"));
 
@@ -171,7 +171,8 @@ void Parse::storeServerStr(std::string &line)
         if (line[0] == '}')
         {
             checkCloseBrace(line);
-            mServerLocPairs.push_back(std::make_pair(serverStr, locationStrVec));
+            mServerInfoStrs.push_back(ServerInfoStr(serverStr, locationStrVec));
+            return;
         }
         else if (line.find("location") == 0)
         {
@@ -205,24 +206,22 @@ std::string Parse::storeLocationStr(std::string &line)
         if (line[0] == '}')
         {
             checkCloseBrace(line);
-            return locationStr;
+            break;
         }
         else
         {
             parseElseLine(locationStr, line);
         }
     }
+    return locationStr;
 }
 
-void Parse::test()
+const std::string &Parse::getHttpStr() const
 {
-    std::cout << "http 스트링:" << mHttpStr << std::endl;
-    for (auto tmp : mServerLocPairs)
-    {
-        std::cout << "server 스트링:" << tmp.first << std::endl;
-        for (auto tmp2 : tmp.second)
-        {
-            std::cout << "location 스트링:" << tmp2 << std::endl;
-        }
-    }
+    return mHttpStr;
+}
+
+const std::vector<ServerInfoStr> &Parse::getServerInfoStrs() const
+{
+    return mServerInfoStrs;
 }
