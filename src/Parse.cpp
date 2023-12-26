@@ -124,13 +124,13 @@ Parse::Parse(const char *path)
 
 Parse::~Parse()
 {
-    mServerLocPairs.clear();
+    mServerInfoStrs.clear();
 }
 
 void Parse::storeHttpStr(std::string &line)
 {
     mHttpStr = "";
-    mServerLocPairs.clear();
+    mServerInfoStrs.clear();
 
     skipDirective(line, std::strlen("http"));
     while (!mFile.eof() || line.size() != 0)
@@ -158,7 +158,7 @@ void Parse::storeHttpStr(std::string &line)
 void Parse::storeServerStr(std::string &line)
 {
     std::string serverStr;
-    LocationVec locationStrVec;
+    std::vector<std::string> locationStrVec;
 
     skipDirective(line, std::strlen("server"));
 
@@ -171,7 +171,7 @@ void Parse::storeServerStr(std::string &line)
         if (line[0] == '}')
         {
             checkCloseBrace(line);
-            mServerLocPairs.push_back(std::make_pair(serverStr, locationStrVec));
+            mServerInfoStrs.push_back(ServerInfoStr(serverStr, locationStrVec));
             return;
         }
         else if (line.find("location") == 0)
@@ -221,7 +221,7 @@ const std::string &Parse::getHttpStr() const
     return mHttpStr;
 }
 
-const std::vector<Parse::ServerLocPair> &Parse::getServerLocPairs() const
+const std::vector<ServerInfoStr> &Parse::getServerInfoStrs() const
 {
-    return mServerLocPairs;
+    return mServerInfoStrs;
 }

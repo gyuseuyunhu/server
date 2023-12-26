@@ -6,15 +6,13 @@
 #include "LocationBlock.hpp"
 #include "ServerBlock.hpp"
 #include "ServerInfo.hpp"
+#include "ServerInfoStr.hpp"
 #include <cassert>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <vector>
-
-typedef std::vector<std::string> LocationVec;
-typedef std::pair<std::string, LocationVec> ServerLocPair;
 
 class Config
 {
@@ -30,9 +28,7 @@ class Config
     static Config *mInstance;
 
   public:
-    // clang-format off
-    static void createInstance(std::string httpString, std::vector<std::pair<std::string, std::vector<std::string> > > mServerStr);
-    // clang-format on
+    static void createInstance(const std::string &httpString, const std::vector<ServerInfoStr> &serverInfoStrs);
     static Config &getInstance();
     static void deleteInstance(); // 새로운 config를 만들고 싶을때?
     static const std::vector<ServerInfo> &getServerInfos();
