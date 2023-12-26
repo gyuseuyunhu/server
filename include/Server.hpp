@@ -5,21 +5,28 @@
 #include <sys/socket.h>
 #include <vector>
 
-#include "LocationBlock.hpp"
-#include "ServerBlock.hpp"
-
-class ServerBlock;
+#include "ServerInfo.hpp"
 
 class Server
 {
   private:
-    typedef std::vector<LocationBlock> LocationBlocks;
     const int mSocket;
     const unsigned int mPort;
-    std::vector<ServerBlock> mServerBlocks;
-    std::vector<LocationBlocks> mLocationBlocks;
+    std::vector<ServerInfo> mServerInfos;
 
   public:
+    Server(const ServerInfo &serverInfo);
+    // const Server &operator=(const Server &)
+    // {
+
+    //     return *this;
+    // }
+    const unsigned int &getPort() const;
+    const std::vector<ServerInfo> &getServerInfos() const;
+    void addServerInfo(const ServerInfo &serverInfo);
+
+    // Debugging - TODO : 추후 삭제
+    friend std::ostream &operator<<(std::ostream &os, const Server &serverb);
 };
 
 #endif
