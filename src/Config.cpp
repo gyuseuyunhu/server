@@ -46,7 +46,7 @@ void Config::createInstance(const std::string &httpString, const std::vector<Ser
     mInstance = new Config(mServerInfos);
 }
 
-Config &Config::getInstance()
+const Config &Config::getInstance()
 {
     if (mInstance == NULL)
     {
