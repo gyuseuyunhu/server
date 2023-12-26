@@ -1,4 +1,6 @@
 #include "Server.hpp"
+#include "Accept.hpp"
+#include "Kqueue.hpp"
 
 Server::Server(const ServerInfo &serverInfo)
     : mSocket(socket(AF_INET, SOCK_STREAM, 0)), mPort(serverInfo.getServerBlock().getPort())
@@ -6,11 +8,42 @@ Server::Server(const ServerInfo &serverInfo)
     mServerInfos.push_back(serverInfo);
     if (mSocket == -1)
     {
-        throw std::runtime_error("Error Server::Server() socket() - 소켓 생성 실패");
+        throw std::runtime_error("Error Server::Server(): socket() 소켓 생성 실패");
     }
 }
 
-const unsigned int &Server::getPort() const
+void Server::listen()
+{
+    struct sockaddr_in serverAddr;
+
+    // 서버 주소 설정
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_port = htons(mPort);
+
+    // 서버 소켓에 주소 바인딩
+    if (bind(mSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+    {
+        throw std::runtime_error("Error Server::listen(): 포트 bind 실패");
+    }
+
+    // 클라이언트 연결 대기
+    if (::listen(mSocket, 5) == -1)
+    {
+        throw std::runtime_error("Error Server::listen(): listen 실패");
+    }
+
+    struct kevent newEvent;
+    EV_SET(&newEvent, mSocket, EVFILT_READ, EV_ADD, 0, 0, new Accept(*this));
+    Kqueue::addEvent(newEvent);
+}
+
+const int Server::getSocket() const
+{
+    return mSocket;
+}
+
+const unsigned int Server::getPort() const
 {
     return mPort;
 }

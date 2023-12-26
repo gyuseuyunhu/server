@@ -19,6 +19,11 @@ ServerManager::ServerManager(const std::vector<ServerInfo> &serverInfos)
     {
         pushServerInfo(serverInfos[i]);
     }
+    for (size_t i = 0; i < mServers.size(); ++i)
+    {
+        mServers[i].listen();
+    }
+    Kqueue::pushAcceptEvent();
 }
 
 // 포트 번호 체크 및 결과값 반환
@@ -60,9 +65,8 @@ void ServerManager::run()
     // }
     // std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
     // Debugging
-
-    // while (1)
-    // {
-    //     Kqueue::handleEvents();
-    // }
+    while (1)
+    {
+        Kqueue::handleEvents();
+    }
 }

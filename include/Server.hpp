@@ -21,9 +21,11 @@ class Server
 
     //     return *this;
     // }
-    const unsigned int &getPort() const;
+		const int getSocket() const;
+    const unsigned int getPort() const;
     const std::vector<ServerInfo> &getServerInfos() const;
     void addServerInfo(const ServerInfo &serverInfo);
+    void listen();
 
     // Debugging - TODO : 추후 삭제
     friend std::ostream &operator<<(std::ostream &os, const Server &serverb);
