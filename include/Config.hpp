@@ -33,7 +33,7 @@ class Config
     // clang-format off
     static void createInstance(std::string httpString, std::vector<std::pair<std::string, std::vector<std::string> > > mServerStr);
     // clang-format on
-    static Config &getInstance();
+    static const Config &getInstance();
     static void deleteInstance(); // 새로운 config를 만들고 싶을때?
     static const std::vector<ServerInfo> &getServerInfos();
 };
