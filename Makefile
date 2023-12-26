@@ -14,6 +14,7 @@ SRCS = main.cpp \
 			 BlockBuilder.cpp \
 			 Parse.cpp \
 			 ServerInfo.cpp \
+			 ServerInfoStr.cpp \
 
 INC = include
 

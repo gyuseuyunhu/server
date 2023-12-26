@@ -17,18 +17,18 @@ Config::Config(std::vector<ServerInfo> serverInfos)
 }
 
 // clang-format off
-void Config::createInstance(std::string httpString, std::vector<std::pair<std::string, std::vector<std::string> > > mServerStr)
+void Config::createInstance(const std::string &httpString, const std::vector<ServerInfoStr> &serverInfoStrs)
 // clang-format on
 {
     BlockBuilder builder;
     builder.parseConfig(Http, httpString);
     const HttpBlock httpblock = builder.buildHttpBlock();
 
-    for (size_t i = 0; i < mServerStr.size(); ++i)
+    for (size_t i = 0; i < serverInfoStrs.size(); ++i)
     {
         builder.resetServerBlockConfig(httpblock);
-        const std::string &serverString = mServerStr[i].first;
-        const std::vector<std::string> &locationStrings = mServerStr[i].second;
+        const std::string &serverString = serverInfoStrs[i].getServerStr();
+        const std::vector<std::string> &locationStrings = serverInfoStrs[i].getLocationStrs();
 
         builder.parseConfig(Server, serverString);
         ServerBlock serverBlock = builder.buildServerBlock();
