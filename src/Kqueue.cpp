@@ -28,4 +28,18 @@ void Kqueue::handleEvents()
     {
         reinterpret_cast<AEvent *>(mHandleEvents[i].udata)->handle();
     }
+    if (!mNewEvents.empty())
+    {
+        mNewEvents.clear();
+    }
+}
+
+void Kqueue::pushAcceptEvent()
+{
+    int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), NULL, 0, NULL);
+    if (n == -1)
+    {
+        throw std::runtime_error("Error Kqueue::pushAcceptEvent(): kqueue에 accept 이벤트 넣기 실패");
+    }
+    mNewEvents.clear();
 }
