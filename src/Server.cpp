@@ -70,13 +70,13 @@ void Server::addServerInfo(const ServerInfo &serverInfo)
 //    - 있으면 301 없으면 404
 //    - 폴더이면 autoindex가 있는지 확인
 //    - on이면 autoindex, off 이면 404
-const std::vector<std::string> Server::getFilePath(const std::string &host, const std::string &path,
-                                                   bool &isFolder) const
+const std::vector<std::string> Server::getFilePath(const std::string &host, std::string &path, bool &isFolder) const
 {
     std::vector<ServerInfo>::const_iterator serverIt = mServerInfos.begin();
     std::vector<std::string> indexsPath;
     std::vector<std::string> filePath;
     std::string root;
+    std::string locationPath;
     ServerInfo targetServerInfo = *serverIt;
     ++serverIt;
     for (; serverIt != mServerInfos.end(); ++serverIt)
@@ -89,60 +89,54 @@ const std::vector<std::string> Server::getFilePath(const std::string &host, cons
 
     std::vector<LocationBlock>::const_iterator locIt = targetServerInfo.getLocationBlocks().begin();
     // 지금 location은 길이순으로 정렬이 되어 있는 상태
-    // location /abc/def/ {};, location /abc/의 경우
-    // get /abc/를 요청하면
-    // 두 번 find로 찾지만 결국엔 locaiton /abc/를 찾는다
+
     for (; locIt != targetServerInfo.getLocationBlocks().end(); ++locIt)
     {
-        if (locIt->getLocationPath().find(path) != std::string::npos)
+        if (path.find(locIt->getLocationPath()) == 0)
         {
+            locationPath = locIt->getLocationPath();
             indexsPath = locIt->getIndexs();
             root = locIt->getRoot();
+            break;
         }
     }
 
-    // 일치하지 않는 경우
-    // 1. location / 가 있는지 찾는다
+    // 서버 블록을 따라 간다.
     if (indexsPath.size() == 0)
-    {
-        --locIt;
-        if (locIt->getLocationPath() == "/")
-        {
-            indexsPath = locIt->getIndexs();
-            root = locIt->getRoot();
-        }
-    }
-    // 2. 아니면 서버 블록을 따라 간다.
-    else
     {
         indexsPath = targetServerInfo.getServerBlock().getIndexs();
         root = targetServerInfo.getServerBlock().getRoot();
+        locationPath = "";
     }
 
     // 폴더를 요청한 경우
     // index위치 벡터를 보내줌
+
+    // todo locationpath가 시작부분이 /로 시작한다고 가정함
+    assert(path[0] == '/');
+
+    // locationPath가 빈칸인 경우
+    // 일단 앞에 붙이는것으로 처리함
+    size_t pos = path.find(locationPath);
+    assert(pos != std::string::npos);
+    path.replace(pos, locationPath.length(), root);
+
+    // 폴더의 경우
     if (path[path.size() - 1] == '/')
     {
         isFolder = true;
         std::vector<std::string>::iterator indexIt = indexsPath.begin();
         for (; indexIt != indexsPath.end(); ++indexIt)
         {
-            *indexIt = root + *indexIt;
+            *indexIt = path + *indexIt;
         }
         return indexsPath;
     }
-    // 파일을 요청한 경우
-    // 파일위치를 보내줌
+    // 파일의 경우
     else
     {
         isFolder = false;
-        size_t pos = path.find_last_of('/');
-        if (pos == std::string::npos)
-        {
-            // 지금 논리상 여기 오면 안됨
-            assert(false);
-        }
-        filePath.push_back(root + path.substr(pos));
+        filePath.push_back(path);
         return filePath;
     }
 }
