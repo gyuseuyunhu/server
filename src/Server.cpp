@@ -61,11 +61,22 @@ void Server::addServerInfo(const ServerInfo &serverInfo)
     mServerInfos.push_back(serverInfo);
 }
 
-const std::vector<std::string> Server::getFilePath(const std::string &host, const std::string &path) const
+// 이걸 받는 response에서 해줘야 할것
+// 1. 반환값 iterator를 돌면서 open할 수 있는지 확인
+// 	  - 할 수 있으면 읽고 response 객체에 저장
+// 2. 다 돌았는데 open 할 수 있는게 없다!
+//    - autoindex, 301이 있음
+//    - 파일이면 같은이름의 폴더가 있는지 확인(opendir)
+//    - 있으면 301 없으면 404
+//    - 폴더이면 autoindex가 있는지 확인
+//    - on이면 autoindex, off 이면 404
+const std::vector<std::string> Server::getFilePath(const std::string &host, const std::string &path,
+                                                   bool &isFolder) const
 {
     std::vector<ServerInfo>::const_iterator serverIt = mServerInfos.begin();
-    std::vector<std::string> indexs;
-    std::string locationRoot;
+    std::vector<std::string> indexsPath;
+    std::vector<std::string> filePath;
+    std::string root;
     ServerInfo targetServerInfo = *serverIt;
     ++serverIt;
     for (; serverIt != mServerInfos.end(); ++serverIt)
@@ -76,23 +87,64 @@ const std::vector<std::string> Server::getFilePath(const std::string &host, cons
         }
     }
 
-    std::vector<LocationBlock>::const_iterator locIt = serverIt->getLocationBlocks().begin();
-    for (; locIt != serverIt->getLocationBlocks().end(); ++locIt)
+    std::vector<LocationBlock>::const_iterator locIt = targetServerInfo.getLocationBlocks().begin();
+    // 지금 location은 길이순으로 정렬이 되어 있는 상태
+    // location /abc/def/ {};, location /abc/의 경우
+    // get /abc/를 요청하면
+    // 두 번 find로 찾지만 결국엔 locaiton /abc/를 찾는다
+    for (; locIt != targetServerInfo.getLocationBlocks().end(); ++locIt)
     {
-        if (path == locIt->getLocationPath())
+        if (locIt->getLocationPath().find(path) != std::string::npos)
         {
-            indexs = locIt->getIndexs();
-            locationRoot = locIt->getRoot();
+            indexsPath = locIt->getIndexs();
+            root = locIt->getRoot();
         }
     }
-    // 경로가 일치 하지 않는 경우 어떻게 해야 할지 몰라서 일단 assert
-    assert(indexs.size() != 0);
-    std::vector<std::string>::iterator indexIt = indexs.begin();
-    for (; indexIt != indexs.end(); ++indexIt)
+
+    // 일치하지 않는 경우
+    // 1. location / 가 있는지 찾는다
+    if (indexsPath.size() == 0)
     {
-        *indexIt = locationRoot + *indexIt;
+        --locIt;
+        if (locIt->getLocationPath() == "/")
+        {
+            indexsPath = locIt->getIndexs();
+            root = locIt->getRoot();
+        }
     }
-    return indexs;
+    // 2. 아니면 서버 블록을 따라 간다.
+    else
+    {
+        indexsPath = targetServerInfo.getServerBlock().getIndexs();
+        root = targetServerInfo.getServerBlock().getRoot();
+    }
+
+    // 폴더를 요청한 경우
+    // index위치 벡터를 보내줌
+    if (path[path.size() - 1] == '/')
+    {
+        isFolder = true;
+        std::vector<std::string>::iterator indexIt = indexsPath.begin();
+        for (; indexIt != indexsPath.end(); ++indexIt)
+        {
+            *indexIt = root + *indexIt;
+        }
+        return indexsPath;
+    }
+    // 파일을 요청한 경우
+    // 파일위치를 보내줌
+    else
+    {
+        isFolder = false;
+        size_t pos = path.find_last_of('/');
+        if (pos == std::string::npos)
+        {
+            // 지금 논리상 여기 오면 안됨
+            assert(false);
+        }
+        filePath.push_back(root + path.substr(pos));
+        return filePath;
+    }
 }
 
 // Debugging TODO - 추후 삭제
