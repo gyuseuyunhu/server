@@ -46,12 +46,12 @@ void Server::listen()
     Kqueue::addEvent(newEvent);
 }
 
-const int Server::getSocket() const
+int Server::getSocket() const
 {
     return mSocket;
 }
 
-const unsigned int Server::getPort() const
+unsigned int Server::getPort() const
 {
     return mPort;
 }

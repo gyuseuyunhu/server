@@ -17,8 +17,8 @@ class Server
   public:
     Server(const ServerInfo &serverInfo);
     ~Server();
-    const int getSocket() const;
-    const unsigned int getPort() const;
+    int getSocket() const;
+    unsigned int getPort() const;
     const std::vector<ServerInfo> &getServerInfos() const;
     void addServerInfo(const ServerInfo &serverInfo);
     void listen();
