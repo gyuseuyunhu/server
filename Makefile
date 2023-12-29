@@ -15,7 +15,10 @@ SRCS = main.cpp \
 			 Parse.cpp \
 			 ServerInfo.cpp \
 			 ServerInfoStr.cpp \
-			 ServerManager.cpp
+			 ServerManager.cpp \
+			 Accept.cpp \
+			 AEvent.cpp \
+			 Kqueue.cpp \
 
 INC = include
 
