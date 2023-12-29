@@ -1,11 +1,13 @@
 #include "Server.hpp"
 #include "Accept.hpp"
 #include "Kqueue.hpp"
+#include <fcntl.h>
 #include <unistd.h>
 
 Server::Server(const ServerInfo &serverInfo)
     : mSocket(socket(AF_INET, SOCK_STREAM, 0)), mPort(serverInfo.getServerBlock().getPort())
 {
+    fcntl(mSocket, F_SETFL, O_NONBLOCK);
     mServerInfos.push_back(serverInfo);
     if (mSocket == -1)
     {
