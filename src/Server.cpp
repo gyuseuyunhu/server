@@ -61,6 +61,40 @@ void Server::addServerInfo(const ServerInfo &serverInfo)
     mServerInfos.push_back(serverInfo);
 }
 
+const std::vector<std::string> Server::getFilePath(const std::string &host, const std::string &path) const
+{
+    std::vector<ServerInfo>::const_iterator serverIt = mServerInfos.begin();
+    std::vector<std::string> indexs;
+    std::string locationRoot;
+    ServerInfo targetServerInfo = *serverIt;
+    ++serverIt;
+    for (; serverIt != mServerInfos.end(); ++serverIt)
+    {
+        if (host == serverIt->getServerBlock().getServerName())
+        {
+            targetServerInfo = *serverIt;
+        }
+    }
+
+    std::vector<LocationBlock>::const_iterator locIt = serverIt->getLocationBlocks().begin();
+    for (; locIt != serverIt->getLocationBlocks().end(); ++locIt)
+    {
+        if (path == locIt->getLocationPath())
+        {
+            indexs = locIt->getIndexs();
+            locationRoot = locIt->getRoot();
+        }
+    }
+    // 경로가 일치 하지 않는 경우 어떻게 해야 할지 몰라서 일단 assert
+    assert(indexs.size() != 0);
+    std::vector<std::string>::iterator indexIt = indexs.begin();
+    for (; indexIt != indexs.end(); ++indexIt)
+    {
+        *indexIt = locationRoot + *indexIt;
+    }
+    return indexs;
+}
+
 // Debugging TODO - 추후 삭제
 std::ostream &operator<<(std::ostream &os, const Server &serverb)
 {
