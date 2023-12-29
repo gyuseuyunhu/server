@@ -10,7 +10,8 @@ class Kqueue
   private:
     static int mKq;
     static std::vector<struct kevent> mNewEvents; // kqueue에 등록시켜줄 이벤트
-    static struct kevent mHandleEvents[8];        // kqueue에서 받아온 처리해줘야 하는 이벤트
+    static const int MAX_EVENT_CNT = 8;
+    static struct kevent mHandleEvents[MAX_EVENT_CNT]; // kqueue에서 받아온 처리해줘야 하는 이벤트
 
   public:
     static void init();
