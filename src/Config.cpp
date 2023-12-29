@@ -7,13 +7,13 @@ Config::Config(std::vector<ServerInfo> serverInfos)
 {
     mServerInfos = serverInfos;
     // 디버그용 프린트
-    std::vector<ServerInfo>::const_iterator it = mServerInfos.begin();
-    for (; it != mServerInfos.end(); ++it)
-    {
-        std::cout << "*------------*" << std::endl;
-        std::cout << *it << std::endl;
-        std::cout << "*------------*" << std::endl;
-    }
+    // std::vector<ServerInfo>::const_iterator it = mServerInfos.begin();
+    // for (; it != mServerInfos.end(); ++it)
+    // {
+    //     std::cout << "*------------*" << std::endl;
+    //     std::cout << *it << std::endl;
+    //     std::cout << "*------------*" << std::endl;
+    // }
 }
 
 // clang-format off
@@ -21,7 +21,7 @@ void Config::createInstance(const std::string &httpString, const std::vector<Ser
 // clang-format on
 {
     BlockBuilder builder;
-    builder.parseConfig(Http, httpString);
+    builder.parseConfig(E_HTTP, httpString);
     const HttpBlock httpblock = builder.buildHttpBlock();
 
     for (size_t i = 0; i < serverInfoStrs.size(); ++i)
@@ -30,14 +30,14 @@ void Config::createInstance(const std::string &httpString, const std::vector<Ser
         const std::string &serverString = serverInfoStrs[i].getServerStr();
         const std::vector<std::string> &locationStrings = serverInfoStrs[i].getLocationStrs();
 
-        builder.parseConfig(Server, serverString);
+        builder.parseConfig(E_SERVER, serverString);
         ServerBlock serverBlock = builder.buildServerBlock();
 
         std::vector<LocationBlock> locationBlocks;
         for (size_t j = 0; j < locationStrings.size(); ++j)
         {
             builder.resetLocationBlockConfig(serverBlock);
-            builder.parseConfig(Location, locationStrings[j]);
+            builder.parseConfig(E_LOCATION, locationStrings[j]);
             LocationBlock locationBlock = builder.buildLocationBlock();
             locationBlocks.push_back(locationBlock);
         }

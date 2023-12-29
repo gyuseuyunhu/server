@@ -16,12 +16,14 @@ enum unit
     mega = 1000000,
     giga = 100000000,
 };
+
 enum blockType
 {
-    Http,
-    Server,
-    Location,
+    E_HTTP,
+    E_SERVER,
+    E_LOCATION,
 };
+
 class BlockBuilder
 {
 

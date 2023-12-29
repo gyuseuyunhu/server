@@ -5,12 +5,14 @@
 
 class AEvent
 {
-  private:
+  protected:
     // response
     // request
     const Server &mServer;
 
   public:
+    AEvent(const Server &server);
+    virtual ~AEvent();
     virtual void handle() = 0;
 };
 

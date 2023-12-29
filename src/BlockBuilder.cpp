@@ -110,15 +110,15 @@ void BlockBuilder::parseConfig(const enum blockType blockType, const std::string
         {
             if (isKeyValue == true)
             {
-                if (blockType == Http)
+                if (blockType == E_HTTP)
                 {
                     mHttpDirective.checkDirective(subtoken);
                 }
-                else if (blockType == Server)
+                else if (blockType == E_SERVER)
                 {
                     mServerDirective.checkDirective(subtoken);
                 }
-                else if (blockType == Location)
+                else if (blockType == E_LOCATION)
                 {
                     mLocationDirective.checkDirective(subtoken);
                 }
