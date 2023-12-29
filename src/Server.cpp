@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "Accept.hpp"
 #include "Kqueue.hpp"
+#include <unistd.h>
 
 Server::Server(const ServerInfo &serverInfo)
     : mSocket(socket(AF_INET, SOCK_STREAM, 0)), mPort(serverInfo.getServerBlock().getPort())
@@ -10,6 +11,11 @@ Server::Server(const ServerInfo &serverInfo)
     {
         throw std::runtime_error("Error Server::Server(): socket() 소켓 생성 실패");
     }
+}
+
+Server::~Server()
+{
+    close(mSocket);
 }
 
 void Server::listen()

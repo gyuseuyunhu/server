@@ -16,12 +16,8 @@ class Server
 
   public:
     Server(const ServerInfo &serverInfo);
-    // const Server &operator=(const Server &)
-    // {
-
-    //     return *this;
-    // }
-		const int getSocket() const;
+    ~Server();
+    const int getSocket() const;
     const unsigned int getPort() const;
     const std::vector<ServerInfo> &getServerInfos() const;
     void addServerInfo(const ServerInfo &serverInfo);
