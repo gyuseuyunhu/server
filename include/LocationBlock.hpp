@@ -22,6 +22,11 @@ class LocationBlock : public ServerBlock
     LocationBlock(ServerBlock serverBlock, std::string locationPath, bool isAutoIndex, bool isAllowedGet,
                   bool isAllowedPost, bool isAllowedDelete);
     LocationBlock &operator=(const LocationBlock &rhs);
+    std::string getLocationPath() const;
+    bool isAutoIndex() const;
+    bool isAllowedGet() const;
+    bool isAllowedPost() const;
+    bool isAllowedDelete() const;
     friend std::ostream &operator<<(std::ostream &os, const LocationBlock &locationBlock);
 };
 
