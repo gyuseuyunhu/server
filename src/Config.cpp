@@ -41,6 +41,7 @@ void Config::createInstance(const std::string &httpString, const std::vector<Ser
             LocationBlock locationBlock = builder.buildLocationBlock();
             locationBlocks.push_back(locationBlock);
         }
+        std::sort(locationBlocks.begin(), locationBlocks.end(), compareByPathLength);
         mServerInfos.push_back(ServerInfo(serverBlock, locationBlocks));
     }
     mInstance = new Config(mServerInfos);
@@ -63,6 +64,11 @@ void Config::deleteInstance()
     }
     delete mInstance;
     mInstance = NULL;
+}
+
+bool Config::compareByPathLength(const LocationBlock &a, const LocationBlock &b)
+{
+    return a.getLocationPath().length() > b.getLocationPath().length();
 }
 
 const std::vector<ServerInfo> &Config::getServerInfos()
