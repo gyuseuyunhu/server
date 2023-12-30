@@ -26,6 +26,7 @@ class Config
 		// static std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups;
     // clang-format on
     static Config *mInstance;
+    static bool compareByPathLength(const LocationBlock &a, const LocationBlock &b);
 
   public:
     static void createInstance(const std::string &httpString, const std::vector<ServerInfoStr> &serverInfoStrs);

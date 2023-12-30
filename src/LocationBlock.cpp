@@ -31,6 +31,31 @@ LocationBlock &LocationBlock::operator=(const LocationBlock &rhs)
     return *this;
 }
 
+const std::string &LocationBlock::getLocationPath() const
+{
+    return mLocationPath;
+}
+
+bool LocationBlock::isAutoIndex() const
+{
+    return mIsAutoIndex;
+}
+
+bool LocationBlock::isAllowedGet() const
+{
+    return mIsAllowedGet;
+}
+
+bool LocationBlock::isAllowedPost() const
+{
+    return mIsAllowedPost;
+}
+
+bool LocationBlock::isAllowedDelete() const
+{
+    return mIsAllowedDelete;
+}
+
 std::ostream &operator<<(std::ostream &os, const LocationBlock &locationBlock)
 {
     os << "LocationPath : " << locationBlock.mLocationPath << std::endl;
