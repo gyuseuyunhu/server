@@ -31,7 +31,7 @@ LocationBlock &LocationBlock::operator=(const LocationBlock &rhs)
     return *this;
 }
 
-std::string LocationBlock::getLocationPath() const
+const std::string &LocationBlock::getLocationPath() const
 {
     return mLocationPath;
 }
