@@ -28,7 +28,7 @@ void Request::checkMethod(std::stringstream &ss)
     }
     else
     {
-        throw 405; // Method NOT ALLOWED
+        throw 501; // Not Implemented
     }
 }
 
@@ -80,19 +80,19 @@ void Request::storeHeaderMap(std::string buffer)
             pos = line.find(':', pos);
             if (pos == std::string::npos)
             {
-                throw 400;
+                throw 400; // Bad Request
             }
 
             headerKey = trim(line.substr(0, pos));
             if (mHeaders.find(headerKey) != mHeaders.end())
             {
-                throw 400;
+                throw 400; // Bad Request
             }
 
             headerVal = trim(line.substr(pos + 1));
             if (headerVal.size() == 0)
             {
-                throw 400;
+                throw 400; // Bad Request
             }
 
             mHeaders[headerKey] = headerVal;
