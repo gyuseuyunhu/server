@@ -17,11 +17,12 @@ class Server
   public:
     Server(const ServerInfo &serverInfo);
     ~Server();
-    const int getSocket() const;
-    const unsigned int getPort() const;
+    int getSocket() const;
+    unsigned int getPort() const;
     const std::vector<ServerInfo> &getServerInfos() const;
     void addServerInfo(const ServerInfo &serverInfo);
     void listen();
+    const std::vector<std::string> getFilePath(const std::string &host, std::string path, bool &isFolder) const;
 
     // Debugging - TODO : 추후 삭제
     friend std::ostream &operator<<(std::ostream &os, const Server &serverb);
