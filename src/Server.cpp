@@ -102,7 +102,7 @@ const std::vector<std::string> Server::getFilePath(const std::string &host, std:
     }
 
     // 서버 블록을 따라 간다.
-    if (indexsPath.size() == 0)
+    if (locIt == targetServerInfo.getLocationBlocks().end())
     {
         indexsPath = targetServerInfo.getServerBlock().getIndexs();
         root = targetServerInfo.getServerBlock().getRoot();
