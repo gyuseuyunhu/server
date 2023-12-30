@@ -67,18 +67,27 @@ void Request::parseStartLine(std::string &buffer, eRequestLine &requestLine)
 
 void Request::storeHeaderMap(std::string buffer)
 {
+    std::string line;
+    std::string headerKey;
+    std::string headerVal;
     while (1)
     {
         size_t pos;
         if ((pos = buffer.find("\r\n") != std::string::npos))
         {
-            std::string line = buffer.substr(0, pos);
+            line = buffer.substr(0, pos);
             pos = line.find(':', pos);
             if (pos == std::string::npos)
             {
-                throw 400; // 헤더 비정상
+                throw 400; // Bad Request
             }
-            mHeaders[trim(line.substr(0, pos))] = trim(line.substr(pos + 1));
+            headerKey = trim(line.substr(0, pos));
+            headerVal = trim(line.substr(pos + 1));
+            if (headerVal.size() == 0)
+            {
+                throw 400;
+            }
+            mHeaders[headerKey] = headerVal;
         }
         else
         {
