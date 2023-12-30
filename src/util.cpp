@@ -1,5 +1,14 @@
 #include "util.hpp"
 
+std::string trim(const std::string &str)
+{
+    std::size_t first = str.find_first_not_of(" ");
+    std::size_t last = str.find_last_not_of(" ");
+    if (first == std::string::npos || last == std::string::npos)
+        return "";
+    return str.substr(first, last - first + 1);
+}
+
 bool isWhiteSpace(const char c)
 {
     if (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\f' || c == '\v')

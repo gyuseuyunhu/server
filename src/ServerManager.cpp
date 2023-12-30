@@ -19,6 +19,7 @@ ServerManager::ServerManager(const std::vector<ServerInfo> &serverInfos)
     {
         pushServerInfo(serverInfos[i]);
     }
+    Kqueue::init();
     for (size_t i = 0; i < mServers.size(); ++i)
     {
         mServers[i].listen();

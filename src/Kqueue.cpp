@@ -23,10 +23,19 @@ void Kqueue::addEvent(const struct kevent &event)
 
 void Kqueue::handleEvents()
 {
+    AEvent *event;
+    bool isFinish;
     int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), mHandleEvents, 8, NULL);
     for (int i = 0; i < n; ++i)
     {
-        reinterpret_cast<AEvent *>(mHandleEvents[i].udata)->handle();
+        event = reinterpret_cast<AEvent *>(mHandleEvents[i].udata);
+        isFinish = event->handle();
+        if (isFinish == EVENT_FINISH)
+        {
+            EV_SET(&mHandleEvents[i], mHandleEvents[i].ident, mHandleEvents[i].filter, EV_DELETE, 0, 0, NULL);
+            addEvent(mHandleEvents[i]);
+            delete event;
+        }
     }
     if (!mNewEvents.empty())
     {

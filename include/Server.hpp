@@ -10,7 +10,7 @@
 class Server
 {
   private:
-    const int mSocket;
+    int mSocket;
     const unsigned int mPort;
     std::vector<ServerInfo> mServerInfos;
 
