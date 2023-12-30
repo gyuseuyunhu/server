@@ -120,7 +120,7 @@ const std::vector<std::string> Server::getFilePath(const std::string &host, std:
     // locationPath가 빈칸인 경우
     // 일단 앞에 붙이는것으로 처리함
     size_t pos = path.find(locationPath);
-    assert(pos != std::string::npos);
+    assert(pos == 0);
     path.replace(pos, locationPath.length(), root);
 
     // 폴더의 경우
