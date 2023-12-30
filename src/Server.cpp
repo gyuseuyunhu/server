@@ -72,11 +72,12 @@ void Server::addServerInfo(const ServerInfo &serverInfo)
 //    - on이면 autoindex, off 이면 404
 const std::vector<std::string> Server::getFilePath(const std::string &host, std::string path, bool &isFolder) const
 {
-    std::vector<ServerInfo>::const_iterator serverIt = mServerInfos.begin();
     std::vector<std::string> indexsPath;
     std::vector<std::string> filePath;
     std::string root;
     std::string locationPath;
+
+    std::vector<ServerInfo>::const_iterator serverIt = mServerInfos.begin();
     ServerInfo targetServerInfo = *serverIt;
     ++serverIt;
     for (; serverIt != mServerInfos.end(); ++serverIt)
@@ -84,6 +85,7 @@ const std::vector<std::string> Server::getFilePath(const std::string &host, std:
         if (host == serverIt->getServerBlock().getServerName())
         {
             targetServerInfo = *serverIt;
+            break;
         }
     }
 
