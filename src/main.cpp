@@ -7,9 +7,16 @@
 
 int main()
 {
-    Parse a("www/a.conf");
-    std::cout << "serverStr : " << a.getHttpStr() << std::endl;
-    Config::createInstance(a.getHttpStr(), a.getServerInfoStrs());
-    ServerManager sm(Config::getInstance().getServerInfos());
-    sm.run();
+    try
+    {
+        Parse a("www/a.conf");
+        std::cout << "serverStr : " << a.getHttpStr() << std::endl;
+        Config::createInstance(a.getHttpStr(), a.getServerInfoStrs());
+        ServerManager sm(Config::getInstance().getServerInfos());
+        sm.run();
+    }
+    catch (std::exception &e)
+    {
+        std::cout << e.what() << std::endl;
+    }
 }

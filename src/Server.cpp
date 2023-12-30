@@ -4,26 +4,26 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-Server::Server(const ServerInfo &serverInfo)
-    : mSocket(socket(AF_INET, SOCK_STREAM, 0)), mPort(serverInfo.getServerBlock().getPort())
+Server::Server(const ServerInfo &serverInfo) : mSocket(0), mPort(serverInfo.getServerBlock().getPort())
 {
-    fcntl(mSocket, F_SETFL, O_NONBLOCK);
     mServerInfos.push_back(serverInfo);
-    if (mSocket == -1)
-    {
-        throw std::runtime_error("Error Server::Server(): socket() 소켓 생성 실패");
-    }
 }
 
 Server::~Server()
 {
-    close(mSocket);
+    if (mSocket != 0)
+        close(mSocket);
 }
 
 void Server::listen()
 {
     struct sockaddr_in serverAddr;
-
+    mSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (mSocket == -1)
+    {
+        throw std::runtime_error("Error Server::Server(): socket() 소켓 생성 실패");
+    }
+    fcntl(mSocket, F_SETFL, O_NONBLOCK);
     // 서버 주소 설정
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
@@ -34,7 +34,6 @@ void Server::listen()
     {
         throw std::runtime_error("Error Server::listen(): 포트 bind 실패");
     }
-
     // 클라이언트 연결 대기
     if (::listen(mSocket, 5) == -1)
     {
@@ -46,12 +45,12 @@ void Server::listen()
     Kqueue::addEvent(newEvent);
 }
 
-const int Server::getSocket() const
+int Server::getSocket() const
 {
     return mSocket;
 }
 
-const unsigned int Server::getPort() const
+unsigned int Server::getPort() const
 {
     return mPort;
 }
