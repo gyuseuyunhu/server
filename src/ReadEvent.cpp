@@ -1,16 +1,16 @@
-#include "Read.hpp"
+#include "ReadEvent.hpp"
 #include <unistd.h>
 
-Read::Read(const Server &server, int clientSocket)
+ReadEvent::ReadEvent(const Server &server, int clientSocket)
     : AEvent(server), mClientSocket(clientSocket), mRequestLine(E_START_LINE)
 {
 }
 
-Read::~Read()
+ReadEvent::~ReadEvent()
 {
 }
 
-int Read::handle()
+int ReadEvent::handle()
 {
     int n = read(mClientSocket, mBuffer, BUFFER_SIZE);
     if (n < 0) // 읽기를 실패 -> client에 500번대를 응답

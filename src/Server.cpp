@@ -1,5 +1,5 @@
 #include "Server.hpp"
-#include "Accept.hpp"
+#include "AcceptEvent.hpp"
 #include "Kqueue.hpp"
 #include <fcntl.h>
 #include <unistd.h>
@@ -41,7 +41,7 @@ void Server::listen()
     }
 
     struct kevent newEvent;
-    EV_SET(&newEvent, mSocket, EVFILT_READ, EV_ADD, 0, 0, new Accept(*this));
+    EV_SET(&newEvent, mSocket, EVFILT_READ, EV_ADD, 0, 0, new AcceptEvent(*this));
     Kqueue::addEvent(newEvent);
 }
 

@@ -1,9 +1,9 @@
-#ifndef READ_HPP
-#define READ_HPP
+#ifndef READEVENT_HPP
+#define READEVENT_HPP
 
 #include "AEvent.hpp"
 
-class Read : public AEvent
+class ReadEvent : public AEvent
 {
   private:
     const int mClientSocket;
@@ -13,8 +13,8 @@ class Read : public AEvent
     eRequestLine mRequestLine;
 
   public:
-    Read(const Server &server, int clientSocket);
-    virtual ~Read();
+    ReadEvent(const Server &server, int clientSocket);
+    virtual ~ReadEvent();
     virtual int handle();
 };
 
