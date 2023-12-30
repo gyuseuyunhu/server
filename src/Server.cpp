@@ -70,7 +70,7 @@ void Server::addServerInfo(const ServerInfo &serverInfo)
 //    - 있으면 301 없으면 404
 //    - 폴더이면 autoindex가 있는지 확인
 //    - on이면 autoindex, off 이면 404
-const std::vector<std::string> Server::getFilePath(const std::string &host, std::string &path, bool &isFolder) const
+const std::vector<std::string> Server::getFilePath(const std::string &host, std::string path, bool &isFolder) const
 {
     std::vector<ServerInfo>::const_iterator serverIt = mServerInfos.begin();
     std::vector<std::string> indexsPath;
