@@ -35,9 +35,9 @@ void Request::checkMethod(std::stringstream &ss)
 void Request::checkPath(std::stringstream &ss)
 {
     ss >> mPath;
-    if (mPath != "")
+    if (mPath == "")
     {
-        throw 400; // BAD_REQUEST
+        throw 400; // Bad Request
     }
 }
 
@@ -47,7 +47,7 @@ void Request::checkHttpVersion(std::stringstream &ss)
     ss >> version;
     if (version != "HTTP/1.1")
     {
-        throw 400; // BAD_REQUEST
+        throw 501; // Not Implement
     }
 }
 
