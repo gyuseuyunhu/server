@@ -76,17 +76,25 @@ void Request::storeHeaderMap(std::string buffer)
         if ((pos = buffer.find("\r\n") != std::string::npos))
         {
             line = buffer.substr(0, pos);
+
             pos = line.find(':', pos);
             if (pos == std::string::npos)
             {
-                throw 400; // Bad Request
+                throw 400;
             }
+
             headerKey = trim(line.substr(0, pos));
+            if (mHeaders.find(headerKey) != mHeaders.end())
+            {
+                throw 400;
+            }
+
             headerVal = trim(line.substr(pos + 1));
             if (headerVal.size() == 0)
             {
                 throw 400;
             }
+
             mHeaders[headerKey] = headerVal;
         }
         else
