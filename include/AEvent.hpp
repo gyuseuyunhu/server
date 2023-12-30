@@ -4,8 +4,8 @@
 #include "Request.hpp"
 #include "Server.hpp"
 
-#define EVENT_FINISH 1
-#define EVENT_CONTINUE 0
+#define EVENT_FINISH true
+#define EVENT_CONTINUE false
 
 class AEvent
 {
