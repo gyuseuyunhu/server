@@ -17,7 +17,7 @@ PARSE_SRCS = Parse.cpp \
 
 EVENT_SRCS = AEvent.cpp \
 						 AcceptEvent.cpp \
-						 ReadEvent.cpp \
+						 ReadRequestEvent.cpp \
 						 Request.cpp \
 
 SERVER_SRCS = Kqueue.cpp \
