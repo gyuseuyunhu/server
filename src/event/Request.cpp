@@ -78,62 +78,61 @@ void Request::parseStartLine(std::string &buffer)
     }
 }
 
-void Request::storeHeaderMap(std::string buffer)
+int Request::storeHeaderLine(const std::string &line)
 {
-    std::string line;
     std::string headerKey;
     std::string headerVal;
-    size_t pos = 0;
-    while (1)
+    size_t pos = line.find(':');
+    if (pos == std::string::npos)
     {
-        if ((pos = buffer.find("\r\n")) != std::string::npos)
-        {
-            line = buffer.substr(0, pos);
-            buffer = buffer.substr(pos + 2);
-
-            pos = line.find(':');
-            if (pos == std::string::npos)
-            {
-                mStatus = 400; // Bad Request
-                return;
-            }
-
-            headerKey = trim(line.substr(0, pos));
-            if (mHeaders.find(headerKey) != mHeaders.end())
-            {
-                mStatus = 400; // Bad Request
-                return;
-            }
-
-            headerVal = trim(line.substr(pos + 1));
-            if (headerVal.size() == 0)
-            {
-                mStatus = 400; // Bad Request
-                return;
-            }
-
-            mHeaders[headerKey] = headerVal;
-        }
-        else
-        {
-            break;
-        }
+        mStatus = 400; // Bad Request
+        return -1;
     }
+
+    headerKey = trim(line.substr(0, pos));
+    if (mHeaders.find(headerKey) != mHeaders.end())
+    {
+        mStatus = 400; // Bad Request
+        return -1;
+    }
+
+    headerVal = trim(line.substr(pos + 1));
+    if (headerVal.size() == 0)
+    {
+        mStatus = 400; // Bad Request
+        return -1;
+    }
+
+    mHeaders[headerKey] = headerVal;
+    return 0;
+}
+
+int Request::storeHeaderMap(std::string buffer)
+{
+    std::string line;
+
+    size_t pos = 0;
+    while ((pos = buffer.find("\r\n")) != std::string::npos)
+    {
+        if (storeHeaderLine(buffer.substr(0, pos)))
+            return -1;
+        buffer = buffer.substr(pos + 2);
+    }
+    return 0;
 }
 
 void Request::parseRequestHeader(std::string &buffer)
 {
-    size_t pos;
+    size_t pos = 0;
     if ((pos = buffer.find("\r\n\r\n")) != std::string::npos)
     {
-        storeHeaderMap(buffer.substr(0, pos + 2));
-
+        if (storeHeaderMap(buffer.substr(0, pos + 2)) == -1)
+            return;
         if (mHeaders.find("Host") == mHeaders.end())
         {
             mStatus = 400; // Bad Request
             return;
         }
-
         buffer = buffer.substr(pos + 4);
         mRequestLine = E_REQUEST_CONTENTS;
     }

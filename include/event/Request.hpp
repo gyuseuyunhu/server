@@ -36,7 +36,8 @@ class Request
 
     void parseStartLine(std::string &buffer);
 
-    void storeHeaderMap(std::string buffer);
+    int storeHeaderLine(const std::string &line);
+    int storeHeaderMap(std::string buffer);
 
     void parseRequestHeader(std::string &buffer);
     void parseRequestContent(std::string &buffer);
