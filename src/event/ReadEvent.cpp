@@ -1,8 +1,7 @@
 #include "ReadEvent.hpp"
 #include <unistd.h>
 
-ReadEvent::ReadEvent(const Server &server, int clientSocket)
-    : AEvent(server), mClientSocket(clientSocket), mRequestLine(E_START_LINE)
+ReadEvent::ReadEvent(const Server &server, int clientSocket) : AEvent(server, clientSocket), mRequestLine(E_START_LINE)
 {
 }
 

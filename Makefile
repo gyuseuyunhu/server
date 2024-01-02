@@ -19,6 +19,9 @@ EVENT_SRCS = AEvent.cpp \
 						 AcceptEvent.cpp \
 						 ReadEvent.cpp \
 						 Request.cpp \
+						 Response.cpp \
+						 WriteEvent.cpp \
+						 ReadFileEvent.cpp \
 
 SERVER_SRCS = Kqueue.cpp \
 							Server.cpp \
