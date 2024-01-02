@@ -11,7 +11,7 @@ ReadRequestEvent::~ReadRequestEvent()
 {
 }
 
-void ReadRequestEvent::makeResponse()
+void ReadRequestEvent::makeReadFileEvent()
 {
     std::map<std::string, std::string> header = mRequest.getHeaders();
     const std::string &path = mRequest.getPath();
