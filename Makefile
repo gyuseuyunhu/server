@@ -14,6 +14,7 @@ PARSE_SRCS = Parse.cpp \
 						 ServerBlock.cpp \
 						 LocationBlock.cpp \
 						 BlockBuilder.cpp \
+						 HttpStatusInfos.cpp \
 
 EVENT_SRCS = AEvent.cpp \
 						 AcceptEvent.cpp \
