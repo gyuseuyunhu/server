@@ -1,6 +1,6 @@
 #include "AcceptEvent.hpp"
 #include "Kqueue.hpp"
-#include "ReadEvent.hpp"
+#include "ReadRequestEvent.hpp"
 #include <fcntl.h>
 
 AcceptEvent::AcceptEvent(const Server &server) : AEvent(server)
@@ -23,7 +23,7 @@ int AcceptEvent::handle()
     }
 
     fcntl(clientSocket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-    EV_SET(&newEvent, clientSocket, EVFILT_READ, EV_ADD, 0, 0, new ReadEvent(mServer, clientSocket));
+    EV_SET(&newEvent, clientSocket, EVFILT_READ, EV_ADD, 0, 0, new ReadRequestEvent(mServer, clientSocket));
     Kqueue::addEvent(newEvent);
 
     return EVENT_CONTINUE;

@@ -26,9 +26,14 @@ void Request::checkMethod(std::stringstream &ss)
     {
         mMethod = E_DELETE;
     }
+    else if (method == "HEAD" || method == "PUT" || method == "PATCH" || method == "OPTIONS" || method == "TRACE" ||
+             method == "CONNECT")
+    {
+        mStatus = 501; // Not Implemented
+    }
     else
     {
-        throw 501; // Not Implemented
+        mStatus = 400; // Bad Request
     }
 }
 
@@ -37,7 +42,7 @@ void Request::checkPath(std::stringstream &ss)
     ss >> mPath;
     if (mPath == "")
     {
-        throw 400; // Bad Request
+        mStatus = 400; // Bad Request
     }
 }
 
@@ -45,13 +50,21 @@ void Request::checkHttpVersion(std::stringstream &ss)
 {
     std::string version;
     ss >> version;
-    if (version != "HTTP/1.1")
+    if (version == "HTTP/1.0" || version == "HTTP/1.1")
     {
-        throw 501; // Not Implement
+        mVersion = "HTTP/1.1"; // 1.0은 conectless이긴 함.
+    }
+    else if (version == "HTTP/2.0" || version == "HTTP/3.0")
+    {
+        mStatus = 501; // Not Implement
+    }
+    else
+    {
+        mStatus = 400; // Bad Request
     }
 }
 
-void Request::parseStartLine(std::string &buffer, eRequestLine &requestLine)
+void Request::parseStartLine(std::string &buffer)
 {
     size_t pos;
     if ((pos = buffer.find("\r\n")) != std::string::npos)
@@ -61,57 +74,67 @@ void Request::parseStartLine(std::string &buffer, eRequestLine &requestLine)
         checkPath(ss);
         checkHttpVersion(ss);
         buffer = buffer.substr(pos + 2);
-        requestLine = E_REQUEST_HEADER;
+        mRequestLine = E_REQUEST_HEADER;
     }
 }
 
-void Request::storeHeaderMap(std::string buffer)
+int Request::storeHeaderLine(const std::string &line)
 {
-    std::string line;
     std::string headerKey;
     std::string headerVal;
-    while (1)
+    size_t pos = line.find(':');
+    if (pos == std::string::npos)
     {
-        size_t pos;
-        if ((pos = buffer.find("\r\n") != std::string::npos))
-        {
-            line = buffer.substr(0, pos);
-
-            pos = line.find(':', pos);
-            if (pos == std::string::npos)
-            {
-                throw 400; // Bad Request
-            }
-
-            headerKey = trim(line.substr(0, pos));
-            if (mHeaders.find(headerKey) != mHeaders.end())
-            {
-                throw 400; // Bad Request
-            }
-
-            headerVal = trim(line.substr(pos + 1));
-            if (headerVal.size() == 0)
-            {
-                throw 400; // Bad Request
-            }
-
-            mHeaders[headerKey] = headerVal;
-        }
-        else
-        {
-            break;
-        }
+        mStatus = 400; // Bad Request
+        return -1;
     }
+
+    headerKey = trim(line.substr(0, pos));
+    if (mHeaders.find(headerKey) != mHeaders.end())
+    {
+        mStatus = 400; // Bad Request
+        return -1;
+    }
+
+    headerVal = trim(line.substr(pos + 1));
+    if (headerVal.size() == 0)
+    {
+        mStatus = 400; // Bad Request
+        return -1;
+    }
+
+    mHeaders[headerKey] = headerVal;
+    return 0;
 }
 
-void Request::parseRequestHeader(std::string &buffer, eRequestLine &requestLine)
+int Request::storeHeaderMap(std::string buffer)
 {
-    size_t pos;
+    std::string line;
+
+    size_t pos = 0;
+    while ((pos = buffer.find("\r\n")) != std::string::npos)
+    {
+        if (storeHeaderLine(buffer.substr(0, pos)))
+            return -1;
+        buffer = buffer.substr(pos + 2);
+    }
+    return 0;
+}
+
+void Request::parseRequestHeader(std::string &buffer)
+{
+    size_t pos = 0;
     if ((pos = buffer.find("\r\n\r\n")) != std::string::npos)
     {
-        storeHeaderMap(buffer.substr(0, pos + 2));
+        if (storeHeaderMap(buffer.substr(0, pos + 2)) == -1)
+            return;
+        if (mHeaders.find("Host") == mHeaders.end())
+        {
+            mStatus = 400; // Bad Request
+            return;
+        }
         buffer = buffer.substr(pos + 4);
-        requestLine = E_REQUEST_CONTENTS;
+        mRequestLine = E_REQUEST_CONTENTS;
     }
 }
 
@@ -121,18 +144,42 @@ void Request::parseRequestContent(std::string &buffer)
     buffer = "";
 }
 
-void Request::parse(std::string &buffer, eRequestLine &requestLine)
+void Request::parse(std::string &buffer)
 {
-    if (requestLine == E_START_LINE)
+    if (mRequestLine == E_START_LINE)
     {
-        parseStartLine(buffer, requestLine);
+        parseStartLine(buffer);
     }
-    if (requestLine == E_REQUEST_HEADER)
+    if (mRequestLine == E_REQUEST_HEADER)
     {
-        parseRequestHeader(buffer, requestLine);
+        parseRequestHeader(buffer);
     }
-    if (requestLine == E_REQUEST_CONTENTS)
+    if (mRequestLine == E_REQUEST_CONTENTS)
     {
         parseRequestContent(buffer);
     }
+}
+
+int Request::getStatus() const
+{
+    return mStatus;
+}
+
+void Request::clear()
+{
+    mRequestLine = E_START_LINE;
+    mPath = "";
+    mHeaders.clear();
+    mContent = "";
+    mStatus = 0;
+}
+
+const std::map<std::string, std::string> &Request::getHeaders() const
+{
+    return mHeaders;
+}
+
+const std::string &Request::getPath() const
+{
+    return mPath;
 }
