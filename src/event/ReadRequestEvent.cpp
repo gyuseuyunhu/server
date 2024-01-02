@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-ReadRequestEvent::ReadRequestEvent(const Server &server, int clientSocket) : AEvent(server), mClientSocket(clientSocket)
+ReadRequestEvent::ReadRequestEvent(const Server &server, int clientSocket) : AEvent(server, mClientSocket)
 {
 }
 
@@ -63,7 +63,7 @@ int ReadRequestEvent::handle()
     }
     else if (status >= 200)
     {
-        makeResponse();
+        makeReadFileEvent();
     }
     return EVENT_CONTINUE;
 }
