@@ -1,46 +1,65 @@
 NAME = webserv
 
 SRCS = main.cpp \
-			 Config.cpp \
-			 ADirective.cpp \
-			 HttpBlock.cpp \
-			 LocationBlock.cpp \
-			 HttpDirective.cpp \
-			 ServerDirective.cpp \
-			 LocationDirective.cpp \
-			 Server.cpp \
-			 ServerBlock.cpp \
 			 util.cpp \
-			 BlockBuilder.cpp \
-			 Parse.cpp \
-			 ServerInfo.cpp \
-			 ServerInfoStr.cpp \
-			 ServerManager.cpp \
-			 AcceptEvent.cpp \
-			 ReadEvent.cpp \
-			 AEvent.cpp \
-			 Kqueue.cpp \
-		   Request.cpp \
+
+PARSE_SRCS = Parse.cpp \
+						 ServerInfoStr.cpp \
+	           Config.cpp \
+						 ADirective.cpp \
+						 HttpDirective.cpp \
+						 ServerDirective.cpp \
+						 LocationDirective.cpp \
+						 HttpBlock.cpp \
+						 ServerBlock.cpp \
+						 LocationBlock.cpp \
+						 BlockBuilder.cpp \
+
+EVENT_SRCS = AEvent.cpp \
+						 AcceptEvent.cpp \
+						 ReadEvent.cpp \
+						 Request.cpp \
+
+SERVER_SRCS = Kqueue.cpp \
+							Server.cpp \
+							ServerInfo.cpp \
+							ServerManager.cpp \
+
+PARSE_DIR = parse
+EVENT_DIR = event
+SERVER_DIR = server
 
 INC = include
+INCLUDES = -I $(INC) -I $(INC)/$(PARSE_DIR) -I $(INC)/$(EVENT_DIR) -I $(INC)/$(SERVER_DIR) 
 
 OBJS = $(SRCS:.cpp=.o)
+PARSE_OBJS = $(PARSE_SRCS:.cpp=.o)
+EVENT_OBJS = $(EVENT_SRCS:.cpp=.o)
+SERVER_OBJS = $(SERVER_SRCS:.cpp=.o)
 
 OBJ_DIR = obj
+OBJ_DIRS = $(OBJ_DIR) \
+					 $(OBJ_DIR)/$(PARSE_DIR) \
+			     $(OBJ_DIR)/$(EVENT_DIR) \
+					 $(OBJ_DIR)/$(SERVER_DIR) \
+
 SRC_DIR = src
 
-OBJS_FILES = $(addprefix $(OBJ_DIR)/, $(OBJS))
+OBJS_FILES = $(addprefix $(OBJ_DIR)/, $(OBJS)) \
+						 $(addprefix $(OBJ_DIR)/$(PARSE_DIR)/, $(PARSE_OBJS)) \
+						 $(addprefix $(OBJ_DIR)/$(EVENT_DIR)/, $(EVENT_OBJS)) \
+						 $(addprefix $(OBJ_DIR)/$(SERVER_DIR)/, $(SERVER_OBJS)) \
 
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 
 all : $(NAME)
 
-$(OBJ_DIR) :
-	@mkdir -p $(OBJ_DIR)
+$(OBJ_DIRS) :
+	@mkdir -p $(OBJ_DIRS)
 
-$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp | $(OBJ_DIR)
-	@$(CXX) $(CXXFLAGS) -c $< -o $@ -I $(INC)
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp | $(OBJ_DIRS)
+	@$(CXX) $(CXXFLAGS) -c $< -o $@ $(INCLUDES)
 
 $(NAME) : $(OBJS_FILES)
 	@$(CXX) $(CXXFLAGS) $(OBJS_FILES) -o $(NAME)
