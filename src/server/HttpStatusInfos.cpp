@@ -1,4 +1,5 @@
 #include "HttpStatusInfos.hpp"
+#include <iostream>
 
 std::map<int, std::string> HttpStatusInfos::mHttpStatusReasons;
 std::map<int, std::string> HttpStatusInfos::mHttpErrorPages;
@@ -46,7 +47,7 @@ void HttpStatusInfos::initHttpErrorPages()
 void HttpStatusInfos::setWebservRoot(char **envp)
 {
     int i;
-    const std::string findStr = "WERSERV_ROOT=";
+    const std::string findStr = "WEBSERV_ROOT=";
 
     for (i = 0; envp[i] != NULL; ++i)
     {
