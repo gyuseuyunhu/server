@@ -26,6 +26,10 @@ void Kqueue::handleEvents()
     AEvent *event;
     bool isFinish;
     int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), mHandleEvents, 8, NULL);
+    if (!mNewEvents.empty())
+    {
+        mNewEvents.clear();
+    }
     for (int i = 0; i < n; ++i)
     {
         event = reinterpret_cast<AEvent *>(mHandleEvents[i].udata);
@@ -36,10 +40,6 @@ void Kqueue::handleEvents()
             addEvent(mHandleEvents[i]);
             delete event;
         }
-    }
-    if (!mNewEvents.empty())
-    {
-        mNewEvents.clear();
     }
 }
 

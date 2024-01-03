@@ -2,7 +2,7 @@
 #include "util.hpp"
 #include <sstream>
 
-Request::Request() : mVersion("HTTP/1.1")
+Request::Request() : mVersion("HTTP/1.1"), mStatus(0)
 {
 }
 
