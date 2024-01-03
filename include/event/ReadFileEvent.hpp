@@ -15,7 +15,7 @@ class ReadFileEvent : public AEvent
     std::string mBody;
 
   public:
-    ReadFileEvent(const Server &server, int fileFd, int fileSize, int mHttpStatusCode);
+    ReadFileEvent(const Server &server, int clientSocket, int fileFd, int fileSize, int mHttpStatusCode);
     virtual ~ReadFileEvent();
     virtual int handle();
 };
