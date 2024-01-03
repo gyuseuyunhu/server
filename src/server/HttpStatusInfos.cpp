@@ -1,5 +1,9 @@
 #include "HttpStatusInfos.hpp"
 
+std::map<int, std::string> HttpStatusInfos::mHttpStatusReasons;
+std::map<int, std::string> HttpStatusInfos::mHttpErrorPages;
+std::string HttpStatusInfos::mWebservRoot;
+
 HttpStatusInfos::HttpStatusInfos()
 {
 }

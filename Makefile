@@ -14,7 +14,6 @@ PARSE_SRCS = Parse.cpp \
 						 ServerBlock.cpp \
 						 LocationBlock.cpp \
 						 BlockBuilder.cpp \
-						 HttpStatusInfos.cpp \
 
 EVENT_SRCS = AEvent.cpp \
 						 AcceptEvent.cpp \
@@ -28,6 +27,7 @@ SERVER_SRCS = Kqueue.cpp \
 							Server.cpp \
 							ServerInfo.cpp \
 							ServerManager.cpp \
+						 HttpStatusInfos.cpp \
 
 PARSE_DIR = parse
 EVENT_DIR = event
