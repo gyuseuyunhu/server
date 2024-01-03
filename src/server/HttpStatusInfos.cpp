@@ -46,12 +46,14 @@ void HttpStatusInfos::initHttpErrorPages()
 void HttpStatusInfos::setWebservRoot(char **envp)
 {
     int i;
+    const std::string findStr = "WERSERV_ROOT=";
+
     for (i = 0; envp[i] != NULL; ++i)
     {
         std::string envStr = envp[i];
-        if (envStr.find("WEBSERV_ROOT=") == 0)
+        if (envStr.find(findStr) == 0)
         {
-            mWebservRoot = envStr.substr(4);
+            mWebservRoot = envStr.substr(findStr.size());
             break;
         }
     }
