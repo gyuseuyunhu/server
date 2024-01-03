@@ -149,7 +149,7 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
 {
     if (key == "root")
     {
-        mRoot = value;
+        mRoot = "/" + value + "/";
     }
     else if (key == "index")
     {
