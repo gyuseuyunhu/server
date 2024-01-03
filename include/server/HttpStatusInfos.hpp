@@ -11,16 +11,16 @@ class HttpStatusInfos
     static std::map<int, std::string> mHttpStatusReasons;
     static std::map<int, std::string> mHttpErrorPages;
     static std::string mWebservRoot;
+    static void initHttpStatusReasons();
+    static void initHttpErrorPages();
+    static void setWebservRoot(char **envp);
     HttpStatusInfos();
 
   public:
-    void initHttpStatusInfos(char **envp);
-    void initHttpStatusReasons();
-    void initHttpErrorPages();
-    void setWebservRoot(char **envp);
-    const std::string &getHttpReason(const int statusCode);
-    const std::string &getHttpErrorPage(const int statusCode);
-    const std::string &getWebservRoot();
+    static void initHttpStatusInfos(char **envp);
+    static const std::string &getHttpReason(const int statusCode);
+    static const std::string &getHttpErrorPage(const int statusCode);
+    static const std::string &getWebservRoot();
 };
 
 #endif
