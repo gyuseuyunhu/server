@@ -27,6 +27,7 @@ SERVER_SRCS = Kqueue.cpp \
 							Server.cpp \
 							ServerInfo.cpp \
 							ServerManager.cpp \
+						 HttpStatusInfos.cpp \
 
 PARSE_DIR = parse
 EVENT_DIR = event
