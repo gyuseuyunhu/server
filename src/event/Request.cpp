@@ -133,6 +133,7 @@ void Request::parseRequestHeader(std::string &buffer)
             mStatus = 400; // Bad Request
             return;
         }
+        mStatus = 200;
         buffer = buffer.substr(pos + 4);
         mRequestLine = E_REQUEST_CONTENTS;
     }

@@ -78,7 +78,7 @@ int ReadRequestEvent::handle()
     {
         return EVENT_FINISH;
     }
-    else if (status >= 0)
+    else if (status >= 200)
     {
         makeReadFileEvent();
     }
