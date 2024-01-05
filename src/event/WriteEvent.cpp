@@ -2,7 +2,7 @@
 #include "Kqueue.hpp"
 #include "ReadRequestEvent.hpp"
 
-#define BUFFER_SIZE 3000
+#define BUFFER_SIZE 32768
 
 WriteEvent::WriteEvent(const Server &server, int clientSocket, std::string message)
     : AEvent(server, clientSocket), mMessage(message), mWriteSize(0), mResponseSize(message.size())
@@ -39,7 +39,7 @@ int WriteEvent::handle()
     }
     else
     {
-        mMessage.substr(n);
+        mMessage = mMessage.substr(n);
         return EVENT_CONTINUE;
     }
 }
