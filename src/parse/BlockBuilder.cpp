@@ -1,4 +1,5 @@
 #include "BlockBuilder.hpp"
+#include "HttpStatusInfos.hpp"
 #include <iostream>
 #include <sstream>
 
@@ -33,7 +34,8 @@ std::string BlockBuilder::reduceMultipleSpaces(std::string token)
     return cleanedToken;
 }
 
-unsigned int BlockBuilder::convertNumber(const std::string &valueString, bool hasUnit)
+// 함수 만드는 방법
+bool BlockBuilder::tryConvertNumber(const std::string &valueString, bool hasUnit, unsigned int &result)
 {
     char *checkPtr;
     int value;
@@ -41,13 +43,14 @@ unsigned int BlockBuilder::convertNumber(const std::string &valueString, bool ha
     value = std::strtod(valueString.c_str(), &checkPtr);
     if (value < 0)
     {
-        throw std::runtime_error("Error : BlockBuilder::convertNumber() invalid max_body_size" + valueString);
+        return false;
     }
     else if (value == 0 && *checkPtr != '\0')
     {
-        throw std::runtime_error("Error : BlockBuilder::convertNumber() invalid max_body_size" + valueString);
+        return false;
     }
 
+    result = value;
     if (hasUnit == true)
     {
         switch (*checkPtr)
@@ -55,37 +58,38 @@ unsigned int BlockBuilder::convertNumber(const std::string &valueString, bool ha
         case 'k':
             /*fall through*/
         case 'K':
-            value *= killo;
+            result *= E_KILLO;
             break;
         case 'm':
             /*fall through*/
         case 'M':
-            value *= mega;
+            result *= E_MEGA;
             break;
         case 'g':
             /*fall through*/
         case 'G':
-            value *= giga;
+            result *= E_GIGA;
             break;
         case '\0':
             break;
         default:
-            throw std::runtime_error("Error : BlockBuilder::convertNumber() invalid max_body_size" + valueString);
+            return false;
             break;
         }
         if (*checkPtr != '\0' && *(checkPtr + 1) != '\0')
         {
-            throw std::runtime_error("Error : BlockBuilder::convertNumber() invalid max_body_size" + valueString);
+            return false;
         }
     }
     else
     {
         if (*checkPtr != '\0')
         {
-            throw std::runtime_error(valueString + ": invalid Value");
+            return false;
         }
     }
-    return static_cast<unsigned int>(value);
+    result = static_cast<unsigned int>(result);
+    return true;
 }
 
 void BlockBuilder::parseConfig(const enum blockType blockType, const std::string &configString)
@@ -93,7 +97,6 @@ void BlockBuilder::parseConfig(const enum blockType blockType, const std::string
     std::istringstream iss(configString);
     std::string token;
     bool isFirstIndex = true;
-    bool isFirstErrorPage = true;
 
     mServerDirective.initDirectiveMap();
     mLocationDirective.initDirectiveMap();
@@ -106,6 +109,7 @@ void BlockBuilder::parseConfig(const enum blockType blockType, const std::string
         bool isKeyValue = true;
         bool isValue = false;
         bool isFirstValue = true;
+        bool isMadeErrorPages = false;
         while (tokenStream >> subtoken)
         {
             if (isKeyValue == true)
@@ -126,7 +130,7 @@ void BlockBuilder::parseConfig(const enum blockType blockType, const std::string
                 keyValue = subtoken;
                 continue;
             }
-            updateConfig(keyValue, subtoken, isFirstValue, isFirstIndex, isFirstErrorPage);
+            updateConfig(keyValue, subtoken, isFirstValue, isFirstIndex, isMadeErrorPages);
             isValue = true;
             isFirstValue = false;
         }
@@ -141,11 +145,15 @@ void BlockBuilder::parseConfig(const enum blockType blockType, const std::string
         {
             mIndexs.push_back("index.html");
         }
+        if (keyValue == "error_page" && isMadeErrorPages == false)
+        {
+            throw std::runtime_error("Error: BlockBuilder::parseConfig() 에러페이지 없음\n" + subtoken);
+        }
     }
 }
 
 void BlockBuilder::updateConfig(const std::string &key, const std::string &value, bool isFirstValue, bool &isFirstIndex,
-                                bool &isFirstErrorPage)
+                                bool &isMadeErrorPages)
 {
     if (key == "root")
     {
@@ -162,16 +170,37 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     }
     else if (key == "error_page")
     {
-        if (isFirstErrorPage == true)
+        unsigned int errorCode;
+
+        if (tryConvertNumber(value, false, errorCode) == true)
         {
-            mErrorPages.clear();
-            isFirstErrorPage = false;
+            mErrorCodes.push_back(errorCode);
         }
-        mErrorPages.push_back(value);
+        else
+        {
+            if (mErrorCodes.size() == 0)
+            {
+                throw std::runtime_error("Error: BlockBuilder::updateConfig() 에러코드 없음\n " + value);
+            }
+            if (isMadeErrorPages == false)
+            {
+                for (size_t i = 0; i < mErrorCodes.size(); ++i)
+                {
+                    mErrorPages[mErrorCodes[i]] = HttpStatusInfos::getWebservRoot() + value;
+                }
+                isMadeErrorPages = true;
+                mErrorCodes.clear();
+                return;
+            }
+            throw std::runtime_error("Error: BlockBuilder::updateConfig() 에러페이지 에러\n " + value);
+        }
     }
     else if (key == "client_max_body_size")
     {
-        mClientMaxBodySize = convertNumber(value, true);
+        if (tryConvertNumber(value, true, mClientMaxBodySize) == false)
+        {
+            throw std::runtime_error("Error: BlockBuilder::tryConvertNumber() 적합하지 않은 숫자\n " + value);
+        }
     }
     else if (key == "server_name")
     {
@@ -181,7 +210,10 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     {
         if (isFirstValue == true)
         {
-            mRedirectionCode = convertNumber(value, false);
+            if (tryConvertNumber(value, false, mRedirectionCode) == false)
+            {
+                throw std::runtime_error("Error: BlockBuilder::tryConvertNumber() 적합하지 않은 숫자\n " + value);
+            }
         }
         else
         {
@@ -190,7 +222,10 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     }
     else if (key == "listen")
     {
-        mPort = convertNumber(value, false);
+        if (tryConvertNumber(value, false, mPort) == false)
+        {
+            throw std::runtime_error("Error: BlockBuilder::tryConvertNumber() 적합하지 않은 숫자\n " + value);
+        }
     }
     else if (key == "path")
     {
@@ -287,6 +322,7 @@ void BlockBuilder::resetServerBlockConfig(const HttpBlock &httpBlock)
     mServerName = "";
     mRedirectionCode = 200;
     mRedirectionPath.clear();
+    mErrorCodes.clear();
 }
 
 void BlockBuilder::resetLocationBlockConfig(const ServerBlock &serverBlock)
@@ -303,6 +339,7 @@ void BlockBuilder::resetLocationBlockConfig(const ServerBlock &serverBlock)
     mIsAllowedGet = true;
     mIsAllowedPost = true;
     mIsAllowedDelete = true;
+    mErrorCodes.clear();
 }
 
 HttpBlock BlockBuilder::buildHttpBlock() const
