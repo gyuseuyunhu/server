@@ -18,12 +18,18 @@ Server::~Server()
 void Server::listen()
 {
     struct sockaddr_in serverAddr;
-    mSocket = socket(AF_INET, SOCK_STREAM, 0);
+    mSocket = socket(PF_INET, SOCK_STREAM, 0);
     if (mSocket == -1)
     {
         throw std::runtime_error("Error Server::Server(): socket() 소켓 생성 실패");
     }
-    fcntl(mSocket, F_SETFL, O_NONBLOCK);
+    int yes = 1;
+    if (setsockopt(mSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+    {
+        assert(false);
+    }
+
+    fcntl(mSocket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
     // 서버 주소 설정
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
