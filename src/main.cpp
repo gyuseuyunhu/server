@@ -17,7 +17,7 @@ int main(int ac, char **argv, char **envp)
         Parse a(ac == 2 ? argv[1] : "www/a.conf");
         Config::createInstance(a.getHttpStr(), a.getServerInfoStrs());
         HttpStatusInfos::initHttpStatusInfos(envp);
-        ServerManager sm(Config::getInstance().getServerInfos());
+        ServerManager sm(Config::getServerInfos());
         sm.run();
     }
     catch (std::exception &e)
