@@ -60,15 +60,20 @@ void ReadRequestEvent::makeReadFileEvent()
 int ReadRequestEvent::handle()
 {
     char buffer[BUFFER_SIZE];
+    std::cout << "Debug" << std::endl;
     int n = read(mClientSocket, buffer, BUFFER_SIZE);
     if (n < 0)
     {
         // 읽기를 실패 -> client에 500번대를 응답
-        return EVENT_FINISH;
+        close(mClientSocket);
+        delete this;
+        return EVENT_CONTINUE;
     }
     else if (n == 0)
     {
         // 디스커넥트 소켓 로직 필요
+        close(mClientSocket);
+        delete this;
         return EVENT_FINISH;
     }
     mStringBuffer.append(buffer, n);
@@ -76,11 +81,16 @@ int ReadRequestEvent::handle()
     int status = mRequest.getStatus();
     if (status >= 400)
     {
+        Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
+        delete this;
         return EVENT_FINISH;
     }
     else if (status >= 200)
     {
         makeReadFileEvent();
+        Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
+        delete this;
+        return EVENT_FINISH;
     }
     return EVENT_CONTINUE;
 }
