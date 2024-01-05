@@ -19,12 +19,8 @@ class Config
   private:
     Config();
     Config &operator=(const Config &rhs);
-    // clang-format off
     Config(std::vector<ServerInfo> serverInfos);
-		static std::vector<ServerInfo> mServerInfos;
-    // Config(std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups);
-		// static std::vector<std::pair<ServerBlock, std::vector<LocationBlock> > > mServerBlockGroups;
-    // clang-format on
+    static std::vector<ServerInfo> mServerInfos;
     static Config *mInstance;
     static bool compareByPathLength(const LocationBlock &a, const LocationBlock &b);
 

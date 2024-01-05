@@ -60,7 +60,6 @@ void ReadRequestEvent::makeReadFileEvent()
 int ReadRequestEvent::handle()
 {
     char buffer[BUFFER_SIZE];
-    std::cout << "Debug" << std::endl;
     int n = read(mClientSocket, buffer, BUFFER_SIZE);
     if (n < 0)
     {

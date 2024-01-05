@@ -16,9 +16,7 @@ Config::Config(std::vector<ServerInfo> serverInfos)
     // }
 }
 
-// clang-format off
 void Config::createInstance(const std::string &httpString, const std::vector<ServerInfoStr> &serverInfoStrs)
-// clang-format on
 {
     BlockBuilder builder;
     builder.parseConfig(E_HTTP, httpString);
