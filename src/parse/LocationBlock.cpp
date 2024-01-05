@@ -1,6 +1,6 @@
 #include "LocationBlock.hpp"
-LocationBlock::LocationBlock(ServerBlock serverBlock, std::string locationPath, bool isAutoIndex, bool isAllowedGet,
-                             bool isAllowedPost, bool isAllowedDelete)
+LocationBlock::LocationBlock(const ServerBlock &serverBlock, const std::string &locationPath, bool isAutoIndex,
+                             bool isAllowedGet, bool isAllowedPost, bool isAllowedDelete)
     : ServerBlock(serverBlock), mLocationPath(locationPath), mIsAutoIndex(isAutoIndex), mIsAllowedGet(isAllowedGet),
       mIsAllowedPost(isAllowedPost), mIsAllowedDelete(isAllowedDelete)
 {
@@ -71,10 +71,11 @@ std::ostream &operator<<(std::ostream &os, const LocationBlock &locationBlock)
     os << std::endl;
 
     os << "errorPages : ";
-    it = locationBlock.mErrorPages.begin();
-    for (; it != locationBlock.mErrorPages.end(); ++it)
+    std::map<int, std::string>::const_iterator it2 = locationBlock.mErrorPages.begin();
+    for (; it2 != locationBlock.mErrorPages.end(); ++it2)
     {
-        os << *it << " ";
+        os << it2->first << " ";
+        os << it2->second << " ";
     }
     os << std::endl;
 

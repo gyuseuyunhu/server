@@ -7,14 +7,15 @@
 #include "LocationDirective.hpp"
 #include "ServerBlock.hpp"
 #include "ServerDirective.hpp"
+#include <map>
 #include <string>
 #include <vector>
 
 enum unit
 {
-    killo = 1000,
-    mega = 1000000,
-    giga = 100000000,
+    E_KILLO = 1000,
+    E_MEGA = 1000000,
+    E_GIGA = 100000000,
 };
 
 enum blockType
@@ -30,9 +31,8 @@ class BlockBuilder
   private:
     std::string mRoot;
     std::vector<std::string> mIndexs;
-    // todo : errorpage를 어떻게 받을것인가
-    // 예시 :  500 502 503 504 /50x.html; 또는 error_page  404 /404.html;
-    std::vector<std::string> mErrorPages;
+    std::vector<unsigned int> mErrorCodes;
+    std::map<int, std::string> mErrorPages;
     unsigned int mClientMaxBodySize;
 
     unsigned int mPort;
@@ -53,7 +53,7 @@ class BlockBuilder
     void updateConfig(const std::string &key, const std::string &value, bool isFirstValue, bool &isFirstIndex,
                       bool &isFirstErrorPage);
     std::string reduceMultipleSpaces(std::string token);
-    unsigned int convertNumber(const std::string &valueString, bool hasUnit);
+    bool tryConvertNumber(const std::string &valueString, bool hasUnit, unsigned int &result);
 
   public:
     BlockBuilder();
@@ -65,4 +65,4 @@ class BlockBuilder
     void resetLocationBlockConfig(const ServerBlock &serverBLock);
 };
 
-#endif // BLOCKBUILDER_HPP
+#endif

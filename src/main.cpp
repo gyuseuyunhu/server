@@ -15,8 +15,8 @@ int main(int ac, char **argv, char **envp)
     try
     {
         Parse a(ac == 2 ? argv[1] : "www/a.conf");
-        Config::createInstance(a.getHttpStr(), a.getServerInfoStrs());
         HttpStatusInfos::initHttpStatusInfos(envp);
+        Config::createInstance(a.getHttpStr(), a.getServerInfoStrs());
         ServerManager sm(Config::getServerInfos());
         sm.run();
     }

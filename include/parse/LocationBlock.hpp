@@ -19,7 +19,7 @@ class LocationBlock : public ServerBlock
     bool mIsAllowedDelete;
 
   public:
-    LocationBlock(ServerBlock serverBlock, std::string locationPath, bool isAutoIndex, bool isAllowedGet,
+    LocationBlock(const ServerBlock &serverBlock, const std::string &locationPath, bool isAutoIndex, bool isAllowedGet,
                   bool isAllowedPost, bool isAllowedDelete);
     LocationBlock &operator=(const LocationBlock &rhs);
     const std::string &getLocationPath() const;
