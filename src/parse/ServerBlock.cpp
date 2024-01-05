@@ -68,10 +68,11 @@ std::ostream &operator<<(std::ostream &os, const ServerBlock &serverBlock)
     os << std::endl;
 
     os << "errorPages : ";
-    it = serverBlock.mErrorPages.begin();
-    for (; it != serverBlock.mErrorPages.end(); ++it)
+    std::map<int, std::string>::const_iterator it2 = serverBlock.mErrorPages.begin();
+    for (; it2 != serverBlock.mErrorPages.end(); ++it2)
     {
-        os << *it << " ";
+        os << it2->first << " ";
+        os << it2->second << " ";
     }
     os << std::endl;
 

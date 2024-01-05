@@ -1,7 +1,7 @@
 
 #include "HttpBlock.hpp"
 
-HttpBlock::HttpBlock(std::string root, std::vector<std::string> indexs, std::vector<std::string> errorpages,
+HttpBlock::HttpBlock(std::string root, std::vector<std::string> indexs, std::map<int, std::string> errorpages,
                      unsigned int clientMaxBodySize)
     : mRoot(root), mIndexs(indexs), mErrorPages(errorpages), mClientMaxBodySize(clientMaxBodySize)
 {
@@ -37,7 +37,7 @@ const std::vector<std::string> &HttpBlock::getIndexs() const
     return mIndexs;
 }
 
-const std::vector<std::string> &HttpBlock::getErrorPages() const
+const std::map<int, std::string> &HttpBlock::getErrorPages() const
 {
     return mErrorPages;
 }
@@ -61,10 +61,11 @@ std::ostream &operator<<(std::ostream &os, const HttpBlock &httpBlock)
     os << std::endl;
 
     os << "errorPages : ";
-    it = httpBlock.mErrorPages.begin();
-    for (; it != httpBlock.mErrorPages.end(); ++it)
+    std::map<int, std::string>::const_iterator it2 = httpBlock.mErrorPages.begin();
+    for (; it2 != httpBlock.mErrorPages.end(); ++it2)
     {
-        os << *it << " ";
+        os << it2->first << " ";
+        os << it2->second << " ";
     }
     os << std::endl;
 
