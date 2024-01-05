@@ -77,6 +77,7 @@ void Server::addServerInfo(const ServerInfo &serverInfo)
 //    - on이면 autoindex, off 이면 404
 const std::vector<std::string> Server::getFilePath(const std::string &host, std::string path, bool &isFolder) const
 {
+    assert(path != "");
     std::vector<std::string> indexsPath;
     std::vector<std::string> filePath;
     std::string root;
