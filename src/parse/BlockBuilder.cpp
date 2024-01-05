@@ -88,7 +88,6 @@ bool BlockBuilder::tryConvertNumber(const std::string &valueString, bool hasUnit
             return false;
         }
     }
-    result = static_cast<unsigned int>(result);
     return true;
 }
 
