@@ -1,7 +1,7 @@
 #include "ServerBlock.hpp"
 
-ServerBlock::ServerBlock(HttpBlock httpBlock, unsigned int port, std::string serverName, unsigned int redirectionCode,
-                         std::string redirectionPath)
+ServerBlock::ServerBlock(const HttpBlock &httpBlock, unsigned int port, const std::string &serverName,
+                         unsigned int redirectionCode, const std::string &redirectionPath)
     : HttpBlock(httpBlock), mPort(port), mServerName(serverName), mRedirectionCode(redirectionCode),
       mRedirectionPath(redirectionPath)
 {

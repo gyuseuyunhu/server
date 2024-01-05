@@ -1,6 +1,6 @@
 #include "LocationBlock.hpp"
-LocationBlock::LocationBlock(ServerBlock serverBlock, std::string locationPath, bool isAutoIndex, bool isAllowedGet,
-                             bool isAllowedPost, bool isAllowedDelete)
+LocationBlock::LocationBlock(const ServerBlock &serverBlock, const std::string &locationPath, bool isAutoIndex,
+                             bool isAllowedGet, bool isAllowedPost, bool isAllowedDelete)
     : ServerBlock(serverBlock), mLocationPath(locationPath), mIsAutoIndex(isAutoIndex), mIsAllowedGet(isAllowedGet),
       mIsAllowedPost(isAllowedPost), mIsAllowedDelete(isAllowedDelete)
 {

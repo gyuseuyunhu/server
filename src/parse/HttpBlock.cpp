@@ -1,8 +1,8 @@
 
 #include "HttpBlock.hpp"
 
-HttpBlock::HttpBlock(std::string root, std::vector<std::string> indexs, std::map<int, std::string> errorpages,
-                     unsigned int clientMaxBodySize)
+HttpBlock::HttpBlock(const std::string &root, const std::vector<std::string> &indexs,
+                     const std::map<int, std::string> &errorpages, unsigned int clientMaxBodySize)
     : mRoot(root), mIndexs(indexs), mErrorPages(errorpages), mClientMaxBodySize(clientMaxBodySize)
 {
 }

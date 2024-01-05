@@ -5,7 +5,6 @@
 #include <limits>
 #include <map>
 #include <vector>
-#include <map>
 
 class HttpBlock
 {
@@ -16,8 +15,8 @@ class HttpBlock
     unsigned int mClientMaxBodySize;
 
   public:
-    HttpBlock(std::string root, std::vector<std::string> index, std::map<int, std::string> errorpage,
-              unsigned int clientMaxBodySize);
+    HttpBlock(const std::string &root, const std::vector<std::string> &index,
+              const std::map<int, std::string> &errorpage, unsigned int clientMaxBodySize);
     HttpBlock(const HttpBlock &other);
     HttpBlock &operator=(const HttpBlock &rhs);
 
