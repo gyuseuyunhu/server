@@ -2,7 +2,7 @@
 #include "util.hpp"
 #include <sstream>
 
-Request::Request() : mVersion("HTTP/1.1"), mStatus(0)
+Request::Request() : mVersion("HTTP/1.1"), mRequestLine(E_START_LINE), mStatus(0)
 {
 }
 
@@ -133,6 +133,7 @@ void Request::parseRequestHeader(std::string &buffer)
             mStatus = 400; // Bad Request
             return;
         }
+        mStatus = 200;
         buffer = buffer.substr(pos + 4);
         mRequestLine = E_REQUEST_CONTENTS;
     }

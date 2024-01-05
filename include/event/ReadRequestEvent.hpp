@@ -6,7 +6,6 @@
 class ReadRequestEvent : public AEvent
 {
   private:
-    static const int BUFFER_SIZE = 1024; // todo 테스트를 통해 적절한 값 찾기
     std::string mStringBuffer;
 
   public:

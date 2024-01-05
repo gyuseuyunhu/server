@@ -18,6 +18,9 @@ class Kqueue
     static void addEvent(const struct kevent &event);
     static void handleEvents();
     static void pushAcceptEvent(); // 뺄지 넣을지 고민중
+
+    static void deleteEvent(int fd, int filter);
+    static void closeKq();
 };
 
 #endif

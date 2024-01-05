@@ -57,15 +57,6 @@ void ServerManager::pushServerInfo(const ServerInfo &serverInfo)
 
 void ServerManager::run()
 {
-    // Debugging TODO - 추후 삭제
-    // std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
-    // std::vector<Server>::iterator iter = mServers.begin();
-    // for (; iter != mServers.end(); ++iter)
-    // {
-    //     std::cout << *iter << std::endl;
-    // }
-    // std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
-    // Debugging
     while (1)
     {
         Kqueue::handleEvents();
