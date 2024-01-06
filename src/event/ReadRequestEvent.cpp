@@ -207,7 +207,7 @@ void ReadRequestEvent::makeReadFileEvent(int fd, int &status)
     struct kevent newEvent;
     // assert(mFileSize != 0);
     EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
-           new ReadFileEvent(mServer, mClientSocket, fd, mFileSize, status));
+           new ReadFileEvent(mServer, mClientSocket, fd, mFileSize, status, mMimeType));
     Kqueue::addEvent(newEvent);
 }
 
