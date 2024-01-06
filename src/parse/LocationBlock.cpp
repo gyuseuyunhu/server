@@ -5,6 +5,11 @@ LocationBlock::LocationBlock(const ServerBlock &serverBlock, const std::string &
       mIsAllowedPost(isAllowedPost), mIsAllowedDelete(isAllowedDelete)
 {
 }
+LocationBlock::LocationBlock(const ServerBlock &serverBlock)
+    : ServerBlock(serverBlock), mLocationPath(""), mIsAutoIndex(false), mIsAllowedGet(true), mIsAllowedPost(true),
+      mIsAllowedDelete(true)
+{
+}
 
 LocationBlock &LocationBlock::operator=(const LocationBlock &rhs)
 {

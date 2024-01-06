@@ -21,6 +21,7 @@ class LocationBlock : public ServerBlock
   public:
     LocationBlock(const ServerBlock &serverBlock, const std::string &locationPath, bool isAutoIndex, bool isAllowedGet,
                   bool isAllowedPost, bool isAllowedDelete);
+    LocationBlock(const ServerBlock &serverBlock);
     LocationBlock &operator=(const LocationBlock &rhs);
     const std::string &getLocationPath() const;
     bool isAutoIndex() const;
