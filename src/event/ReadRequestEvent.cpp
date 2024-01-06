@@ -21,21 +21,21 @@ void ReadRequestEvent::setMimeType(const std::string &path)
 {
     size_t lastSlashPos = path.find_last_of('/');
 
-    std::string filename;
+    std::string fileName;
     std::string fileExtension;
     if (lastSlashPos != std::string::npos)
     {
-        filename = path.substr(lastSlashPos + 1);
+        fileName = path.substr(lastSlashPos + 1);
     }
     else
     {
         assert(false);
     }
-    size_t lastDotPos = filename.find_last_of('.');
+    size_t lastDotPos = fileName.find_last_of('.');
 
     if (lastDotPos != std::string::npos)
     {
-        fileExtension = filename.substr(lastDotPos + 1);
+        fileExtension = fileName.substr(lastDotPos + 1);
         mMimeType = HttpStatusInfos::getMimeType(fileExtension);
         return;
     }
