@@ -23,7 +23,6 @@ class Server
     void addServerInfo(const ServerInfo &serverInfo);
     void listen();
     const LocationBlock getLocationBlockForRequest(const std::string &host, const std::string &path) const;
-    // const std::vector<std::string> getFilePath(const std::string &host, std::string path, bool &isFolder) const;
 
     // Debugging - TODO : 추후 삭제
     friend std::ostream &operator<<(std::ostream &os, const Server &serverb);
