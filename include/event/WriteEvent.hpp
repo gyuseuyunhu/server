@@ -14,7 +14,7 @@ class WriteEvent : public AEvent
   public:
     WriteEvent(const Server &server, int clientSocket, std::string message);
     virtual ~WriteEvent();
-    virtual int handle();
+    virtual void handle();
 };
 
 #endif

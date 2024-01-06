@@ -3,6 +3,11 @@
 
 #include "AEvent.hpp"
 
+enum eFd
+{
+    NOT_FOUND,
+};
+
 class ReadRequestEvent : public AEvent
 {
   private:
@@ -18,7 +23,7 @@ class ReadRequestEvent : public AEvent
   public:
     ReadRequestEvent(const Server &server, int clientSocket);
     virtual ~ReadRequestEvent();
-    virtual int handle();
+    virtual void handle();
     void makeResponseEvent(int &status);
     void makeReadFileEvent(int fd, int &status);
 };
