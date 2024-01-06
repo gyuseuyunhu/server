@@ -9,11 +9,13 @@ class ReadRequestEvent : public AEvent
     std::string mStringBuffer;
     std::string mFilePrefix;
     int mFileSize;
+    std::string mMimeType;
     int getErrorPageFd(const LocationBlock &lb, int status);
     int getIndexFd(const LocationBlock &lb, int &stauts);
     int getFileFd(const LocationBlock &lb, int &status);
     int getRequestFd(int &status);
     void setFilePrefix(const LocationBlock &lb);
+		void setMimeType(const std::string &path);
 
   public:
     ReadRequestEvent(const Server &server, int clientSocket);

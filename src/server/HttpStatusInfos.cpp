@@ -4,6 +4,7 @@
 
 std::map<int, std::string> HttpStatusInfos::mHttpStatusReasons;
 std::map<int, std::string> HttpStatusInfos::mHttpErrorPages;
+std::map<std::string, std::string> HttpStatusInfos::mMimeType;
 std::string HttpStatusInfos::mWebservRoot;
 
 HttpStatusInfos::HttpStatusInfos()
@@ -14,7 +15,15 @@ void HttpStatusInfos::initHttpStatusInfos(char **envp)
 {
     initHttpStatusReasons();
     initHttpErrorPages();
+    initMimeType();
     setWebservRoot(envp);
+}
+
+void HttpStatusInfos::initMimeType()
+{
+    mMimeType["html"] = "text/html";
+    mMimeType["png"] = "image/png";
+    mMimeType["ico"] = "image/x-icon";
 }
 
 void HttpStatusInfos::initHttpStatusReasons()
@@ -105,6 +114,15 @@ const std::string &HttpStatusInfos::getHttpErrorPage(const int statusCode)
 
     it = mHttpErrorPages.find(statusCode);
     assert(it != mHttpStatusReasons.end());
+    return it->second;
+}
+
+const std::string &HttpStatusInfos::getMimeType(const std::string &type)
+{
+    std::map<std::string, std::string>::const_iterator it;
+
+    it = mMimeType.find(type);
+    assert(it != mMimeType.end());
     return it->second;
 }
 
