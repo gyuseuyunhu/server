@@ -1,4 +1,5 @@
 #include "Request.hpp"
+#include "HttpStatusInfos.hpp"
 #include "util.hpp"
 #include <sstream>
 
@@ -82,7 +83,7 @@ int Request::checkHttpVersion(std::stringstream &ss)
 void Request::parseStartLine(std::string &buffer)
 {
     size_t pos;
-    if ((pos = buffer.find("\r\n")) != std::string::npos)
+    if ((pos = buffer.find(CRLF)) != std::string::npos)
     {
         std::stringstream ss(buffer.substr(0, pos));
         if (checkMethod(ss) == -1 || checkPath(ss) == -1 || checkHttpVersion(ss) == -1)
@@ -126,7 +127,7 @@ int Request::storeHeaderMap(std::string buffer)
     std::string line;
 
     size_t pos = 0;
-    while ((pos = buffer.find("\r\n")) != std::string::npos)
+    while ((pos = buffer.find(CRLF)) != std::string::npos)
     {
         if (storeHeaderLine(buffer.substr(0, pos)))
             return -1;
@@ -138,7 +139,7 @@ int Request::storeHeaderMap(std::string buffer)
 void Request::parseRequestHeader(std::string &buffer)
 {
     size_t pos = 0;
-    if ((pos = buffer.find("\r\n\r\n")) != std::string::npos)
+    if ((pos = buffer.find(CRLF CRLF)) != std::string::npos)
     {
         if (storeHeaderMap(buffer.substr(0, pos + 2)) == -1)
             return;

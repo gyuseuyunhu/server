@@ -29,7 +29,7 @@ int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
         if (stat(filePath.c_str(), &fileInfo) == 0)
         {
             int fd = nonBlockOpen(filePath.c_str(), O_RDONLY);
-            if (fd != -1)
+            if (fd != NOT_FOUND)
             {
                 mFileSize = fileInfo.st_size;
                 return fd;
@@ -44,11 +44,11 @@ int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
             status = 404;
         }
     }
-    // 반복문을 돌았는데 열리는 index 파일이 없으면
+    // 반복문을 돌았는데 열리는 index 파일이 없을 시 autoindex 지시어가 있는 경우 파일 목록을 응답
     if (lb.isAutoIndex() == true)
     {
         status = 200;
-        return -1; // todo 오토인덱스 구현해야함
+        return NOT_FOUND;
     }
 
     return getErrorPageFd(lb, status);
@@ -62,7 +62,7 @@ int ReadRequestEvent::getErrorPageFd(const LocationBlock &lb, int status)
     std::map<int, std::string>::const_iterator it = errorPages.find(status);
     if (it == errorPages.end())
     {
-        return -1;
+        return NOT_FOUND;
     }
 
     std::string errorPagePath = HttpStatusInfos::getWebservRoot() + lb.getRoot() + it->second;
@@ -73,15 +73,15 @@ int ReadRequestEvent::getErrorPageFd(const LocationBlock &lb, int status)
         if (S_ISREG(fileInfo.st_mode))
         {
             int fd = nonBlockOpen(errorPagePath.c_str(), O_RDONLY);
-            if (fd == -1)
+            if (fd == NOT_FOUND)
             {
-                return -1;
+                return NOT_FOUND;
             }
             mFileSize = fileInfo.st_size;
             return fd;
         }
     }
-    return -1;
+    return NOT_FOUND;
 }
 
 int ReadRequestEvent::getFileFd(const LocationBlock &lb, int &status)
@@ -94,7 +94,7 @@ int ReadRequestEvent::getFileFd(const LocationBlock &lb, int &status)
         if (S_ISREG(fileInfo.st_mode))
         {
             int fd = nonBlockOpen(filePath.c_str(), O_RDONLY);
-            if (fd != -1)
+            if (fd != NOT_FOUND)
             {
                 mFileSize = fileInfo.st_size;
                 return fd;
@@ -105,7 +105,7 @@ int ReadRequestEvent::getFileFd(const LocationBlock &lb, int &status)
         else if (S_ISDIR(fileInfo.st_mode))
         {
             status = 301;
-            return -1;
+            return NOT_FOUND;
         }
     }
     status = 404;
@@ -125,7 +125,6 @@ int ReadRequestEvent::getRequestFd(int &status)
 {
     if (status >= 400)
     {
-        // 여기서 errorPage용 lb을 만들어 줘야 할듯
         return getErrorPageFd(LocationBlock(mServer.getServerInfos()[0].getServerBlock()), status);
     }
 
@@ -171,7 +170,6 @@ void ReadRequestEvent::makeResponseEvent(int &status)
     Kqueue::addEvent(newEvent);
 }
 
-// makeResponseEvent() -> 메소드 명 수정?
 void ReadRequestEvent::makeReadFileEvent(int fd, int &status)
 {
     struct kevent newEvent;
@@ -181,29 +179,24 @@ void ReadRequestEvent::makeReadFileEvent(int fd, int &status)
     Kqueue::addEvent(newEvent);
 }
 
-int ReadRequestEvent::handle()
+void ReadRequestEvent::handle()
 {
     char buffer[BUFFER_SIZE];
     int n = read(mClientSocket, buffer, BUFFER_SIZE);
-    if (n < 0)
+    if (n <= 0)
     {
         close(mClientSocket);
         delete this;
-        return EVENT_CONTINUE;
+        return;
     }
-    else if (n == 0)
-    {
-        close(mClientSocket);
-        delete this;
-        return EVENT_FINISH;
-    }
+
     mStringBuffer.append(buffer, n);
     mRequest.parse(mStringBuffer);
     int status = mRequest.getStatus();
     if (status >= 200)
     {
         int fd = getRequestFd(status);
-        if (fd == -1)
+        if (fd == NOT_FOUND)
         {
             makeResponseEvent(status);
         }
@@ -213,7 +206,5 @@ int ReadRequestEvent::handle()
         }
         Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
         delete this;
-        return EVENT_FINISH;
     }
-    return EVENT_CONTINUE;
 }
