@@ -21,6 +21,7 @@ class HttpStatusInfos
     static const std::string &getHttpReason(const int statusCode);
     static const std::string &getHttpErrorPage(const int statusCode);
     static const std::string &getWebservRoot();
+    static const std::string makeAutoIndexPage(const std::string &path);
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include "HttpStatusInfos.hpp"
+#include <dirent.h>
 #include <iostream>
 
 std::map<int, std::string> HttpStatusInfos::mHttpStatusReasons;
@@ -62,6 +63,31 @@ void HttpStatusInfos::setWebservRoot(char **envp)
     {
         throw std::runtime_error("webserv는 환경변수 WEBSERV_ROOT가 필요합니다.");
     }
+}
+
+const std::string HttpStatusInfos::makeAutoIndexPage(const std::string &path)
+{
+    DIR *dir;
+    struct dirent *ent;
+    std::string html =
+        "<html><head><title>Index of " + path + "</title></head><body><h1>Index of " + path + "</h1><ul>";
+
+    if ((dir = opendir(path.c_str())) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            html += "<li><a href=\"" + std::string(ent->d_name) + "\">" + std::string(ent->d_name) + "</a></li>";
+        }
+        closedir(dir);
+    }
+    else
+    {
+        // 디렉토리를 열 수 없을 경우
+        html += "<p>Cannot open directory.</p>";
+    }
+
+    html += "</ul></body></html>";
+    return html;
 }
 
 const std::string &HttpStatusInfos::getHttpReason(const int statusCode)
