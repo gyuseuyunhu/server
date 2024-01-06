@@ -1,5 +1,6 @@
 #include "Response.hpp"
 #include "HttpStatusInfos.hpp"
+#include <sstream>
 
 Response::Response()
 {
@@ -7,8 +8,19 @@ Response::Response()
 
 void Response::init(int httpStatusCode, int contentLength)
 {
-    mStartLine = "HTTP/1.1 " + std::to_string(httpStatusCode) + " " + HttpStatusInfos::getHttpReason(httpStatusCode);
-    mHead = "Content-Length: " + std::to_string(contentLength);
+    std::ostringstream oss;
+    oss << "HTTP/1.1 " << httpStatusCode << " " << httpStatusCode;
+    mStartLine = oss.str();
+
+    oss.str("");
+    oss.clear();
+    oss << "Content-Length: " << contentLength;
+    mHead = oss.str();
+}
+
+void Response::addHead(const std::string &key, const std::string &value)
+{
+    mHead += CRLF + key + ": " + value;
 }
 
 const std::string &Response::getStartLine() const
