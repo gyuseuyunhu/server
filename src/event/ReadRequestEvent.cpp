@@ -3,7 +3,7 @@
 #include "Kqueue.hpp"
 #include "ReadFileEvent.hpp"
 #include "WriteEvent.hpp"
-#include <fcntl.h>
+#include "util.hpp"
 #include <sstream>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -28,7 +28,7 @@ int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
         filePath = mFilePrefix + *indexIt;
         if (stat(filePath.c_str(), &fileInfo) == 0)
         {
-            int fd = open(filePath.c_str(), O_RDONLY);
+            int fd = nonBlockOpen(filePath.c_str(), O_RDONLY);
             if (fd != -1)
             {
                 mFileSize = fileInfo.st_size;
@@ -72,12 +72,11 @@ int ReadRequestEvent::getErrorPageFd(const LocationBlock &lb, int status)
     {
         if (S_ISREG(fileInfo.st_mode))
         {
-            int fd = open(errorPagePath.c_str(), O_RDONLY);
+            int fd = nonBlockOpen(errorPagePath.c_str(), O_RDONLY);
             if (fd == -1)
             {
                 return -1;
             }
-            fcntl(fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
             mFileSize = fileInfo.st_size;
             return fd;
         }
@@ -94,7 +93,7 @@ int ReadRequestEvent::getFileFd(const LocationBlock &lb, int &status)
     {
         if (S_ISREG(fileInfo.st_mode))
         {
-            int fd = open(filePath.c_str(), O_RDONLY);
+            int fd = nonBlockOpen(filePath.c_str(), O_RDONLY);
             if (fd != -1)
             {
                 mFileSize = fileInfo.st_size;

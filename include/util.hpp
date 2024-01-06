@@ -1,9 +1,11 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
+#include <fcntl.h>
 #include <fstream>
 #include <string>
 
+int nonBlockOpen(const char *str, int flag);
 bool isWhiteSpace(const char c);
 std::string trim(const std::string &str);
 void trimLine(std::string &line);
