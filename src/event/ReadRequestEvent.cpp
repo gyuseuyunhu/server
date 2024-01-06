@@ -166,7 +166,8 @@ void ReadRequestEvent::makeResponseEvent(int &status)
         mResponse.addHead("Location", oss.str());
     }
     std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF + CRLF + responseBody;
-    EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mClientSocket, message));
+    EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
+           new WriteEvent(mServer, mClientSocket, message, status));
     Kqueue::addEvent(newEvent);
 }
 

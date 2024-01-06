@@ -34,7 +34,8 @@ void ReadFileEvent::handle()
         std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF CRLF + mBody;
 
         struct kevent newEvent;
-        EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mClientSocket, message));
+        EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
+               new WriteEvent(mServer, mClientSocket, message, 200));
         Kqueue::addEvent(newEvent);
         delete this;
     }
