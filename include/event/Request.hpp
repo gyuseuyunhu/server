@@ -9,6 +9,8 @@ enum eHttpMethod
     E_GET,
     E_POST,
     E_DELETE,
+    E_NOT_IMPLEMENT,
+    E_BAD_REQUEST
 };
 
 enum eRequestLine
@@ -25,14 +27,15 @@ class Request
     std::string mPath;
     std::string mVersion;
     std::map<std::string, std::string> mHeaders;
+    std::string mHost;
     std::string mContent; // 자료형 좀 더 고민
 
     eRequestLine mRequestLine;
     int mStatus;
 
-    void checkMethod(std::stringstream &ss);
-    void checkPath(std::stringstream &ss);
-    void checkHttpVersion(std::stringstream &ss);
+    int checkMethod(std::stringstream &ss);
+    int checkPath(std::stringstream &ss);
+    int checkHttpVersion(std::stringstream &ss);
 
     void parseStartLine(std::string &buffer);
 
@@ -49,6 +52,7 @@ class Request
 
     int getStatus() const;
     const std::map<std::string, std::string> &getHeaders() const;
+    const std::string &getHost() const;
     const std::string &getPath() const;
     void clear();
 };

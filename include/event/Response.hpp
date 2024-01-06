@@ -12,6 +12,7 @@ class Response
   public:
     Response();
     void init(int httpStatusCode, int contentLength);
+    void addHead(const std::string &key, const std::string &value);
     const std::string &getStartLine() const;
     const std::string &getHead() const;
 };

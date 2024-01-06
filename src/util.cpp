@@ -1,5 +1,16 @@
 #include "util.hpp"
 
+int nonBlockOpen(const char *str, int flag)
+{
+    int fd = open(str, flag);
+    if (fd == -1)
+    {
+        return -1;
+    }
+    fcntl(fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+    return fd;
+}
+
 std::string trim(const std::string &str)
 {
     std::size_t first = str.find_first_not_of(" ");

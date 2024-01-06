@@ -2,7 +2,8 @@
 #include "util.hpp"
 #include <sstream>
 
-Request::Request() : mVersion("HTTP/1.1"), mRequestLine(E_START_LINE), mStatus(0)
+Request::Request()
+    : mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mContent(""), mRequestLine(E_START_LINE), mStatus(0)
 {
 }
 
@@ -10,7 +11,7 @@ Request::~Request()
 {
 }
 
-void Request::checkMethod(std::stringstream &ss)
+int Request::checkMethod(std::stringstream &ss)
 {
     std::string method;
     ss >> method;
@@ -30,37 +31,51 @@ void Request::checkMethod(std::stringstream &ss)
              method == "CONNECT")
     {
         mStatus = 501; // Not Implemented
+        mMethod = E_NOT_IMPLEMENT;
+        return -1;
     }
     else
     {
         mStatus = 400; // Bad Request
+        mMethod = E_BAD_REQUEST;
+        return -1;
     }
+    return 0;
 }
 
-void Request::checkPath(std::stringstream &ss)
+int Request::checkPath(std::stringstream &ss)
 {
     ss >> mPath;
     if (mPath == "")
     {
         mStatus = 400; // Bad Request
+        return -1;
     }
+    if (mPath[0] != '/')
+    {
+        mPath = "/" + mPath;
+    }
+    return 0;
 }
 
-void Request::checkHttpVersion(std::stringstream &ss)
+int Request::checkHttpVersion(std::stringstream &ss)
 {
     std::string version;
     ss >> version;
     if (version == "HTTP/1.0" || version == "HTTP/1.1")
     {
         mVersion = "HTTP/1.1"; // 1.0은 conectless이긴 함.
+        return 0;
     }
     else if (version == "HTTP/2.0" || version == "HTTP/3.0")
     {
         mStatus = 501; // Not Implement
+        return -1;
     }
     else
     {
         mStatus = 400; // Bad Request
+        return -1;
     }
 }
 
@@ -70,9 +85,8 @@ void Request::parseStartLine(std::string &buffer)
     if ((pos = buffer.find("\r\n")) != std::string::npos)
     {
         std::stringstream ss(buffer.substr(0, pos));
-        checkMethod(ss);
-        checkPath(ss);
-        checkHttpVersion(ss);
+        if (checkMethod(ss) == -1 || checkPath(ss) == -1 || checkHttpVersion(ss) == -1)
+            return;
         buffer = buffer.substr(pos + 2);
         mRequestLine = E_REQUEST_HEADER;
     }
@@ -133,6 +147,7 @@ void Request::parseRequestHeader(std::string &buffer)
             mStatus = 400; // Bad Request
             return;
         }
+        mHost = mHeaders["Host"];
         mStatus = 200;
         buffer = buffer.substr(pos + 4);
         mRequestLine = E_REQUEST_CONTENTS;
@@ -178,6 +193,11 @@ void Request::clear()
 const std::map<std::string, std::string> &Request::getHeaders() const
 {
     return mHeaders;
+}
+
+const std::string &Request::getHost() const
+{
+    return mHost;
 }
 
 const std::string &Request::getPath() const

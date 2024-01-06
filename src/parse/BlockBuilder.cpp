@@ -156,7 +156,15 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
 {
     if (key == "root")
     {
-        mRoot = "/" + value + "/";
+        mRoot = value;
+        if (mRoot[0] != '/')
+        {
+            mRoot = "/" + mRoot;
+        }
+        if (mRoot[mRoot.size() - 1] != '/')
+        {
+            mRoot = mRoot + "/";
+        }
     }
     else if (key == "index")
     {
@@ -185,7 +193,7 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
             {
                 for (size_t i = 0; i < mErrorCodes.size(); ++i)
                 {
-                    mErrorPages[mErrorCodes[i]] = HttpStatusInfos::getWebservRoot() + value;
+                    mErrorPages[mErrorCodes[i]] = value;
                 }
                 isMadeErrorPages = true;
                 mErrorCodes.clear();
