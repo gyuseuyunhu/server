@@ -3,14 +3,13 @@
 
 #include "AEvent.hpp"
 
-enum eFd
-{
-    NOT_FOUND,
-};
-
 class ReadRequestEvent : public AEvent
 {
   private:
+    enum
+    {
+        NOT_FOUND = -1,
+    };
     std::string mStringBuffer;
     std::string mFilePrefix;
     int mFileSize;
@@ -20,7 +19,7 @@ class ReadRequestEvent : public AEvent
     int getFileFd(const LocationBlock &lb, int &status);
     int getRequestFd(int &status);
     void setFilePrefix(const LocationBlock &lb);
-		void setMimeType(const std::string &path);
+    void setMimeType(const std::string &path);
 
   public:
     ReadRequestEvent(const Server &server, int clientSocket);
