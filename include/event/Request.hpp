@@ -1,6 +1,7 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
+#include "ConnectionEnum.hpp"
 #include <map>
 #include <string>
 
@@ -39,6 +40,7 @@ class Request
 
     eRequestLine mRequestLine;
     int mStatus;
+    eConnectionStatus mConnectionStatus;
 
     int checkMethod(std::stringstream &ss);
     int checkPath(std::stringstream &ss);
@@ -62,6 +64,7 @@ class Request
     const std::string &getHost() const;
     const std::string &getPath() const;
     const std::string &getBody() const;
+    eConnectionStatus getConnectionStatus() const;
     void clear();
 };
 

@@ -22,7 +22,7 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
 
 Request::Request()
     : mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mBody(""), mContentLength(0),
-      mRequestLine(E_START_LINE), mStatus(0)
+      mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE)
 {
 }
 
@@ -148,7 +148,9 @@ int Request::storeHeaderMap(std::string buffer)
     while ((pos = buffer.find(CRLF)) != std::string::npos)
     {
         if (storeHeaderLine(buffer.substr(0, pos)))
+        {
             return -1;
+        }
         buffer = buffer.substr(pos + 2);
     }
     return 0;
@@ -160,13 +162,24 @@ void Request::parseRequestHeader(std::string &buffer)
     if ((pos = buffer.find(CRLF CRLF)) != std::string::npos)
     {
         if (storeHeaderMap(buffer.substr(0, pos + 2)) == -1)
+        {
+            mStatus = 400;
             return;
+        }
         if (mHeaders.find("Host") == mHeaders.end())
         {
             mStatus = 400; // Bad Request
             return;
         }
         mHost = mHeaders["Host"];
+
+        if (mHeaders.find("Connection") != mHeaders.end())
+        {
+            if (mHeaders["Connection"] == "close")
+            {
+                mConnectionStatus = CONNECTION_CLOSE;
+            }
+        }
 
         if (mHeaders.find("Content-Length") != mHeaders.end())
         {
@@ -210,6 +223,10 @@ void Request::parse(std::string &buffer)
     {
         parseRequestContent(buffer);
     }
+    if (mStatus == 400 || mStatus == 501)
+    {
+        mConnectionStatus = CONNECTION_CLOSE;
+    }
 }
 
 int Request::getStatus() const
@@ -244,4 +261,9 @@ const std::string &Request::getPath() const
 const std::string &Request::getBody() const
 {
     return mBody;
+}
+
+eConnectionStatus Request::getConnectionStatus() const
+{
+    return mConnectionStatus;
 }

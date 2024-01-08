@@ -1,6 +1,7 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
+#include "ConnectionEnum.hpp"
 #include <iostream>
 
 class Response
@@ -9,6 +10,7 @@ class Response
     std::string mStartLine;
     std::string mHead;
     std::string mBody;
+    eConnectionStatus mConnectionStatus;
 
   public:
     Response();
@@ -18,6 +20,8 @@ class Response
     const std::string toStr() const;
     const std::string &getStartLine() const;
     const std::string &getHead() const;
+    eConnectionStatus getConnectionStatus() const;
+    void setConnectionClose();
 };
 
 #endif

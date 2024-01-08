@@ -2,7 +2,7 @@
 #include "HttpStatusInfos.hpp"
 #include <sstream>
 
-Response::Response()
+Response::Response() : mConnectionStatus(KEEP_ALIVE)
 {
 }
 
@@ -43,4 +43,15 @@ const std::string &Response::getStartLine() const
 const std::string &Response::getHead() const
 {
     return mHead;
+}
+
+eConnectionStatus Response::getConnectionStatus() const
+{
+    return mConnectionStatus;
+}
+
+void Response::setConnectionClose()
+{
+    mConnectionStatus = CONNECTION_CLOSE;
+    addHead("Connection", "close");
 }
