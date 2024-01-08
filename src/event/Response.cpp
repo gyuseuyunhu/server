@@ -9,7 +9,7 @@ Response::Response()
 void Response::init(int httpStatusCode, int contentLength)
 {
     std::ostringstream oss;
-    oss << "HTTP/1.1 " << httpStatusCode << " " << httpStatusCode;
+    oss << "HTTP/1.1 " << httpStatusCode << " " << HttpStatusInfos::getHttpReason(httpStatusCode);
     mStartLine = oss.str();
 
     oss.str("");
