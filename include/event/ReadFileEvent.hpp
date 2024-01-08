@@ -10,13 +10,10 @@ class ReadFileEvent : public AEvent
     char mBuffer[BUFFER_SIZE];
     int mFileSize;
     int mReadSize;
-    int mHttpStatusCode;
     std::string mBody;
-    const std::string mMimeType;
 
   public:
-    ReadFileEvent(const Server &server, int clientSocket, int fileFd, int fileSize, int mHttpStatusCode,
-                  const std::string &mimeType);
+    ReadFileEvent(const Server &server, const Response &response, int clientSocket, int fileFd, int fileSize);
     virtual ~ReadFileEvent();
     virtual void handle();
 };

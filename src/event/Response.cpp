@@ -23,6 +23,18 @@ void Response::addHead(const std::string &key, const std::string &value)
     mHead += CRLF + key + ": " + value;
 }
 
+void Response::setBody(const std::string &body)
+{
+    mBody = body;
+}
+
+const std::string Response::toStr() const
+{
+    assert(mStartLine.size() != 0);
+    assert(mHead.size() != 0);
+    return mStartLine + CRLF + mHead + CRLF + CRLF + mBody;
+}
+
 const std::string &Response::getStartLine() const
 {
     return mStartLine;

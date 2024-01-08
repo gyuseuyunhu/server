@@ -184,29 +184,29 @@ void ReadRequestEvent::makeResponseEvent(int &status)
         std::cout << "auto : " << mFilePrefix << std::endl;
     }
     mResponse.init(status, responseBody.length());
+
     if (status == 301)
     {
         std::ostringstream oss;
         oss << "http://" << mRequest.getHost() << mRequest.getPath() << "/";
-        // todo Debug
-        std::cout << "301 path : " << oss.str() << std::endl;
-        // todo Debug
         mResponse.addHead("Location", oss.str());
     }
     assert(mMimeType.size() != 0);
     mResponse.addHead("Content-Type", mMimeType);
-    std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF + CRLF + responseBody + CRLF;
-    EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
-           new WriteEvent(mServer, mClientSocket, message, status));
+    assert(responseBody.size() != 0);
+    mResponse.setBody(responseBody);
+    EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
     Kqueue::addEvent(newEvent);
 }
 
 void ReadRequestEvent::makeReadFileEvent(int fd, int &status)
 {
     struct kevent newEvent;
-    // assert(mFileSize != 0);
+    // todo filesize가 맞는지 확인 필요
+    mResponse.init(status, mFileSize);
+    mResponse.addHead("Content-Type", mMimeType);
     EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
-           new ReadFileEvent(mServer, mClientSocket, fd, mFileSize, status, mMimeType));
+           new ReadFileEvent(mServer, mResponse, mClientSocket, fd, mFileSize));
     Kqueue::addEvent(newEvent);
 }
 

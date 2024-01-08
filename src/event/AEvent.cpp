@@ -8,6 +8,11 @@ AEvent::AEvent(const Server &server, int clientSocket) : mServer(server), mClien
 {
 }
 
+AEvent::AEvent(const Server &server, const Response &response, int clientSocket)
+    : mServer(server), mResponse(response), mClientSocket(clientSocket)
+{
+}
+
 AEvent::~AEvent()
 {
 }

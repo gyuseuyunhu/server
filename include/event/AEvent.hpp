@@ -12,14 +12,15 @@
 class AEvent
 {
   protected:
+    const Server &mServer;
     Response mResponse;
     Request mRequest;
-    const Server &mServer;
     int mClientSocket;
 
   public:
     AEvent(const Server &server);
     AEvent(const Server &server, int clientSocket);
+    AEvent(const Server &server, const Response &response, int clientSocket);
     virtual ~AEvent();
     virtual void handle() = 0;
 };
