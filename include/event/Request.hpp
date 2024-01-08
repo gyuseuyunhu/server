@@ -34,7 +34,6 @@ class Request
     std::string mVersion;
     std::map<std::string, std::string, CaseInsensitiveCompare> mHeaders;
     std::string mHost;
-    std::string mContent; // 자료형 좀 더 고민
     std::string mBody;
     unsigned int mContentLength;
 
