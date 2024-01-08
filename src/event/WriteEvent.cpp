@@ -28,12 +28,13 @@ void WriteEvent::handle()
     mWriteSize += n;
     if (mWriteSize == mResponseSize)
     {
-        if (mStatus == 400 || mStatus == 501)
-        {
-            close(mClientSocket);
-            delete this;
-            return;
-        }
+        // todo connectionType 구현 필요
+        // if (mResponse.getHead().find("Connection"))
+        // {
+        //     close(mClientSocket);
+        //     delete this;
+        //     return;
+        // }
         Kqueue::deleteEvent(mClientSocket, EVFILT_WRITE);
         struct kevent newEvent;
         EV_SET(&newEvent, mClientSocket, EVFILT_READ, EV_ADD, 0, 0, new ReadRequestEvent(mServer, mClientSocket));
