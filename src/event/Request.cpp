@@ -3,8 +3,26 @@
 #include "util.hpp"
 #include <sstream>
 
+bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string &b) const
+{
+    size_t minLength = std::min(a.length(), b.length());
+    for (size_t i = 0; i < minLength; ++i)
+    {
+        if (std::tolower(a[i]) < std::tolower(b[i]))
+        {
+            return true;
+        }
+        if (std::tolower(a[i]) > std::tolower(b[i]))
+        {
+            return false;
+        }
+    }
+    return a.length() < b.length();
+}
+
 Request::Request()
-    : mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mContent(""), mRequestLine(E_START_LINE), mStatus(0)
+    : mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mBody(""), mContentLength(0),
+      mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE)
 {
 }
 
@@ -130,7 +148,9 @@ int Request::storeHeaderMap(std::string buffer)
     while ((pos = buffer.find(CRLF)) != std::string::npos)
     {
         if (storeHeaderLine(buffer.substr(0, pos)))
+        {
             return -1;
+        }
         buffer = buffer.substr(pos + 2);
     }
     return 0;
@@ -142,23 +162,51 @@ void Request::parseRequestHeader(std::string &buffer)
     if ((pos = buffer.find(CRLF CRLF)) != std::string::npos)
     {
         if (storeHeaderMap(buffer.substr(0, pos + 2)) == -1)
+        {
+            mStatus = 400;
             return;
+        }
         if (mHeaders.find("Host") == mHeaders.end())
         {
             mStatus = 400; // Bad Request
             return;
         }
         mHost = mHeaders["Host"];
+
+        if (mHeaders.find("Connection") != mHeaders.end())
+        {
+            if (mHeaders["Connection"] == "close")
+            {
+                mConnectionStatus = CONNECTION_CLOSE;
+            }
+        }
+
+        if (mHeaders.find("Content-Length") != mHeaders.end())
+        {
+            std::stringstream ss;
+            ss << mHeaders["Content-Length"];
+            ss >> mContentLength;
+            buffer = buffer.substr(pos + 4);
+            mRequestLine = E_REQUEST_CONTENTS;
+            return;
+        }
         mStatus = 200;
-        buffer = buffer.substr(pos + 4);
-        mRequestLine = E_REQUEST_CONTENTS;
     }
 }
 
 void Request::parseRequestContent(std::string &buffer)
 {
-    mContent += buffer;
+    mBody += buffer;
     buffer = "";
+    if (mBody.size() == mContentLength)
+    {
+        mStatus = 200;
+    }
+    // ContentLength보다 더 많이 들어왔을 때
+    else if (mBody.size() > mContentLength)
+    {
+        mStatus = 400;
+    }
 }
 
 void Request::parse(std::string &buffer)
@@ -175,6 +223,10 @@ void Request::parse(std::string &buffer)
     {
         parseRequestContent(buffer);
     }
+    if (mStatus == 400 || mStatus == 501)
+    {
+        mConnectionStatus = CONNECTION_CLOSE;
+    }
 }
 
 int Request::getStatus() const
@@ -187,11 +239,11 @@ void Request::clear()
     mRequestLine = E_START_LINE;
     mPath = "";
     mHeaders.clear();
-    mContent = "";
+    mBody = "";
     mStatus = 0;
 }
 
-const std::map<std::string, std::string> &Request::getHeaders() const
+const std::map<std::string, std::string, CaseInsensitiveCompare> &Request::getHeaders() const
 {
     return mHeaders;
 }
@@ -204,4 +256,14 @@ const std::string &Request::getHost() const
 const std::string &Request::getPath() const
 {
     return mPath;
+}
+
+const std::string &Request::getBody() const
+{
+    return mBody;
+}
+
+eConnectionStatus Request::getConnectionStatus() const
+{
+    return mConnectionStatus;
 }

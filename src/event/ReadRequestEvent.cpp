@@ -193,6 +193,10 @@ void ReadRequestEvent::makeResponseEvent(int &status)
     }
     assert(mMimeType.size() != 0);
     mResponse.addHead("Content-Type", mMimeType);
+    if (mRequest.getConnectionStatus() == CONNECTION_CLOSE)
+    {
+        mResponse.setConnectionClose();
+    }
     assert(responseBody.size() != 0);
     mResponse.setBody(responseBody);
     EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
@@ -205,6 +209,10 @@ void ReadRequestEvent::makeReadFileEvent(int fd, int &status)
     // todo filesize가 맞는지 확인 필요
     mResponse.init(status, mFileSize);
     mResponse.addHead("Content-Type", mMimeType);
+    if (mRequest.getConnectionStatus() == CONNECTION_CLOSE)
+    {
+        mResponse.setConnectionClose();
+    }
     EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
            new ReadFileEvent(mServer, mResponse, mClientSocket, fd, mFileSize));
     Kqueue::addEvent(newEvent);
