@@ -33,7 +33,7 @@ void ReadFileEvent::handle()
         close(mFileFd);
         mResponse.init(mHttpStatusCode, mReadSize);
         mResponse.addHead("Content-Type", mMimeType);
-        std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF CRLF + mBody;
+        std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF CRLF + mBody + CRLF;
 
         struct kevent newEvent;
         EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,

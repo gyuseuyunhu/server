@@ -195,7 +195,7 @@ void ReadRequestEvent::makeResponseEvent(int &status)
     }
     assert(mMimeType.size() != 0);
     mResponse.addHead("Content-Type", mMimeType);
-    std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF + CRLF + responseBody;
+    std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF + CRLF + responseBody + CRLF;
     EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
            new WriteEvent(mServer, mClientSocket, message, status));
     Kqueue::addEvent(newEvent);
