@@ -5,13 +5,10 @@
 #include <sys/event.h>
 #include <unistd.h>
 
-ReadFileEvent::ReadFileEvent(const Server &server, int clientSocket, int fileFd, int fileSize, int httpStatusCode,
-                             const std::string &mimeType)
-    : AEvent(server, clientSocket), mFileFd(fileFd), mFileSize(fileSize), mReadSize(0), mHttpStatusCode(httpStatusCode),
-      mBody(""), mMimeType(mimeType)
+ReadFileEvent::ReadFileEvent(const Server &server, const Response &response, int clientSocket, int fileFd, int fileSize)
+    : AEvent(server, response, clientSocket), mFileFd(fileFd), mFileSize(fileSize), mReadSize(0), mBody("")
 {
 }
-
 ReadFileEvent::~ReadFileEvent()
 {
 }
@@ -31,13 +28,11 @@ void ReadFileEvent::handle()
     if (mReadSize == mFileSize)
     {
         close(mFileFd);
-        mResponse.init(mHttpStatusCode, mReadSize);
-        mResponse.addHead("Content-Type", mMimeType);
-        std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF CRLF + mBody + CRLF;
+        mResponse.setBody(mBody);
+        std::string message = mResponse.toStr();
 
         struct kevent newEvent;
-        EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
-               new WriteEvent(mServer, mClientSocket, message, 200));
+        EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
         Kqueue::addEvent(newEvent);
         delete this;
     }
