@@ -16,17 +16,15 @@ ReadFileEvent::~ReadFileEvent()
 {
 }
 
-int ReadFileEvent::handle()
+void ReadFileEvent::handle()
 {
     int n = read(mFileFd, mBuffer, BUFFER_SIZE);
 
     if (n < 0)
     {
-        // 처리 필요 autoindex 또는 301 또는 404
-        // write
         close(mFileFd);
         delete this;
-        return EVENT_FINISH;
+        return;
     }
     mReadSize += n;
     mBody.append(mBuffer, n);
@@ -35,16 +33,12 @@ int ReadFileEvent::handle()
         close(mFileFd);
         mResponse.init(mHttpStatusCode, mReadSize);
         mResponse.addHead("Content-Type", mMimeType);
-        std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF CRLF + mBody;
+        std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF CRLF + mBody + CRLF;
 
         struct kevent newEvent;
-        EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mClientSocket, message));
+        EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
+               new WriteEvent(mServer, mClientSocket, message, 200));
         Kqueue::addEvent(newEvent);
         delete this;
-        return EVENT_FINISH;
-    }
-    else
-    {
-        return EVENT_CONTINUE;
     }
 }

@@ -8,7 +8,7 @@ class AcceptEvent : public AEvent
   public:
     AcceptEvent(const Server &server);
     ~AcceptEvent();
-    virtual int handle();
+    virtual void handle();
 };
 
 #endif

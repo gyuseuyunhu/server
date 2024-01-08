@@ -18,7 +18,7 @@ class ReadFileEvent : public AEvent
     ReadFileEvent(const Server &server, int clientSocket, int fileFd, int fileSize, int mHttpStatusCode,
                   const std::string &mimeType);
     virtual ~ReadFileEvent();
-    virtual int handle();
+    virtual void handle();
 };
 
 #endif

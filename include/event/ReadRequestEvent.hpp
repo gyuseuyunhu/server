@@ -6,6 +6,10 @@
 class ReadRequestEvent : public AEvent
 {
   private:
+    enum
+    {
+        NOT_FOUND = -1,
+    };
     std::string mStringBuffer;
     std::string mFilePrefix;
     int mFileSize;
@@ -15,12 +19,12 @@ class ReadRequestEvent : public AEvent
     int getFileFd(const LocationBlock &lb, int &status);
     int getRequestFd(int &status);
     void setFilePrefix(const LocationBlock &lb);
-		void setMimeType(const std::string &path);
+    void setMimeType(const std::string &path);
 
   public:
     ReadRequestEvent(const Server &server, int clientSocket);
     virtual ~ReadRequestEvent();
-    virtual int handle();
+    virtual void handle();
     void makeResponseEvent(int &status);
     void makeReadFileEvent(int fd, int &status);
 };

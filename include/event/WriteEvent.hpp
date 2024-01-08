@@ -10,11 +10,12 @@ class WriteEvent : public AEvent
     std::string mMessage;
     int mWriteSize;
     int mResponseSize;
+		int mStatus;
 
   public:
-    WriteEvent(const Server &server, int clientSocket, std::string message);
+    WriteEvent(const Server &server, int clientSocket, std::string message, int status);
     virtual ~WriteEvent();
-    virtual int handle();
+    virtual void handle();
 };
 
 #endif

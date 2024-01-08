@@ -21,7 +21,7 @@ class AEvent
     AEvent(const Server &server);
     AEvent(const Server &server, int clientSocket);
     virtual ~AEvent();
-    virtual int handle() = 0;
+    virtual void handle() = 0;
 };
 
 #endif
