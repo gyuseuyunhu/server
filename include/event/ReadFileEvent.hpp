@@ -12,9 +12,11 @@ class ReadFileEvent : public AEvent
     int mReadSize;
     int mHttpStatusCode;
     std::string mBody;
+    const std::string mMimeType;
 
   public:
-    ReadFileEvent(const Server &server, int clientSocket, int fileFd, int fileSize, int mHttpStatusCode);
+    ReadFileEvent(const Server &server, int clientSocket, int fileFd, int fileSize, int mHttpStatusCode,
+                  const std::string &mimeType);
     virtual ~ReadFileEvent();
     virtual void handle();
 };

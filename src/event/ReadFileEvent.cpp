@@ -5,9 +5,10 @@
 #include <sys/event.h>
 #include <unistd.h>
 
-ReadFileEvent::ReadFileEvent(const Server &server, int clientSocket, int fileFd, int fileSize, int httpStatusCode)
+ReadFileEvent::ReadFileEvent(const Server &server, int clientSocket, int fileFd, int fileSize, int httpStatusCode,
+                             const std::string &mimeType)
     : AEvent(server, clientSocket), mFileFd(fileFd), mFileSize(fileSize), mReadSize(0), mHttpStatusCode(httpStatusCode),
-      mBody("")
+      mBody(""), mMimeType(mimeType)
 {
 }
 
@@ -31,6 +32,7 @@ void ReadFileEvent::handle()
     {
         close(mFileFd);
         mResponse.init(mHttpStatusCode, mReadSize);
+        mResponse.addHead("Content-Type", mMimeType);
         std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF CRLF + mBody;
 
         struct kevent newEvent;

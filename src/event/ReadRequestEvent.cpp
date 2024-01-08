@@ -8,12 +8,37 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-ReadRequestEvent::ReadRequestEvent(const Server &server, int clientSocket) : AEvent(server, clientSocket), mFileSize(0)
+ReadRequestEvent::ReadRequestEvent(const Server &server, int clientSocket)
+    : AEvent(server, clientSocket), mFileSize(0), mMimeType("text/html")
 {
 }
 
 ReadRequestEvent::~ReadRequestEvent()
 {
+}
+
+void ReadRequestEvent::setMimeType(const std::string &path)
+{
+    size_t lastSlashPos = path.find_last_of('/');
+
+    std::string fileName;
+    std::string fileExtension;
+    if (lastSlashPos != std::string::npos)
+    {
+        fileName = path.substr(lastSlashPos + 1);
+    }
+    else
+    {
+        assert(false);
+    }
+    size_t lastDotPos = fileName.find_last_of('.');
+
+    if (lastDotPos != std::string::npos)
+    {
+        fileExtension = fileName.substr(lastDotPos + 1);
+        mMimeType = HttpStatusInfos::getMimeType(fileExtension);
+        return;
+    }
 }
 
 int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
@@ -32,6 +57,7 @@ int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
             if (fd != NOT_FOUND)
             {
                 mFileSize = fileInfo.st_size;
+                setMimeType(filePath);
                 return fd;
             }
             else if (status == 200)
@@ -78,6 +104,7 @@ int ReadRequestEvent::getErrorPageFd(const LocationBlock &lb, int status)
                 return NOT_FOUND;
             }
             mFileSize = fileInfo.st_size;
+            setMimeType(errorPagePath);
             return fd;
         }
     }
@@ -97,6 +124,7 @@ int ReadRequestEvent::getFileFd(const LocationBlock &lb, int &status)
             if (fd != NOT_FOUND)
             {
                 mFileSize = fileInfo.st_size;
+                setMimeType(filePath);
                 return fd;
             }
             status = 403; // 권한없음
@@ -165,6 +193,8 @@ void ReadRequestEvent::makeResponseEvent(int &status)
         // todo Debug
         mResponse.addHead("Location", oss.str());
     }
+    assert(mMimeType.size() != 0);
+    mResponse.addHead("Content-Type", mMimeType);
     std::string message = mResponse.getStartLine() + CRLF + mResponse.getHead() + CRLF + CRLF + responseBody;
     EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
            new WriteEvent(mServer, mClientSocket, message, status));
@@ -176,7 +206,7 @@ void ReadRequestEvent::makeReadFileEvent(int fd, int &status)
     struct kevent newEvent;
     // assert(mFileSize != 0);
     EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
-           new ReadFileEvent(mServer, mClientSocket, fd, mFileSize, status));
+           new ReadFileEvent(mServer, mClientSocket, fd, mFileSize, status, mMimeType));
     Kqueue::addEvent(newEvent);
 }
 

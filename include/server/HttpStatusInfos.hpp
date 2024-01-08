@@ -10,9 +10,11 @@ class HttpStatusInfos
   private:
     static std::map<int, std::string> mHttpStatusReasons;
     static std::map<int, std::string> mHttpErrorPages;
+    static std::map<std::string, std::string> mMimeType;
     static std::string mWebservRoot;
     static void initHttpStatusReasons();
     static void initHttpErrorPages();
+    static void initMimeType();
     static void setWebservRoot(char **envp);
     HttpStatusInfos();
 
@@ -21,6 +23,8 @@ class HttpStatusInfos
     static const std::string &getHttpReason(const int statusCode);
     static const std::string &getHttpErrorPage(const int statusCode);
     static const std::string &getWebservRoot();
+    static const std::string &getMimeType(const std::string &type);
+
     static const std::string makeAutoIndexPage(const std::string &path);
 };
 
