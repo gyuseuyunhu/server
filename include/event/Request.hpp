@@ -34,6 +34,8 @@ class Request
     std::map<std::string, std::string, CaseInsensitiveCompare> mHeaders;
     std::string mHost;
     std::string mContent; // 자료형 좀 더 고민
+    std::string mBody;
+    unsigned int mContentLength;
 
     eRequestLine mRequestLine;
     int mStatus;
@@ -59,6 +61,7 @@ class Request
     const std::map<std::string, std::string, CaseInsensitiveCompare> &getHeaders() const;
     const std::string &getHost() const;
     const std::string &getPath() const;
+    const std::string &getBody() const;
     void clear();
 };
 

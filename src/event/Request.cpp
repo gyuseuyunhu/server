@@ -8,16 +8,21 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
     size_t minLength = std::min(a.length(), b.length());
     for (size_t i = 0; i < minLength; ++i)
     {
-        if (tolower(a[i]) < tolower(b[i]))
+        if (std::tolower(a[i]) < std::tolower(b[i]))
+        {
             return true;
-        if (tolower(a[i]) > tolower(b[i]))
+        }
+        if (std::tolower(a[i]) > std::tolower(b[i]))
+        {
             return false;
+        }
     }
     return a.length() < b.length();
 }
 
 Request::Request()
-    : mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mContent(""), mRequestLine(E_START_LINE), mStatus(0)
+    : mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mBody(""), mContentLength(0),
+      mRequestLine(E_START_LINE), mStatus(0)
 {
 }
 
@@ -162,16 +167,33 @@ void Request::parseRequestHeader(std::string &buffer)
             return;
         }
         mHost = mHeaders["Host"];
+
+        if (mHeaders.find("Content-Length") != mHeaders.end())
+        {
+            std::stringstream ss;
+            ss << mHeaders["Content-Length"];
+            ss >> mContentLength;
+            buffer = buffer.substr(pos + 4);
+            mRequestLine = E_REQUEST_CONTENTS;
+            return;
+        }
         mStatus = 200;
-        buffer = buffer.substr(pos + 4);
-        mRequestLine = E_REQUEST_CONTENTS;
     }
 }
 
 void Request::parseRequestContent(std::string &buffer)
 {
-    mContent += buffer;
+    mBody += buffer;
     buffer = "";
+    if (mBody.size() == mContentLength)
+    {
+        mStatus = 200;
+    }
+    // ContentLength보다 더 많이 들어왔을 때
+    else if (mBody.size() > mContentLength)
+    {
+        mStatus = 400;
+    }
 }
 
 void Request::parse(std::string &buffer)
@@ -200,7 +222,7 @@ void Request::clear()
     mRequestLine = E_START_LINE;
     mPath = "";
     mHeaders.clear();
-    mContent = "";
+    mBody = "";
     mStatus = 0;
 }
 
@@ -217,4 +239,9 @@ const std::string &Request::getHost() const
 const std::string &Request::getPath() const
 {
     return mPath;
+}
+
+const std::string &Request::getBody() const
+{
+    return mBody;
 }
