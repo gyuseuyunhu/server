@@ -3,6 +3,19 @@
 #include "util.hpp"
 #include <sstream>
 
+bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string &b) const
+{
+    size_t minLength = std::min(a.length(), b.length());
+    for (size_t i = 0; i < minLength; ++i)
+    {
+        if (tolower(a[i]) < tolower(b[i]))
+            return true;
+        if (tolower(a[i]) > tolower(b[i]))
+            return false;
+    }
+    return a.length() < b.length();
+}
+
 Request::Request()
     : mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mContent(""), mRequestLine(E_START_LINE), mStatus(0)
 {
@@ -191,7 +204,7 @@ void Request::clear()
     mStatus = 0;
 }
 
-const std::map<std::string, std::string> &Request::getHeaders() const
+const std::map<std::string, std::string, CaseInsensitiveCompare> &Request::getHeaders() const
 {
     return mHeaders;
 }
