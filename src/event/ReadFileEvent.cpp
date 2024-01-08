@@ -29,7 +29,6 @@ void ReadFileEvent::handle()
     {
         close(mFileFd);
         mResponse.setBody(mBody);
-        std::string message = mResponse.toStr();
 
         struct kevent newEvent;
         EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
