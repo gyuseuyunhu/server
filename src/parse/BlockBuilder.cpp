@@ -35,13 +35,11 @@ std::string BlockBuilder::reduceMultipleSpaces(std::string token)
     return cleanedToken;
 }
 
-// 함수 만드는 방법
 bool BlockBuilder::tryConvertNumber(const std::string &valueString, bool hasUnit, unsigned int &result)
 {
     char *checkPtr;
     unsigned long value;
 
-    // 음수인 경우
     if (valueString.c_str()[0] == '-')
     {
         return false;
