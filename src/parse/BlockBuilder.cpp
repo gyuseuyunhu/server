@@ -4,9 +4,13 @@
 #include <iostream>
 #include <sstream>
 
+const std::string BlockBuilder::DEFAULT_ROOT = "html";
+const std::string BlockBuilder::DEFAULT_SERVER_NAME = "";
+
 BlockBuilder::BlockBuilder()
-    : mRoot("html"), mClientMaxBodySize(1000000), mPort(80), mServerName(""), mRedirectionCode(200),
-      mIsAutoIndex(false), mIsAllowedGet(true), mIsAllowedPost(true), mIsAllowedDelete(true)
+    : mRoot(DEFAULT_ROOT), mClientMaxBodySize(E_DEFAULT_CLIENT_BODY_SIZE), mPort(E_DEFAULT_LISTEN_PORT),
+      mServerName(DEFAULT_SERVER_NAME), mIsAutoIndex(false), mIsAllowedGet(true), mIsAllowedPost(true),
+      mIsAllowedDelete(true)
 {
 }
 
@@ -172,59 +176,19 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
 {
     if (key == "root")
     {
-        mRoot = value;
-        if (mRoot[0] != '/')
-        {
-            mRoot = "/" + mRoot;
-        }
-        if (mRoot[mRoot.size() - 1] != '/')
-        {
-            mRoot = mRoot + "/";
-        }
+        handleRoot(value);
     }
     else if (key == "index")
     {
-        if (isFirstIndex == true)
-        {
-            mIndexs.clear();
-            isFirstIndex = false;
-        }
-        mIndexs.push_back(value);
+        handleIndex(value, isFirstIndex);
     }
     else if (key == "error_page")
     {
-        unsigned int errorCode;
-
-        if (tryConvertNumber(value, false, errorCode) == true)
-        {
-            mErrorCodes.push_back(errorCode);
-        }
-        else
-        {
-            if (mErrorCodes.size() == 0)
-            {
-                throw std::runtime_error("Error: BlockBuilder::updateConfig() 에러코드 없음\n " + value);
-            }
-            if (isMadeErrorPages == false)
-            {
-                for (size_t i = 0; i < mErrorCodes.size(); ++i)
-                {
-                    mErrorPages[mErrorCodes[i]] = value;
-                }
-                isMadeErrorPages = true;
-                mErrorCodes.clear();
-                return;
-            }
-            throw std::runtime_error("Error: BlockBuilder::updateConfig() 에러페이지 에러\n " + value);
-        }
+        handleErrorPage(value, isMadeErrorPages);
     }
     else if (key == "client_max_body_size")
     {
-        if (tryConvertNumber(value, true, mClientMaxBodySize) == false)
-        {
-            throw std::runtime_error(
-                "Error: BlockBuilder::tryConvertNumber() 적합하지 않은 clinet_max_body_size 숫자\n " + value);
-        }
+        handleClientMaxBodySize(value);
     }
     else if (key == "server_name")
     {
@@ -232,24 +196,11 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     }
     else if (key == "return")
     {
-        if (isFirstValue == true)
-        {
-            if (tryConvertNumber(value, false, mRedirectionCode) == false)
-            {
-                throw std::runtime_error("Error: BlockBuilder::tryConvertNumber() 적합하지 않은 숫자\n " + value);
-            }
-        }
-        else
-        {
-            mRedirectionPath = value;
-        }
+        mRedirectionPath = value;
     }
     else if (key == "listen")
     {
-        if (tryConvertNumber(value, false, mPort) == false)
-        {
-            throw std::runtime_error("Error: BlockBuilder::tryConvertNumber() 적합하지 않은 숫자\n " + value);
-        }
+        handleListen(value);
     }
     else if (key == "path")
     {
@@ -257,78 +208,11 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     }
     else if (key == "autoindex")
     {
-        if (value == "on")
-        {
-            mIsAutoIndex = true;
-        }
-        else if (value == "off")
-        {
-            mIsAutoIndex = false;
-        }
-        else
-        {
-            throw std::runtime_error("Error BlockBuilder::updateConfig() : invalid value in \"autoindex\"\n" + value);
-        }
+        handleAutoindex(value);
     }
     else if (key == "limit_except")
     {
-        if (isFirstValue == true)
-        {
-            if (value == "allow")
-            {
-                mIsMethodAllowed = true;
-            }
-            else if (value == "deny")
-            {
-                mIsMethodAllowed = false;
-            }
-            else
-            {
-                throw std::runtime_error("Error BlockBuilder::updateConfig() : invalid access in \"limit_except\"\n" +
-                                         value);
-            }
-        }
-        else
-        {
-            if (value == "GET")
-            {
-                if (mIsMethodAllowed == true)
-                {
-                    mIsAllowedGet = true;
-                }
-                else
-                {
-                    mIsAllowedGet = false;
-                }
-            }
-            else if (value == "POST")
-            {
-                if (mIsMethodAllowed == true)
-                {
-                    mIsAllowedPost = true;
-                }
-                else
-                {
-                    mIsAllowedPost = false;
-                }
-            }
-            else if (value == "DELETE")
-            {
-                if (mIsMethodAllowed == true)
-                {
-                    mIsAllowedDelete = true;
-                }
-                else
-                {
-                    mIsAllowedDelete = false;
-                }
-            }
-            else
-            {
-                throw std::runtime_error("Error BlockBuilder::updateConfig() : invalid method in \"limit_except\"\n" +
-                                         value);
-            }
-        }
+        handleLimitExcept(value, isFirstValue, mIsMethodAllowed);
     }
     else
     {
@@ -342,9 +226,8 @@ void BlockBuilder::resetServerBlockConfig(const HttpBlock &httpBlock)
     mIndexs = httpBlock.getIndexs();
     mErrorPages = httpBlock.getErrorPages();
     mClientMaxBodySize = httpBlock.getClientMaxBodySize();
-    mPort = 80;
-    mServerName = "";
-    mRedirectionCode = 200;
+    mPort = E_DEFAULT_LISTEN_PORT;
+    mServerName = DEFAULT_SERVER_NAME;
     mRedirectionPath.clear();
     mErrorCodes.clear();
 }
@@ -357,13 +240,144 @@ void BlockBuilder::resetLocationBlockConfig(const ServerBlock &serverBlock)
     mClientMaxBodySize = serverBlock.getClientMaxBodySize();
     mPort = serverBlock.getPort();
     mServerName = serverBlock.getServerName();
-    mRedirectionCode = serverBlock.getRedirectionCode();
     mRedirectionPath = serverBlock.getRedirectionPath();
     mIsAutoIndex = false;
     mIsAllowedGet = true;
     mIsAllowedPost = true;
     mIsAllowedDelete = true;
     mErrorCodes.clear();
+}
+
+void BlockBuilder::handleRoot(const std::string &value)
+{
+    mRoot = value;
+    if (mRoot[0] != '/')
+    {
+        mRoot = "/" + mRoot;
+    }
+    if (mRoot[mRoot.size() - 1] != '/')
+    {
+        mRoot = mRoot + "/";
+    }
+}
+
+void BlockBuilder::handleIndex(const std::string &value, bool &isFirstIndex)
+{
+    if (isFirstIndex)
+    {
+        mIndexs.clear();
+        isFirstIndex = false;
+    }
+    mIndexs.push_back(value);
+}
+
+void BlockBuilder::handleErrorPage(const std::string &value, bool &isMadeErrorPages)
+{
+    unsigned int errorCode;
+
+    if (tryConvertNumber(value, false, errorCode) == true)
+    {
+        if (isMadeErrorPages == true)
+        {
+            throw std::runtime_error("Error: BlockBuilder::handleErrorPage() 에러페이지 뒤에 에러코드가 존재\n " +
+                                     value);
+        }
+        mErrorCodes.push_back(errorCode);
+    }
+    else
+    {
+        if (mErrorCodes.empty())
+        {
+            throw std::runtime_error("Error: BlockBuilder::handleErrorPage() 에러코드 없음\n " + value);
+        }
+
+        if (isMadeErrorPages == false)
+        {
+            for (size_t i = 0; i < mErrorCodes.size(); ++i)
+            {
+                mErrorPages[mErrorCodes[i]] = value;
+            }
+            isMadeErrorPages = true;
+            mErrorCodes.clear();
+        }
+        else
+        {
+            throw std::runtime_error("Error: BlockBuilder::handleErrorPage() 에러페이지 에러\n " + value);
+        }
+    }
+}
+
+void BlockBuilder::handleClientMaxBodySize(const std::string &value)
+{
+    if (tryConvertNumber(value, true, mClientMaxBodySize) == false)
+    {
+        throw std::runtime_error(
+            "Error: BlockBuilder::handleClientMaxBodySize()) 적합하지 않은 clinet_max_body_size 숫자\n " + value);
+    }
+}
+
+void BlockBuilder::handleListen(const std::string &value)
+{
+    if (tryConvertNumber(value, false, mPort) == false)
+    {
+        throw std::runtime_error("Error: BlockBuilder::handleListen() 적합하지 않은 숫자\n " + value);
+    }
+}
+
+void BlockBuilder::handleAutoindex(const std::string &value)
+{
+    if (value == "on")
+    {
+        mIsAutoIndex = true;
+    }
+    else if (value == "off")
+    {
+        mIsAutoIndex = false;
+    }
+    else
+    {
+        throw std::runtime_error("Error  BlockBuilder::handleAutoindex() invalid value in \"autoindex\"\n" + value);
+    }
+}
+
+void BlockBuilder::handleLimitExcept(const std::string &value, bool isFirstValue, bool &isMethodAllowed)
+{
+    if (isFirstValue)
+    {
+        if (value == "allow")
+        {
+            isMethodAllowed = true;
+        }
+        else if (value == "deny")
+        {
+            isMethodAllowed = false;
+        }
+        else
+        {
+            throw std::runtime_error("Error: BlockBuilder::handleLimitExcept() invalid access in \"limit_except\"\n" +
+                                     value);
+        }
+    }
+    else
+    {
+        if (value == "GET")
+        {
+            mIsAllowedGet = isMethodAllowed;
+        }
+        else if (value == "POST")
+        {
+            mIsAllowedPost = isMethodAllowed;
+        }
+        else if (value == "DELETE")
+        {
+            mIsAllowedDelete = isMethodAllowed;
+        }
+        else
+        {
+            throw std::runtime_error("Error: BlockBuilder::handleLimitExcept() invalid method in \"limit_except\"\n" +
+                                     value);
+        }
+    }
 }
 
 HttpBlock BlockBuilder::buildHttpBlock() const
@@ -373,7 +387,7 @@ HttpBlock BlockBuilder::buildHttpBlock() const
 
 ServerBlock BlockBuilder::buildServerBlock() const
 {
-    return ServerBlock(buildHttpBlock(), mPort, mServerName, mRedirectionCode, mRedirectionPath);
+    return ServerBlock(buildHttpBlock(), mPort, mServerName, mRedirectionPath);
 }
 
 LocationBlock BlockBuilder::buildLocationBlock() const

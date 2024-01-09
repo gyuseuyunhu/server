@@ -180,8 +180,6 @@ void ReadRequestEvent::makeResponseEvent(int &status)
     else
     {
         responseBody = HttpStatusInfos::makeAutoIndexPage(mFilePrefix);
-        // todo test
-        std::cout << "auto : " << mFilePrefix << std::endl;
     }
     mResponse.init(status, responseBody.length());
 
