@@ -24,9 +24,9 @@ class BlockBuilder
   private:
     enum unit
     {
-        E_KILLO = 1000,
-        E_MEGA = 1000000,
-        E_GIGA = 100000000,
+        E_KILLO = 1024,
+        E_MEGA = 1024 * 1024,
+        E_GIGA = 1024 * 1024 * 1024,
         E_CLIENT_MAX_BODY_SIZE = 2147483647,
     };
     std::string mRoot;
