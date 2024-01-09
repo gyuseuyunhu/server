@@ -2,6 +2,7 @@
 #define REQUEST_HPP
 
 #include "ConnectionEnum.hpp"
+#include <cstdlib>
 #include <map>
 #include <string>
 
@@ -18,7 +19,8 @@ enum eRequestLine
 {
     E_START_LINE,
     E_REQUEST_HEADER,
-    E_REQUEST_CONTENTS
+    E_REQUEST_CONTENTS,
+    E_CHUNKED_CONTENTS
 };
 
 struct CaseInsensitiveCompare
@@ -41,6 +43,12 @@ class Request
     int mStatus;
     eConnectionStatus mConnectionStatus;
 
+    unsigned int mChunkedSize;
+    std::string mChunkedData;
+    bool mIsChunkedData; // true일 때가 내용이 들어올 차례
+                         // bool mFirstCRLF;
+		unsigned int mClientMaxBodySize;
+
     int checkMethod(std::stringstream &ss);
     int checkPath(std::stringstream &ss);
     int checkHttpVersion(std::stringstream &ss);
@@ -52,6 +60,8 @@ class Request
 
     void parseRequestHeader(std::string &buffer);
     void parseRequestContent(std::string &buffer);
+    bool checkChunkedData(void);
+    void parseChunkedContent(std::string &buffer);
 
   public:
     Request();

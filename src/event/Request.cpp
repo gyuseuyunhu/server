@@ -1,6 +1,7 @@
 #include "Request.hpp"
 #include "HttpStatusInfos.hpp"
 #include "util.hpp"
+#include <iostream>
 #include <sstream>
 
 bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string &b) const
@@ -22,7 +23,7 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
 
 Request::Request()
     : mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mBody(""), mContentLength(0),
-      mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE)
+      mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE), mIsChunkedData(false)
 {
 }
 
@@ -180,7 +181,12 @@ void Request::parseRequestHeader(std::string &buffer)
                 mConnectionStatus = CONNECTION_CLOSE;
             }
         }
-
+        if (checkChunkedData())
+        {
+            buffer = buffer.substr(pos + 4);
+            mRequestLine = E_CHUNKED_CONTENTS;
+            return;
+        }
         if (mHeaders.find("Content-Length") != mHeaders.end())
         {
             std::stringstream ss;
@@ -192,6 +198,114 @@ void Request::parseRequestHeader(std::string &buffer)
         }
         mStatus = 200;
     }
+}
+
+/*
+    23.01.09 추가
+*/
+bool Request::checkChunkedData(void)
+{
+    // if (mHeaders.find("Content-Length") == mHeaders.end())
+    //  TODO - Content-Length 지시어가 없을 때 에러처리 하는 부분을 찾아 수정 필요
+    //  (Content-Length가 없어도 Transfer-Enconding이 chunked이면 에러 아님)
+    //  Content-Length가 있어도 chunked 데이터 일 수 있음
+    std::map<std::string, std::string, CaseInsensitiveCompare>::const_iterator iter =
+        mHeaders.find("Transfer-Encoding");
+    if (iter != mHeaders.end())
+    {
+        if (iter->second == "chunked")
+        {
+            std::cout << "ture!!!! " << std::endl;
+            return true;
+        }
+    }
+    return false;
+}
+
+/*
+    23.01.09 추가
+*/
+void Request::parseChunkedContent(std::string &buffer)
+{
+    // size, data 순서는 반드시 지켜진다는 전제(size, size 또는 data, data 순으로는 못 옴)
+    //  chucked Size 16진법 CRLF
+    //  본문에는 붙이지 않고, 들어오는 message 사이즈가 size랑 일치하는지 확인
+    //   - 일치하지 않고 CRLF가 오면 에러
+    //   - 에러코드 변경(400?)
+
+    // 3
+    // 1 (3) ss << 1, 13
+    // 3CRLF
+    // 3CRLFabcCRLF
+    // 3CRLFa
+    // bcCRLF
+    // bc
+    std::stringstream ss;
+    size_t pos = 0;
+    // if ((pos = buffer.find(CRLF CRLF)) != std::string::npos)
+    // {
+    //     if (!mFirstCRLF)
+    //     {
+    //         buffer = buffer.substr(pos + 4);
+    //         return;
+    //     }
+    //     else
+    //     {
+    //         mStatus = 400;
+    //         return;
+    //     }
+    // }
+    std::cout << buffer << std::endl;
+    if ((pos = buffer.find(CRLF)) != std::string::npos)
+    {
+        if (mIsChunkedData) // 지금 버퍼가 내용이다
+        {
+            std::cout << "여보세요" << std::endl;
+            mChunkedData = buffer.substr(0, pos);    // 바디 붙이기
+            if (mChunkedSize != mChunkedData.size()) // 사이즈와 내용이 다르다
+            {
+                mStatus = 400;
+                return; // 40x 에러 리턴
+            }
+            mBody += mChunkedData; // 정상적인 경우 본문에 계속 더해서 내용 붙이기
+            mIsChunkedData = false;
+        }
+        else
+        {
+            std::string value = buffer.substr(0, pos);
+            char *endptr;
+            ss << std::strtol(value.c_str(), &endptr, 16);
+            ss >> mChunkedSize;
+            if (endptr[0] != '\0')
+            {
+                std::cout << mBody << std::endl;
+                mStatus = 400;
+                return;
+            }
+            if (mChunkedSize == 0)
+            {
+                if (mBody.size() == 0 || mBody.size() > mClientMaxBodySize)
+                {
+                    mStatus = 400;
+                    return;
+                }
+                std::cout << mBody << std::endl;
+                mStatus = 200;
+                return;
+            }
+            mIsChunkedData = true;
+        }
+        buffer = buffer.substr(pos + 2);
+    }
+    // chunked message 문자열 CRLF
+    // 마지막 chunked size = 0일 때까지 읽기
+    // chunked data가 중간에 read()에서 짤릴 수 있어서 CRLF까지 계속 덧붙이기
+
+    // 보완
+    //  - 처음 rnrn이 아니고 이상한 문자 들어오면 400, 현재는 rnrn계속 기다림.
+
+    // overflow ?? bodymaxsize를 대조
+    //
 }
 
 void Request::parseRequestContent(std::string &buffer)
@@ -222,6 +336,10 @@ void Request::parse(std::string &buffer)
     if (mRequestLine == E_REQUEST_CONTENTS)
     {
         parseRequestContent(buffer);
+    }
+    if (mRequestLine == E_CHUNKED_CONTENTS)
+    {
+        parseChunkedContent(buffer);
     }
     if (mStatus == 400 || mStatus == 501)
     {
