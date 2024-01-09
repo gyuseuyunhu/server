@@ -34,6 +34,8 @@ class BlockBuilder
         E_DEFAULT_CLIENT_BODY_SIZE = 1000000,
         E_DEFAULT_LISTEN_PORT = 80,
     };
+    static const std::string DEFAULT_ROOT;
+    static const std::string DEFAULT_SERVER_NAME;
 
     std::string mRoot;
     std::vector<std::string> mIndexs;
@@ -70,8 +72,6 @@ class BlockBuilder
     void handleLimitExcept(const std::string &value, bool isFirstValue, bool &isMethodAllowed);
 
   public:
-    static const std::string DEFAULT_ROOT;
-    static const std::string DEFAULT_SERVER_NAME;
     BlockBuilder();
     void parseConfig(const enum blockType, const std::string &configStr);
     HttpBlock buildHttpBlock() const;

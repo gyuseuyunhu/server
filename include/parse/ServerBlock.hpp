@@ -9,12 +9,11 @@ class ServerBlock : public HttpBlock
   protected:
     unsigned int mPort;
     std::string mServerName;
-    unsigned int mRedirectionCode;
     std::string mRedirectionPath;
 
   public:
     ServerBlock(const HttpBlock &httpBlock, unsigned int port, const std::string &serverName,
-                unsigned int redirectionCode, const std::string &redirectionPath);
+                const std::string &redirectionPath);
     ServerBlock(const ServerBlock &other);
     ServerBlock &operator=(const ServerBlock &rhs);
     unsigned int getPort() const;
