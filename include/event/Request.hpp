@@ -2,8 +2,8 @@
 #define REQUEST_HPP
 
 #include "ConnectionEnum.hpp"
-#include <cstdlib>
 #include "Server.hpp"
+#include <cstdlib>
 #include <map>
 #include <string>
 
@@ -48,13 +48,11 @@ class Request
 
     unsigned int mChunkedSize;
     std::string mChunkedData;
-    bool mIsChunkedData; // true일 때가 내용이 들어올 차례
-                         // bool mFirstCRLF;
-		unsigned int mClientMaxBodySize;
+    bool mIsChunkedData;
+    unsigned int mClientMaxBodySize;
     bool mIsAllowedGet;
     bool mIsAllowedPost;
     bool mIsAllowedDelete;
-
 
     int checkMethod(std::stringstream &ss);
     int checkPath(std::stringstream &ss);
