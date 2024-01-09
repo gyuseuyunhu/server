@@ -2,6 +2,7 @@
 #define REQUEST_HPP
 
 #include "ConnectionEnum.hpp"
+#include "Server.hpp"
 #include <map>
 #include <string>
 
@@ -29,17 +30,24 @@ struct CaseInsensitiveCompare
 class Request
 {
   private:
+    const Server &mServer;
     eHttpMethod mMethod;
     std::string mPath;
     std::string mVersion;
+
     std::map<std::string, std::string, CaseInsensitiveCompare> mHeaders;
     std::string mHost;
     std::string mBody;
-    unsigned int mContentLength;
+    size_t mContentLength;
 
     eRequestLine mRequestLine;
     int mStatus;
     eConnectionStatus mConnectionStatus;
+
+    unsigned int mClientMaxBodySize;
+    bool mIsAllowedGet;
+    bool mIsAllowedPost;
+    bool mIsAllowedDelete;
 
     int checkMethod(std::stringstream &ss);
     int checkPath(std::stringstream &ss);
@@ -54,7 +62,7 @@ class Request
     void parseRequestContent(std::string &buffer);
 
   public:
-    Request();
+    Request(const Server &server);
     ~Request();
     void parse(std::string &buffer);
 
@@ -64,7 +72,6 @@ class Request
     const std::string &getPath() const;
     const std::string &getBody() const;
     eConnectionStatus getConnectionStatus() const;
-    void clear();
 };
 
 #endif

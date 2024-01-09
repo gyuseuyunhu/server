@@ -6,6 +6,7 @@
 class ReadRequestEvent : public AEvent
 {
   private:
+    Request mRequest;
     enum
     {
         NOT_FOUND = -1,
