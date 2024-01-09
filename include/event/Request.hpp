@@ -47,7 +47,6 @@ class Request
     eConnectionStatus mConnectionStatus;
 
     unsigned int mChunkedSize;
-    std::string mChunkedData;
     bool mIsChunkedData;
     unsigned int mClientMaxBodySize;
     bool mIsAllowedGet;

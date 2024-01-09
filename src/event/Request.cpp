@@ -231,13 +231,18 @@ void Request::parseChunkedContent(std::string &buffer)
     {
         if (mIsChunkedData)
         {
-            mChunkedData = buffer.substr(0, pos);
-            if (mChunkedSize != mChunkedData.size())
+            std::string chunkedData = buffer.substr(0, pos);
+            if (mChunkedSize != chunkedData.size())
             {
                 mStatus = 400;
                 return;
             }
-            mBody += mChunkedData;
+            mBody += chunkedData;
+            if (mBody.size() > mClientMaxBodySize)
+            {
+                mStatus = 400;
+                return;
+            }
             mIsChunkedData = false;
         }
         else
@@ -253,7 +258,7 @@ void Request::parseChunkedContent(std::string &buffer)
             }
             if (mChunkedSize == 0)
             {
-                if (mBody.size() == 0 || mBody.size() > mClientMaxBodySize)
+                if (mBody.size() == 0)
                 {
                     mStatus = 400;
                     return;
