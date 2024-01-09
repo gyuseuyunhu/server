@@ -23,7 +23,7 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
 
 Request::Request(const Server &server)
     : mServer(server), mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mBody(""), mContentLength(0),
-      mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE), mIsChunkedData(false)
+      mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE), mChunkedSize(NEED_SIZE)
 {
 }
 
@@ -227,48 +227,47 @@ void Request::parseChunkedContent(std::string &buffer)
 {
     std::stringstream ss;
     size_t pos = 0;
-    if ((pos = buffer.find(CRLF)) != std::string::npos)
+    // 플래그의 상태로 사이즈 받을지, 데이터 받을지 확인
+    //  플래그가 -1이면 사이즈 받을 차례, 0 <=면 본문 받을 차례
+
+    if (mChunkedSize == NEED_SIZE && (pos = buffer.find(CRLF)) != std::string::npos)
     {
-        if (mIsChunkedData)
+        std::string value = buffer.substr(0, pos);
+        char *endptr;
+        ss << std::strtol(value.c_str(), &endptr, 16);
+        ss >> mChunkedSize;
+        if (endptr[0] != '\0')
         {
-            std::string chunkedData = buffer.substr(0, pos);
-            if (mChunkedSize != chunkedData.size())
-            {
-                mStatus = 400;
-                return;
-            }
-            mBody += chunkedData;
-            if (mBody.size() > mClientMaxBodySize)
-            {
-                mStatus = 400;
-                return;
-            }
-            mIsChunkedData = false;
+            mStatus = 400;
+            return;
         }
-        else
+        if (mChunkedSize == LAST_CHUNK)
         {
-            std::string value = buffer.substr(0, pos);
-            char *endptr;
-            ss << std::strtol(value.c_str(), &endptr, 16);
-            ss >> mChunkedSize;
-            if (endptr[0] != '\0')
+            if (mBody.size() == 0)
             {
                 mStatus = 400;
                 return;
             }
-            if (mChunkedSize == 0)
-            {
-                if (mBody.size() == 0)
-                {
-                    mStatus = 400;
-                    return;
-                }
-                mStatus = 200;
-                return;
-            }
-            mIsChunkedData = true;
+            mStatus = 200;
+            return;
         }
         buffer = buffer.substr(pos + 2);
+    }
+    if (mChunkedSize != NEED_SIZE && !buffer.empty() && static_cast<unsigned long>(mChunkedSize) <= buffer.size() + 2)
+    {
+        if (buffer.substr(mChunkedSize, 2) != CRLF)
+        {
+            mStatus = 400;
+            return;
+        }
+        mBody += buffer.substr(0, mChunkedSize);
+        if (mBody.size() > mClientMaxBodySize)
+        {
+            mStatus = 400;
+            return;
+        }
+        buffer = buffer.substr(mChunkedSize + 2);
+        mChunkedSize = NEED_SIZE;
     }
 }
 

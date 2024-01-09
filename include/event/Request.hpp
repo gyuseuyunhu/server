@@ -32,6 +32,11 @@ struct CaseInsensitiveCompare
 class Request
 {
   private:
+    enum
+    {
+        NEED_SIZE = -1,
+				LAST_CHUNK = 0
+    };
     const Server &mServer;
     eHttpMethod mMethod;
     std::string mPath;
@@ -46,8 +51,7 @@ class Request
     int mStatus;
     eConnectionStatus mConnectionStatus;
 
-    unsigned int mChunkedSize;
-    bool mIsChunkedData;
+    int mChunkedSize;
     unsigned int mClientMaxBodySize;
     bool mIsAllowedGet;
     bool mIsAllowedPost;
