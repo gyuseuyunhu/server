@@ -251,7 +251,7 @@ void Request::parseChunkedContent(std::string &buffer)
         }
         buffer = buffer.substr(pos + 2);
     }
-    if (mChunkedSize != NEED_SIZE && !buffer.empty() && static_cast<unsigned long>(mChunkedSize) <= buffer.size() + 2)
+    else if (mChunkedSize != NEED_SIZE && static_cast<unsigned long>(mChunkedSize) <= buffer.size() + 2)
     {
         if (buffer.substr(mChunkedSize, 2) != CRLF)
         {
