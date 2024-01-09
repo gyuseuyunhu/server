@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 ReadRequestEvent::ReadRequestEvent(const Server &server, int clientSocket)
-    : AEvent(server, clientSocket), mRequest(server), mFileSize(0), mMimeType("text/html")
+    : AEvent(server, clientSocket), mRequest(server), mFileSize(0)
 {
 }
 
@@ -17,7 +17,7 @@ ReadRequestEvent::~ReadRequestEvent()
 {
 }
 
-void ReadRequestEvent::setMimeType(const std::string &path)
+void ReadRequestEvent::addMimeTypeHeader(const std::string &path)
 {
     size_t lastSlashPos = path.find_last_of('/');
 
@@ -36,8 +36,7 @@ void ReadRequestEvent::setMimeType(const std::string &path)
     if (lastDotPos != std::string::npos)
     {
         fileExtension = fileName.substr(lastDotPos + 1);
-        mMimeType = HttpStatusInfos::getMimeType(fileExtension);
-        return;
+        mResponse.addHead("Content-type", HttpStatusInfos::getMimeType(fileExtension));
     }
 }
 
@@ -57,7 +56,7 @@ int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
             if (fd != NOT_FOUND)
             {
                 mFileSize = fileInfo.st_size;
-                setMimeType(filePath);
+                addMimeTypeHeader(filePath);
                 return fd;
             }
             else if (status == 200)
@@ -74,13 +73,11 @@ int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
     if (lb.isAutoIndex() == true)
     {
         status = 200;
-        return NOT_FOUND;
     }
 
-    return getErrorPageFd(lb, status);
+    return NOT_FOUND;
 }
-// todo 고민중 매개변수를 (const std::map<int, std::string> &errorPages, const std::string &root, int status)
-// 로 변경할지
+
 int ReadRequestEvent::getErrorPageFd(const LocationBlock &lb, int status)
 {
     struct stat fileInfo;
@@ -92,8 +89,7 @@ int ReadRequestEvent::getErrorPageFd(const LocationBlock &lb, int status)
     }
 
     std::string errorPagePath = HttpStatusInfos::getWebservRoot() + lb.getRoot() + it->second;
-    // todo debug 용
-    std::cout << "errorPagePath : " << errorPagePath << std::endl;
+
     if (stat(errorPagePath.c_str(), &fileInfo) == 0)
     {
         if (S_ISREG(fileInfo.st_mode))
@@ -104,14 +100,14 @@ int ReadRequestEvent::getErrorPageFd(const LocationBlock &lb, int status)
                 return NOT_FOUND;
             }
             mFileSize = fileInfo.st_size;
-            setMimeType(errorPagePath);
+            addMimeTypeHeader(errorPagePath);
             return fd;
         }
     }
     return NOT_FOUND;
 }
 
-int ReadRequestEvent::getFileFd(const LocationBlock &lb, int &status)
+int ReadRequestEvent::getFileFd(int &status)
 {
     struct stat fileInfo;
     std::string filePath = mFilePrefix;
@@ -124,11 +120,11 @@ int ReadRequestEvent::getFileFd(const LocationBlock &lb, int &status)
             if (fd != NOT_FOUND)
             {
                 mFileSize = fileInfo.st_size;
-                setMimeType(filePath);
+                addMimeTypeHeader(filePath);
                 return fd;
             }
             status = 403; // 권한없음
-            return getErrorPageFd(lb, status);
+            return NOT_FOUND;
         }
         else if (S_ISDIR(fileInfo.st_mode))
         {
@@ -137,7 +133,7 @@ int ReadRequestEvent::getFileFd(const LocationBlock &lb, int &status)
         }
     }
     status = 404;
-    return getErrorPageFd(lb, status);
+    return NOT_FOUND;
 }
 
 void ReadRequestEvent::setFilePrefix(const LocationBlock &lb)
@@ -151,25 +147,32 @@ void ReadRequestEvent::setFilePrefix(const LocationBlock &lb)
 
 int ReadRequestEvent::getRequestFd(int &status)
 {
-    if (status >= 400)
-    {
-        return getErrorPageFd(LocationBlock(mServer.getServerInfos()[0].getServerBlock()), status);
-    }
-
-    assert(status == 200);
     std::string requestPath = mRequest.getPath();
     const LocationBlock &lb = mServer.getLocationBlockForRequest(mRequest.getHost(), requestPath);
     setFilePrefix(lb);
-    // 요청이 폴더로 들어온 경우
-    if (requestPath[requestPath.size() - 1] == '/')
+
+    int fd;
+    if (status == 200)
     {
-        return getIndexFd(lb, status);
+        // 요청이 폴더로 들어온 경우
+        if (requestPath[requestPath.size() - 1] == '/')
+        {
+            fd = getIndexFd(lb, status);
+        }
+        // 요청이 파일로 들어온 경우
+        else
+        {
+            fd = getFileFd(status);
+        }
     }
-    // 요정이 파일로 들어온 경우
-    return getFileFd(lb, status);
+    if (status != 200)
+    {
+        return getErrorPageFd(lb, status);
+    }
+    return fd;
 }
 
-void ReadRequestEvent::makeResponseEvent(int &status)
+void ReadRequestEvent::makeWriteEvent(int &status)
 {
     struct kevent newEvent;
     std::string responseBody;
@@ -180,19 +183,9 @@ void ReadRequestEvent::makeResponseEvent(int &status)
     else
     {
         responseBody = HttpStatusInfos::makeAutoIndexPage(mFilePrefix);
-        // todo test
-        std::cout << "auto : " << mFilePrefix << std::endl;
     }
-    mResponse.init(status, responseBody.length());
 
-    if (status == 301)
-    {
-        std::ostringstream oss;
-        oss << "http://" << mRequest.getHost() << mRequest.getPath() << "/";
-        mResponse.addHead("Location", oss.str());
-    }
-    assert(mMimeType.size() != 0);
-    mResponse.addHead("Content-Type", mMimeType);
+    mResponse.addHead("Content-length", responseBody.size());
     if (mRequest.getConnectionStatus() == CONNECTION_CLOSE)
     {
         mResponse.setConnectionClose();
@@ -203,12 +196,11 @@ void ReadRequestEvent::makeResponseEvent(int &status)
     Kqueue::addEvent(newEvent);
 }
 
-void ReadRequestEvent::makeReadFileEvent(int fd, int &status)
+void ReadRequestEvent::makeReadFileEvent(int fd)
 {
     struct kevent newEvent;
-    // todo filesize가 맞는지 확인 필요
-    mResponse.init(status, mFileSize);
-    mResponse.addHead("Content-Type", mMimeType);
+
+    mResponse.addHead("Content-length", mFileSize);
     if (mRequest.getConnectionStatus() == CONNECTION_CLOSE)
     {
         mResponse.setConnectionClose();
@@ -216,6 +208,29 @@ void ReadRequestEvent::makeReadFileEvent(int fd, int &status)
     EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
            new ReadFileEvent(mServer, mResponse, mClientSocket, fd, mFileSize));
     Kqueue::addEvent(newEvent);
+}
+
+void ReadRequestEvent::makeResponse(int &status)
+{
+    int fd = getRequestFd(status);
+    mResponse.setStartLine(status);
+    if (status == 301)
+    {
+        mResponse.addHead("location", mRequest.getPath() + "/");
+    }
+    else if (status == 307)
+    {
+        mResponse.addHead("location", " ㄹㅣ퀘스트에서 해줘야 함"); // todo
+    }
+
+    if (fd == NOT_FOUND)
+    {
+        makeWriteEvent(status);
+    }
+    else
+    {
+        makeReadFileEvent(fd);
+    }
 }
 
 void ReadRequestEvent::handle()
@@ -234,15 +249,7 @@ void ReadRequestEvent::handle()
     int status = mRequest.getStatus();
     if (status >= 200)
     {
-        int fd = getRequestFd(status);
-        if (fd == NOT_FOUND)
-        {
-            makeResponseEvent(status);
-        }
-        else
-        {
-            makeReadFileEvent(fd, status);
-        }
+        makeResponse(status);
         Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
         delete this;
     }
