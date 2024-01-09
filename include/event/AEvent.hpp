@@ -14,7 +14,6 @@ class AEvent
   protected:
     const Server &mServer;
     Response mResponse;
-    Request mRequest;
     int mClientSocket;
 
   public:
