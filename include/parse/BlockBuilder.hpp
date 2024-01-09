@@ -11,13 +11,6 @@
 #include <string>
 #include <vector>
 
-enum unit
-{
-    E_KILLO = 1000,
-    E_MEGA = 1000000,
-    E_GIGA = 100000000,
-};
-
 enum blockType
 {
     E_HTTP,
@@ -29,6 +22,13 @@ class BlockBuilder
 {
 
   private:
+    enum unit
+    {
+        E_KILLO = 1000,
+        E_MEGA = 1000000,
+        E_GIGA = 100000000,
+        E_CLIENT_MAX_BODY_SIZE = 2147483647,
+    };
     std::string mRoot;
     std::vector<std::string> mIndexs;
     std::vector<unsigned int> mErrorCodes;

@@ -1,5 +1,6 @@
 #include "BlockBuilder.hpp"
 #include "HttpStatusInfos.hpp"
+#include <climits>
 #include <iostream>
 #include <sstream>
 
@@ -38,37 +39,54 @@ std::string BlockBuilder::reduceMultipleSpaces(std::string token)
 bool BlockBuilder::tryConvertNumber(const std::string &valueString, bool hasUnit, unsigned int &result)
 {
     char *checkPtr;
-    int value;
+    unsigned long value;
 
-    value = std::strtod(valueString.c_str(), &checkPtr);
-    if (value < 0)
-    {
-        return false;
-    }
-    else if (value == 0 && *checkPtr != '\0')
+    // 음수인 경우
+    if (valueString.c_str()[0] == '-')
     {
         return false;
     }
 
-    result = value;
-    if (hasUnit == true)
+    value = std::strtoul(valueString.c_str(), &checkPtr, 10);
+    if (hasUnit == false && *checkPtr != '\0')
+    {
+        return false;
+    }
+    if (value == ULONG_MAX)
+    {
+        return false;
+    }
+
+    if (hasUnit)
     {
         switch (*checkPtr)
         {
         case 'k':
             /*fall through*/
         case 'K':
-            result *= E_KILLO;
+            if (value > E_CLIENT_MAX_BODY_SIZE / E_KILLO)
+            {
+                return false;
+            }
+            value *= E_KILLO;
             break;
         case 'm':
             /*fall through*/
         case 'M':
-            result *= E_MEGA;
+            if (value > E_CLIENT_MAX_BODY_SIZE / E_MEGA)
+            {
+                return false;
+            }
+            value *= E_MEGA;
             break;
         case 'g':
             /*fall through*/
         case 'G':
-            result *= E_GIGA;
+            if (value > E_CLIENT_MAX_BODY_SIZE / E_GIGA)
+            {
+                return false;
+            }
+            value *= E_GIGA;
             break;
         case '\0':
             break;
@@ -81,13 +99,13 @@ bool BlockBuilder::tryConvertNumber(const std::string &valueString, bool hasUnit
             return false;
         }
     }
-    else
+
+    if (value > E_CLIENT_MAX_BODY_SIZE)
     {
-        if (*checkPtr != '\0')
-        {
-            return false;
-        }
+        return false;
     }
+
+    result = static_cast<unsigned int>(value);
     return true;
 }
 
@@ -206,7 +224,8 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     {
         if (tryConvertNumber(value, true, mClientMaxBodySize) == false)
         {
-            throw std::runtime_error("Error: BlockBuilder::tryConvertNumber() 적합하지 않은 숫자\n " + value);
+            throw std::runtime_error(
+                "Error: BlockBuilder::tryConvertNumber() 적합하지 않은 clinet_max_body_size 숫자\n " + value);
         }
     }
     else if (key == "server_name")
