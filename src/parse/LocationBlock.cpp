@@ -22,6 +22,8 @@ LocationBlock &LocationBlock::operator=(const LocationBlock &rhs)
 
         mPort = rhs.mPort;
         mServerName = rhs.mServerName;
+        mRedirectionPath = rhs.mRedirectionPath;
+
         mLocationPath = rhs.mLocationPath;
         mIsAutoIndex = rhs.mIsAutoIndex;
         mIsAllowedGet = rhs.mIsAllowedGet;
