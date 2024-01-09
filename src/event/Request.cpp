@@ -122,7 +122,7 @@ int Request::storeHeaderLine(const std::string &line)
         return -1;
     }
 
-    headerKey = trim(line.substr(0, pos));
+    headerKey = line.substr(0, pos);
     if (mHeaders.find(headerKey) != mHeaders.end())
     {
         mStatus = 400; // Bad Request
