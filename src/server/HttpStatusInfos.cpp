@@ -48,8 +48,8 @@ void HttpStatusInfos::initHttpErrorPages()
                            "<center><h1>404 Not Found</h1></center>" CRLF;
     mHttpErrorPages[405] = "<html>" CRLF "<head><title>405 Not Allowed</title></head>" CRLF "<body>" CRLF
                            "<center><h1>405 Not Allowed</h1></center>" CRLF;
-    mHttpErrorPages[501] = "<html>" CRLF "<head><title>405 Not Allowed</title></head>" CRLF "<body>" CRLF
-                           "<center><h1>405 Not Allowed</h1></center>" CRLF;
+    mHttpErrorPages[501] = "<html>" CRLF "<head><title>501 Not Implemented</title></head>" CRLF "<body>" CRLF
+                           "<center><h1>501 Not Implemented</h1></center>" CRLF;
     mHttpErrorPages[503] = "<html>" CRLF "<head><title>503 Service Temporarily Unavailable</title></head>" CRLF
                            "<body>" CRLF "<center><h1>503 Service Temporarily Unavailable</h1></center>" CRLF;
 }
