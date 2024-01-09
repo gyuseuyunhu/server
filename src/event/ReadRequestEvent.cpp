@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 ReadRequestEvent::ReadRequestEvent(const Server &server, int clientSocket)
-    : AEvent(server, clientSocket), mFileSize(0), mMimeType("text/html")
+    : AEvent(server, clientSocket), mRequest(server), mFileSize(0), mMimeType("text/html")
 {
 }
 
@@ -158,7 +158,7 @@ int ReadRequestEvent::getRequestFd(int &status)
 
     assert(status == 200);
     std::string requestPath = mRequest.getPath();
-    const LocationBlock lb = mServer.getLocationBlockForRequest(mRequest.getHost(), requestPath);
+    const LocationBlock &lb = mServer.getLocationBlockForRequest(mRequest.getHost(), requestPath);
     setFilePrefix(lb);
     // 요청이 폴더로 들어온 경우
     if (requestPath[requestPath.size() - 1] == '/')
