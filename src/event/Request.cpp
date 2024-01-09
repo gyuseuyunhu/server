@@ -21,8 +21,8 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
     return a.length() < b.length();
 }
 
-Request::Request()
-    : mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mBody(""), mContentLength(0),
+Request::Request(const Server &server)
+    : mServer(server), mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mBody(""), mContentLength(0),
       mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE), mIsChunkedData(false)
 {
 }
@@ -66,7 +66,7 @@ int Request::checkMethod(std::stringstream &ss)
 int Request::checkPath(std::stringstream &ss)
 {
     ss >> mPath;
-    if (mPath == "")
+    if (mPath.empty())
     {
         mStatus = 400; // Bad Request
         return -1;
@@ -123,7 +123,7 @@ int Request::storeHeaderLine(const std::string &line)
         return -1;
     }
 
-    headerKey = trim(line.substr(0, pos));
+    headerKey = line.substr(0, pos);
     if (mHeaders.find(headerKey) != mHeaders.end())
     {
         mStatus = 400; // Bad Request
@@ -174,12 +174,21 @@ void Request::parseRequestHeader(std::string &buffer)
         }
         mHost = mHeaders["Host"];
 
-        if (mHeaders.find("Connection") != mHeaders.end())
+        if (mHeaders.find("Connection") != mHeaders.end() && mHeaders["Connection"] == "close")
         {
-            if (mHeaders["Connection"] == "close")
-            {
-                mConnectionStatus = CONNECTION_CLOSE;
-            }
+            mConnectionStatus = CONNECTION_CLOSE;
+        }
+
+        const LocationBlock &lb = mServer.getLocationBlockForRequest(mHost, mPath);
+        mClientMaxBodySize = lb.getClientMaxBodySize();
+        mIsAllowedGet = lb.isAllowedGet();
+        mIsAllowedPost = lb.isAllowedPost();
+        mIsAllowedDelete = lb.isAllowedDelete();
+        if ((mMethod == E_DELETE && mIsAllowedDelete == false) || (mMethod == E_GET && mIsAllowedGet == false) ||
+            (mMethod == E_POST && mIsAllowedPost == false))
+        {
+            mStatus = 405;
+            return;
         }
         if (checkChunkedData())
         {
@@ -196,6 +205,7 @@ void Request::parseRequestHeader(std::string &buffer)
             mRequestLine = E_REQUEST_CONTENTS;
             return;
         }
+
         mStatus = 200;
     }
 }
@@ -317,7 +327,7 @@ void Request::parseRequestContent(std::string &buffer)
         mStatus = 200;
     }
     // ContentLength보다 더 많이 들어왔을 때
-    else if (mBody.size() > mContentLength)
+    else if (mBody.size() > mContentLength || mBody.size() > mClientMaxBodySize)
     {
         mStatus = 400;
     }
@@ -350,15 +360,6 @@ void Request::parse(std::string &buffer)
 int Request::getStatus() const
 {
     return mStatus;
-}
-
-void Request::clear()
-{
-    mRequestLine = E_START_LINE;
-    mPath = "";
-    mHeaders.clear();
-    mBody = "";
-    mStatus = 0;
 }
 
 const std::map<std::string, std::string, CaseInsensitiveCompare> &Request::getHeaders() const
