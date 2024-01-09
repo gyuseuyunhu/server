@@ -29,6 +29,12 @@ class BlockBuilder
         E_GIGA = 1024 * 1024 * 1024,
         E_CLIENT_MAX_BODY_SIZE = 2147483647,
     };
+    enum defalutValue
+    {
+        E_DEFAULT_CLIENT_BODY_SIZE = 1000000,
+        E_DEFAULT_LISTEN_PORT = 80,
+    };
+
     std::string mRoot;
     std::vector<std::string> mIndexs;
     std::vector<unsigned int> mErrorCodes;
@@ -37,7 +43,6 @@ class BlockBuilder
 
     unsigned int mPort;
     std::string mServerName;
-    unsigned int mRedirectionCode;
     std::string mRedirectionPath;
 
     std::string mLocationPath;
@@ -55,7 +60,18 @@ class BlockBuilder
     std::string reduceMultipleSpaces(std::string token);
     bool tryConvertNumber(const std::string &valueString, bool hasUnit, unsigned int &result);
 
+    // handle function
+    void handleRoot(const std::string &value);
+    void handleIndex(const std::string &value, bool &isFirstIndex);
+    void handleErrorPage(const std::string &value, bool &isMadeErrorPages);
+    void handleClientMaxBodySize(const std::string &value);
+    void handleListen(const std::string &value);
+    void handleAutoindex(const std::string &value);
+    void handleLimitExcept(const std::string &value, bool isFirstValue, bool &isMethodAllowed);
+
   public:
+    static const std::string DEFAULT_ROOT;
+    static const std::string DEFAULT_SERVER_NAME;
     BlockBuilder();
     void parseConfig(const enum blockType, const std::string &configStr);
     HttpBlock buildHttpBlock() const;
