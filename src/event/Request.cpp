@@ -227,8 +227,6 @@ void Request::parseChunkedContent(std::string &buffer)
 {
     std::stringstream ss;
     size_t pos = 0;
-    // 플래그의 상태로 사이즈 받을지, 데이터 받을지 확인
-    //  플래그가 -1이면 사이즈 받을 차례, 0 <=면 본문 받을 차례
 
     if (mChunkedSize == NEED_SIZE && (pos = buffer.find(CRLF)) != std::string::npos)
     {
