@@ -50,7 +50,7 @@ int Request::checkMethod(std::stringstream &ss)
     else if (method == "HEAD" || method == "PUT" || method == "PATCH" || method == "OPTIONS" || method == "TRACE" ||
              method == "CONNECT")
     {
-        mStatus = 501; // Not Implemented
+        mStatus = 405; // Not Implemented
         mMethod = E_NOT_IMPLEMENT;
         return -1;
     }
@@ -301,10 +301,10 @@ void Request::parse(std::string &buffer)
     {
         parseChunkedContent(buffer);
     }
-    if (mStatus == 400 || mStatus == 501)
-    {
-        mConnectionStatus = CONNECTION_CLOSE;
-    }
+    // if (mStatus == 400 || mStatus == 501)
+    // {
+    //     mConnectionStatus = CONNECTION_CLOSE;
+    // }
 }
 
 int Request::getStatus() const
