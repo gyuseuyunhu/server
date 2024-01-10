@@ -50,7 +50,7 @@ int Request::checkMethod(std::stringstream &ss)
     else if (method == "HEAD" || method == "PUT" || method == "PATCH" || method == "OPTIONS" || method == "TRACE" ||
              method == "CONNECT")
     {
-        mStatus = 405; // Not Implemented
+        mStatus = 405; // Not Allowed
         mMethod = E_NOT_IMPLEMENT;
         return -1;
     }
