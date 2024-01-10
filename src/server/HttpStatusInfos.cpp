@@ -122,7 +122,12 @@ const std::string &HttpStatusInfos::getMimeType(const std::string &type)
     std::map<std::string, std::string>::const_iterator it;
 
     it = mMimeType.find(type);
-    assert(it != mMimeType.end());
+    std::cout << "mimetype : " << type << std::endl;
+    // assert(it != mMimeType.end());
+    if (it == mMimeType.end())
+    {
+        return mMimeType["html"];
+    }
     return it->second;
 }
 
