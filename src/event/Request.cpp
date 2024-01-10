@@ -201,6 +201,11 @@ void Request::parseRequestHeader(std::string &buffer)
             std::stringstream ss;
             ss << mHeaders["Content-Length"];
             ss >> mContentLength;
+            if (mContentLength > mClientMaxBodySize)
+            {
+                mStatus = 413;
+                return;
+            }
             buffer = buffer.substr(pos + 4);
             mRequestLine = E_REQUEST_CONTENTS;
             return;
@@ -260,7 +265,7 @@ void Request::parseChunkedContent(std::string &buffer)
         mBody += buffer.substr(0, mChunkedSize);
         if (mBody.size() > mClientMaxBodySize)
         {
-            mStatus = 400;
+            mStatus = 413;
             return;
         }
         buffer = buffer.substr(mChunkedSize + 2);
@@ -277,7 +282,7 @@ void Request::parseRequestContent(std::string &buffer)
         mStatus = 200;
     }
     // ContentLength보다 더 많이 들어왔을 때
-    else if (mBody.size() > mContentLength || mBody.size() > mClientMaxBodySize)
+    else if (mBody.size() > mContentLength)
     {
         mStatus = 400;
     }

@@ -1,9 +1,8 @@
 #include "ServerBlock.hpp"
 
 ServerBlock::ServerBlock(const HttpBlock &httpBlock, unsigned int port, const std::string &serverName,
-                         unsigned int redirectionCode, const std::string &redirectionPath)
-    : HttpBlock(httpBlock), mPort(port), mServerName(serverName), mRedirectionCode(redirectionCode),
-      mRedirectionPath(redirectionPath)
+                         const std::string &redirectionPath)
+    : HttpBlock(httpBlock), mPort(port), mServerName(serverName), mRedirectionPath(redirectionPath)
 {
 }
 
@@ -28,7 +27,6 @@ ServerBlock &ServerBlock::operator=(const ServerBlock &rhs)
 
         mPort = rhs.mPort;
         mServerName = rhs.mServerName;
-        mRedirectionCode = rhs.mRedirectionCode;
         mRedirectionPath = rhs.mRedirectionPath;
     }
     return *this;
@@ -42,11 +40,6 @@ unsigned int ServerBlock::getPort() const
 const std::string &ServerBlock::getServerName() const
 {
     return mServerName;
-}
-
-unsigned int ServerBlock::getRedirectionCode() const
-{
-    return mRedirectionCode;
 }
 
 const std::string &ServerBlock::getRedirectionPath() const
@@ -80,7 +73,6 @@ std::ostream &operator<<(std::ostream &os, const ServerBlock &serverBlock)
 
     os << "port : " << serverBlock.mPort << std::endl;
     os << "serverName : " << serverBlock.mServerName << std::endl;
-    os << "redirectionCode : " << serverBlock.mRedirectionCode << "    ";
     os << "redirectionPath : " << serverBlock.mRedirectionPath << std::endl;
 
     return os;

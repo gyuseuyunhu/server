@@ -70,9 +70,12 @@ void Server::addServerInfo(const ServerInfo &serverInfo)
 
 const LocationBlock Server::getLocationBlockForRequest(const std::string &host, const std::string &path) const
 {
-    assert(path != "");
     std::vector<ServerInfo>::const_iterator serverIt = mServerInfos.begin();
     ServerInfo targetServerInfo = *serverIt;
+    if (path == "")
+    {
+        return LocationBlock(targetServerInfo.getServerBlock());
+    }
     ++serverIt;
     for (; serverIt != mServerInfos.end(); ++serverIt)
     {
