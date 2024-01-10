@@ -3,6 +3,7 @@
 
 #include "ConnectionEnum.hpp"
 #include "Server.hpp"
+#include <cstdlib>
 #include <map>
 #include <string>
 
@@ -19,7 +20,8 @@ enum eRequestLine
 {
     E_START_LINE,
     E_REQUEST_HEADER,
-    E_REQUEST_CONTENTS
+    E_REQUEST_CONTENTS,
+    E_CHUNKED_CONTENTS
 };
 
 struct CaseInsensitiveCompare
@@ -30,6 +32,11 @@ struct CaseInsensitiveCompare
 class Request
 {
   private:
+    enum
+    {
+        NO_SIZE = 0
+    };
+
     const Server &mServer;
     eHttpMethod mMethod;
     std::string mPath;
@@ -44,6 +51,7 @@ class Request
     int mStatus;
     eConnectionStatus mConnectionStatus;
 
+    unsigned long mChunkedSize;
     unsigned int mClientMaxBodySize;
     bool mIsAllowedGet;
     bool mIsAllowedPost;
@@ -60,6 +68,8 @@ class Request
 
     void parseRequestHeader(std::string &buffer);
     void parseRequestContent(std::string &buffer);
+    bool checkChunkedData(void);
+    void parseChunkedContent(std::string &buffer);
 
   public:
     Request(const Server &server);

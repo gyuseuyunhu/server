@@ -1,6 +1,7 @@
 #include "Request.hpp"
 #include "HttpStatusInfos.hpp"
 #include "util.hpp"
+#include <iostream>
 #include <sstream>
 
 bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string &b) const
@@ -22,7 +23,7 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
 
 Request::Request(const Server &server)
     : mServer(server), mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mBody(""), mContentLength(0),
-      mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE)
+      mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE), mChunkedSize(NO_SIZE)
 {
 }
 
@@ -189,7 +190,12 @@ void Request::parseRequestHeader(std::string &buffer)
             mStatus = 405;
             return;
         }
-
+        if (checkChunkedData())
+        {
+            buffer = buffer.substr(pos + 4);
+            mRequestLine = E_CHUNKED_CONTENTS;
+            return;
+        }
         if (mHeaders.find("Content-Length") != mHeaders.end())
         {
             std::stringstream ss;
@@ -201,6 +207,64 @@ void Request::parseRequestHeader(std::string &buffer)
         }
 
         mStatus = 200;
+    }
+}
+
+bool Request::checkChunkedData(void)
+{
+    std::map<std::string, std::string, CaseInsensitiveCompare>::const_iterator iter =
+        mHeaders.find("Transfer-Encoding");
+    if (iter != mHeaders.end())
+    {
+        if (iter->second == "chunked")
+        {
+            return true;
+        }
+    }
+    return false;
+}
+void Request::parseChunkedContent(std::string &buffer)
+{
+    std::stringstream ss;
+    size_t pos = 0;
+
+    if (mChunkedSize == NO_SIZE && (pos = buffer.find(CRLF)) != std::string::npos)
+    {
+        std::string value = buffer.substr(0, pos);
+        char *endptr;
+        mChunkedSize = strtol(value.c_str(), &endptr, 16);
+        if (endptr[0] != '\0')
+        {
+            mStatus = 400;
+            return;
+        }
+        if (mChunkedSize == NO_SIZE)
+        {
+            if (mBody.size() == 0)
+            {
+                mStatus = 400;
+                return;
+            }
+            mStatus = 200;
+            return;
+        }
+        buffer = buffer.substr(pos + 2);
+    }
+    else if (mChunkedSize != NO_SIZE && (mChunkedSize + 2) <= buffer.size())
+    {
+        if (buffer.substr(mChunkedSize, 2) != CRLF)
+        {
+            mStatus = 400;
+            return;
+        }
+        mBody += buffer.substr(0, mChunkedSize);
+        if (mBody.size() > mClientMaxBodySize)
+        {
+            mStatus = 400;
+            return;
+        }
+        buffer = buffer.substr(mChunkedSize + 2);
+        mChunkedSize = NO_SIZE;
     }
 }
 
@@ -232,6 +296,10 @@ void Request::parse(std::string &buffer)
     if (mRequestLine == E_REQUEST_CONTENTS)
     {
         parseRequestContent(buffer);
+    }
+    if (mRequestLine == E_CHUNKED_CONTENTS)
+    {
+        parseChunkedContent(buffer);
     }
     if (mStatus == 400 || mStatus == 501)
     {
