@@ -184,12 +184,24 @@ void Request::parseRequestHeader(std::string &buffer)
         mIsAllowedGet = lb.isAllowedGet();
         mIsAllowedPost = lb.isAllowedPost();
         mIsAllowedDelete = lb.isAllowedDelete();
+        if (!lb.getRedirectionPath().empty())
+        {
+            mStatus = 307;
+            mRedirectPath = lb.getRedirectionPath();
+            if (mRedirectPath[0] == '/')
+            {
+                mRedirectPath = "http://" + mHost + mRedirectPath;
+            }
+            return;
+        }
+
         if ((mMethod == E_DELETE && mIsAllowedDelete == false) || (mMethod == E_GET && mIsAllowedGet == false) ||
             (mMethod == E_POST && mIsAllowedPost == false))
         {
             mStatus = 405;
             return;
         }
+
         if (checkChunkedData())
         {
             buffer = buffer.substr(pos + 4);
@@ -210,7 +222,6 @@ void Request::parseRequestHeader(std::string &buffer)
             mRequestLine = E_REQUEST_CONTENTS;
             return;
         }
-
         mStatus = 200;
     }
 }
@@ -340,4 +351,9 @@ const std::string &Request::getBody() const
 eConnectionStatus Request::getConnectionStatus() const
 {
     return mConnectionStatus;
+}
+
+const std::string &Request::getRedirectionPath() const
+{
+    return mRedirectPath;
 }

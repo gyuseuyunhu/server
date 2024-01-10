@@ -57,6 +57,8 @@ class Request
     bool mIsAllowedPost;
     bool mIsAllowedDelete;
 
+    std::string mRedirectPath;
+
     int checkMethod(std::stringstream &ss);
     int checkPath(std::stringstream &ss);
     int checkHttpVersion(std::stringstream &ss);
@@ -82,6 +84,7 @@ class Request
     const std::string &getPath() const;
     const std::string &getBody() const;
     eConnectionStatus getConnectionStatus() const;
+    const std::string &getRedirectionPath() const;
 };
 
 #endif
