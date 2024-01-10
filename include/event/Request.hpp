@@ -34,9 +34,9 @@ class Request
   private:
     enum
     {
-        NEED_SIZE = -1,
-				LAST_CHUNK = 0
+        NO_SIZE = 0
     };
+
     const Server &mServer;
     eHttpMethod mMethod;
     std::string mPath;
@@ -51,7 +51,7 @@ class Request
     int mStatus;
     eConnectionStatus mConnectionStatus;
 
-    int mChunkedSize;
+    unsigned long mChunkedSize;
     unsigned int mClientMaxBodySize;
     bool mIsAllowedGet;
     bool mIsAllowedPost;

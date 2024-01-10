@@ -23,7 +23,7 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
 
 Request::Request(const Server &server)
     : mServer(server), mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mBody(""), mContentLength(0),
-      mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE), mChunkedSize(NEED_SIZE)
+      mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE), mChunkedSize(NO_SIZE)
 {
 }
 
@@ -228,18 +228,17 @@ void Request::parseChunkedContent(std::string &buffer)
     std::stringstream ss;
     size_t pos = 0;
 
-    if (mChunkedSize == NEED_SIZE && (pos = buffer.find(CRLF)) != std::string::npos)
+    if (mChunkedSize == NO_SIZE && (pos = buffer.find(CRLF)) != std::string::npos)
     {
         std::string value = buffer.substr(0, pos);
         char *endptr;
-        ss << std::strtol(value.c_str(), &endptr, 16);
-        ss >> mChunkedSize;
+        mChunkedSize = strtol(value.c_str(), &endptr, 16);
         if (endptr[0] != '\0')
         {
             mStatus = 400;
             return;
         }
-        if (mChunkedSize == LAST_CHUNK)
+        if (mChunkedSize == NO_SIZE)
         {
             if (mBody.size() == 0)
             {
@@ -251,7 +250,7 @@ void Request::parseChunkedContent(std::string &buffer)
         }
         buffer = buffer.substr(pos + 2);
     }
-    else if (mChunkedSize != NEED_SIZE && static_cast<unsigned long>(mChunkedSize) <= buffer.size() + 2)
+    else if (mChunkedSize != NO_SIZE && (mChunkedSize + 2) <= buffer.size())
     {
         if (buffer.substr(mChunkedSize, 2) != CRLF)
         {
@@ -265,7 +264,7 @@ void Request::parseChunkedContent(std::string &buffer)
             return;
         }
         buffer = buffer.substr(mChunkedSize + 2);
-        mChunkedSize = NEED_SIZE;
+        mChunkedSize = NO_SIZE;
     }
 }
 
