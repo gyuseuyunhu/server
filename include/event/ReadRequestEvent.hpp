@@ -17,17 +17,19 @@ class ReadRequestEvent : public AEvent
     std::string mMimeType;
     int getErrorPageFd(const LocationBlock &lb, int status);
     int getIndexFd(const LocationBlock &lb, int &stauts);
-    int getFileFd(const LocationBlock &lb, int &status);
+    int getFileFd(int &status);
     int getRequestFd(int &status);
     void setFilePrefix(const LocationBlock &lb);
-    void setMimeType(const std::string &path);
+    void addMimeTypeHeader(const std::string &path);
+    void makeWriteEvent(int &status);
+    void makeReadFileEvent(int fd);
+
+    void makeResponse(int &status);
 
   public:
     ReadRequestEvent(const Server &server, int clientSocket);
     virtual ~ReadRequestEvent();
     virtual void handle();
-    void makeResponseEvent(int &status);
-    void makeReadFileEvent(int fd, int &status);
 };
 
 #endif
