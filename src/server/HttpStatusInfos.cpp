@@ -31,6 +31,7 @@ void HttpStatusInfos::initHttpStatusReasons()
     mHttpStatusReasons[200] = "OK";
     mHttpStatusReasons[201] = "Created";
     mHttpStatusReasons[301] = "Moved Permanently";
+    mHttpStatusReasons[307] = "Temporary Redirect";
     mHttpStatusReasons[400] = "Bad Request";
     mHttpStatusReasons[404] = "Not Found";
     mHttpStatusReasons[405] = "Method Not Allowed";
@@ -43,6 +44,8 @@ void HttpStatusInfos::initHttpErrorPages()
 {
     mHttpErrorPages[301] = "<html>" CRLF "<head><title>301 Moved Permanently</title></head>" CRLF "<body>" CRLF
                            "<center><h1>301 Moved Permanently</h1></center>" CRLF;
+    mHttpErrorPages[307] = "<html>" CRLF "<head><title>307 Temporary Redirect</title></head>" CRLF "<body>" CRLF
+                           "<center><h1>307 Temporary Redirect</h1></center>" CRLF;
     mHttpErrorPages[400] = "<html>" CRLF "<head><title>400 Bad Request</title></head>" CRLF "<body>" CRLF
                            "<center><h1>400 Bad Request</h1></center>" CRLF;
     mHttpErrorPages[404] = "<html>" CRLF "<head><title>404 Not Found</title></head>" CRLF "<body>" CRLF
@@ -125,8 +128,7 @@ const std::string &HttpStatusInfos::getMimeType(const std::string &type)
     std::map<std::string, std::string>::const_iterator it;
 
     it = mMimeType.find(type);
-    std::cout << "mimetype : " << type << std::endl;
-    // assert(it != mMimeType.end());
+
     if (it == mMimeType.end())
     {
         return mMimeType["html"];

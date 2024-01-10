@@ -220,7 +220,7 @@ void ReadRequestEvent::makeResponse(int &status)
     }
     else if (status == 307)
     {
-        mResponse.addHead("location", " ㄹㅣ퀘스트에서 해줘야 함"); // todo
+        mResponse.addHead("location", mRequest.getRedirectionPath()); // todo
     }
 
     if (fd == NOT_FOUND)
