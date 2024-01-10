@@ -1,8 +1,9 @@
 #include "LocationBlock.hpp"
 LocationBlock::LocationBlock(const ServerBlock &serverBlock, const std::string &locationPath, bool isAutoIndex,
-                             bool isAllowedGet, bool isAllowedPost, bool isAllowedDelete)
+                             bool isAllowedGet, bool isAllowedPost, bool isAllowedDelete, const std::string &cgiPath,
+                             const std::string &cgiExtension)
     : ServerBlock(serverBlock), mLocationPath(locationPath), mIsAutoIndex(isAutoIndex), mIsAllowedGet(isAllowedGet),
-      mIsAllowedPost(isAllowedPost), mIsAllowedDelete(isAllowedDelete)
+      mIsAllowedPost(isAllowedPost), mIsAllowedDelete(isAllowedDelete), mCgiPath(cgiPath), mCgiExtension(cgiExtension)
 {
 }
 LocationBlock::LocationBlock(const ServerBlock &serverBlock)
@@ -29,6 +30,8 @@ LocationBlock &LocationBlock::operator=(const LocationBlock &rhs)
         mIsAllowedGet = rhs.mIsAllowedGet;
         mIsAllowedPost = rhs.mIsAllowedPost;
         mIsAllowedDelete = rhs.mIsAllowedDelete;
+        mCgiPath = rhs.mCgiPath;
+        mCgiExtension = rhs.mCgiExtension;
     }
     return *this;
 }
@@ -58,6 +61,15 @@ bool LocationBlock::isAllowedDelete() const
     return mIsAllowedDelete;
 }
 
+const std::string &LocationBlock::getCgiPath() const
+{
+    return mCgiPath;
+}
+
+const std::string &LocationBlock::getCgiExtension() const
+{
+    return mCgiExtension;
+}
 std::ostream &operator<<(std::ostream &os, const LocationBlock &locationBlock)
 {
     os << "LocationPath : " << locationBlock.mLocationPath << std::endl;
@@ -91,5 +103,7 @@ std::ostream &operator<<(std::ostream &os, const LocationBlock &locationBlock)
     os << "isAllowedGet: " << std::boolalpha << locationBlock.mIsAllowedGet << std::endl;
     os << "isAllowedPost : " << std::boolalpha << locationBlock.mIsAllowedPost << std::endl;
     os << "isAllowedDelete : " << std::boolalpha << locationBlock.mIsAllowedDelete << std::endl;
+    os << "cgiPath : " << locationBlock.mCgiPath << std::endl;
+    os << "cgiExtension : " << locationBlock.mCgiExtension << std::endl;
     return os;
 }

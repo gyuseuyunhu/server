@@ -214,6 +214,14 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     {
         handleLimitExcept(value, isFirstValue, mIsMethodAllowed);
     }
+    else if (key == "cgi_path")
+    {
+        mCgiPath = value;
+    }
+    else if (key == "cgi_extension")
+    {
+        mCgiExtension = value;
+    }
     else
     {
         assert(false);
@@ -393,5 +401,5 @@ ServerBlock BlockBuilder::buildServerBlock() const
 LocationBlock BlockBuilder::buildLocationBlock() const
 {
     return LocationBlock(buildServerBlock(), mLocationPath, mIsAutoIndex, mIsAllowedGet, mIsAllowedPost,
-                         mIsAllowedDelete);
+                         mIsAllowedDelete, mCgiPath, mCgiExtension);
 }

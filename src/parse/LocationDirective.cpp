@@ -16,4 +16,6 @@ void LocationDirective::initDirectiveMap()
     mDirective["return"] = 1;
     mDirective["autoindex"] = 1;
     mDirective["limit_except"] = std::numeric_limits<int>::max();
+    mDirective["cgi_extension"] = 1;
+    mDirective["cgi_path"] = 1;
 }

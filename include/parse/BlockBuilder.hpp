@@ -52,8 +52,10 @@ class BlockBuilder
     bool mIsAllowedGet;
     bool mIsAllowedPost;
     bool mIsAllowedDelete;
-
     bool mIsMethodAllowed;
+    std::string mCgiPath;
+    std::string mCgiExtension;
+
     HttpDirective mHttpDirective;
     ServerDirective mServerDirective;
     LocationDirective mLocationDirective;

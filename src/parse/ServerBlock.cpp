@@ -19,7 +19,6 @@ ServerBlock &ServerBlock::operator=(const ServerBlock &rhs)
 {
     if (this != &rhs)
     {
-        // 부모
         mRoot = rhs.mRoot;
         mIndexs = rhs.mIndexs;
         mErrorPages = rhs.mErrorPages;
