@@ -22,6 +22,7 @@ EVENT_SRCS = AEvent.cpp \
 						 Response.cpp \
 						 WriteEvent.cpp \
 						 ReadFileEvent.cpp \
+						 WriteCgiEvent.cpp \
 
 SERVER_SRCS = Kqueue.cpp \
 							Server.cpp \
