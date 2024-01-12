@@ -22,8 +22,8 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
 }
 
 Request::Request(const Server &server)
-    : mServer(server), mMethod(E_GET), mPath(""), mVersion("HTTP/1.1"), mHost(""), mBody(""), mContentLength(0),
-      mRequestLine(E_START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE), mChunkedSize(NO_SIZE)
+    : mServer(server), mMethod(""), mPath(""), mVersion(""), mHost(""), mBody(""), mContentLength(0),
+      mRequestLine(START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE), mChunkedSize(NO_SIZE)
 {
 }
 
@@ -31,130 +31,81 @@ Request::~Request()
 {
 }
 
-int Request::checkMethod(std::stringstream &ss)
+void Request::checkMethod(std::stringstream &ss)
 {
-    std::string method;
-    ss >> method;
-    if (method == "GET")
+    ss >> mMethod;
+    if (mMethod.empty())
     {
-        mMethod = E_GET;
+        mStatus = BAD_REQUEST;
     }
-    else if (method == "POST")
-    {
-        mMethod = E_POST;
-    }
-    else if (method == "DELETE")
-    {
-        mMethod = E_DELETE;
-    }
-    else if (method == "HEAD" || method == "PUT" || method == "PATCH" || method == "OPTIONS" || method == "TRACE" ||
-             method == "CONNECT")
-    {
-        mStatus = 405; // Not Allowed
-        mMethod = E_NOT_IMPLEMENT;
-        return -1;
-    }
-    else
-    {
-        mStatus = 400; // Bad Request
-        mMethod = E_BAD_REQUEST;
-        return -1;
-    }
-    return 0;
 }
 
-int Request::checkPath(std::stringstream &ss)
+void Request::checkPath(std::stringstream &ss)
 {
     ss >> mPath;
     if (mPath.empty())
     {
-        mStatus = 400; // Bad Request
-        return -1;
+        mStatus = BAD_REQUEST;
+        return;
     }
     if (mPath[0] != '/')
     {
         mPath = "/" + mPath;
     }
-    return 0;
 }
 
-int Request::checkHttpVersion(std::stringstream &ss)
+void Request::checkHttpVersion(std::stringstream &ss)
 {
-    std::string version;
-    ss >> version;
-    if (version == "HTTP/1.0" || version == "HTTP/1.1")
+    ss >> mVersion;
+    if (mVersion != "HTTP/1.0" && mVersion != "HTTP/1.1")
     {
-        mVersion = "HTTP/1.1"; // 1.0은 conectless이긴 함.
-        return 0;
-    }
-    else if (version == "HTTP/2.0" || version == "HTTP/3.0")
-    {
-        mStatus = 501; // Not Implement
-        return -1;
-    }
-    else
-    {
-        mStatus = 400; // Bad Request
-        return -1;
+        mStatus = BAD_REQUEST;
     }
 }
 
 void Request::parseStartLine(std::string &buffer)
 {
-    size_t pos;
-    if ((pos = buffer.find(CRLF)) != std::string::npos)
+    size_t pos = buffer.find(CRLF);
+    while (pos == 0)
+    {
+        buffer.erase(0, 2);
+        pos = buffer.find(CRLF);
+    }
+    if (pos != std::string::npos)
     {
         std::stringstream ss(buffer.substr(0, pos));
-        if (checkMethod(ss) == -1 || checkPath(ss) == -1 || checkHttpVersion(ss) == -1)
-            return;
-        buffer = buffer.substr(pos + 2);
-        mRequestLine = E_REQUEST_HEADER;
+        checkMethod(ss);
+        checkPath(ss);
+        checkHttpVersion(ss);
+        buffer.erase(0, pos + 2);
+        mRequestLine = HEADER;
     }
 }
 
-int Request::storeHeaderLine(const std::string &line)
+void Request::storeHeaderLine(const std::string &line)
 {
     std::string headerKey;
     std::string headerVal;
     size_t pos = line.find(':');
-    if (pos == std::string::npos)
-    {
-        mStatus = 400; // Bad Request
-        return -1;
-    }
 
     headerKey = line.substr(0, pos);
     if (mHeaders.find(headerKey) != mHeaders.end())
     {
-        mStatus = 400; // Bad Request
-        return -1;
+        mStatus = BAD_REQUEST;
+        return;
     }
-
     headerVal = trim(line.substr(pos + 1));
-    if (headerVal.size() == 0)
-    {
-        mStatus = 400; // Bad Request
-        return -1;
-    }
-
     mHeaders[headerKey] = headerVal;
-    return 0;
 }
 
-int Request::storeHeaderMap(std::string buffer)
+void Request::storeHeaderMap(std::string buffer)
 {
-    std::string line;
-
     size_t pos = 0;
     while ((pos = buffer.find(CRLF)) != std::string::npos)
     {
-        if (storeHeaderLine(buffer.substr(0, pos)))
-        {
-            return -1;
-        }
-        buffer = buffer.substr(pos + 2);
+        storeHeaderLine(buffer.substr(0, pos));
+        buffer.erase(0, pos + 2);
     }
-    return 0;
 }
 
 void Request::parseRequestHeader(std::string &buffer)
@@ -162,67 +113,55 @@ void Request::parseRequestHeader(std::string &buffer)
     size_t pos = 0;
     if ((pos = buffer.find(CRLF CRLF)) != std::string::npos)
     {
-        if (storeHeaderMap(buffer.substr(0, pos + 2)) == -1)
-        {
-            mStatus = 400;
-            return;
-        }
-        if (mHeaders.find("Host") == mHeaders.end())
-        {
-            mStatus = 400; // Bad Request
-            return;
-        }
+        storeHeaderMap(buffer.substr(0, pos + 2));
         mHost = mHeaders["Host"];
+        if (mHost.empty())
+        {
+            mStatus = BAD_REQUEST;
+        }
 
-        if (mHeaders.find("Connection") != mHeaders.end() && mHeaders["Connection"] == "close")
+        MapIt it = mHeaders.find("Connection");
+        if (it != mHeaders.end() && it->second == "close")
         {
             mConnectionStatus = CONNECTION_CLOSE;
         }
 
-        const LocationBlock &lb = mServer.getLocationBlockForRequest(mHost, mPath);
-        mClientMaxBodySize = lb.getClientMaxBodySize();
-        mIsAllowedGet = lb.isAllowedGet();
-        mIsAllowedPost = lb.isAllowedPost();
-        mIsAllowedDelete = lb.isAllowedDelete();
-        if (!lb.getRedirectionPath().empty())
-        {
-            mStatus = 307;
-            mRedirectPath = lb.getRedirectionPath();
-            if (mRedirectPath[0] == '/')
-            {
-                mRedirectPath = "http://" + mHost + mRedirectPath;
-            }
-            return;
-        }
-
-        if ((mMethod == E_DELETE && mIsAllowedDelete == false) || (mMethod == E_GET && mIsAllowedGet == false) ||
-            (mMethod == E_POST && mIsAllowedPost == false))
-        {
-            mStatus = 405;
-            return;
-        }
+        // if (!lb.getRedirectionPath().empty())
+        // {
+        //     mStatus = 307;
+        //     mRedirectPath = lb.getRedirectionPath();
+        //     if (mRedirectPath[0] == '/')
+        //     {
+        //         mRedirectPath = "http://" + mHost + mRedirectPath;
+        //     }
+        //     return;
+        // }
 
         if (checkChunkedData())
         {
-            buffer = buffer.substr(pos + 4);
-            mRequestLine = E_CHUNKED_CONTENTS;
+            buffer.erase(0, pos + 4);
+            mRequestLine = CHUNKED;
             return;
         }
-        if (mHeaders.find("Content-Length") != mHeaders.end())
+
+        MapIt it = mHeaders.find("Content-Length");
+        if (it != mHeaders.end())
         {
             std::stringstream ss;
-            ss << mHeaders["Content-Length"];
+            ss << it->second;
             ss >> mContentLength;
-            if (mContentLength > mClientMaxBodySize)
-            {
-                mStatus = 413;
-                return;
-            }
-            buffer = buffer.substr(pos + 4);
-            mRequestLine = E_REQUEST_CONTENTS;
+            // if (mContentLength > mClientMaxBodySize)
+            // {
+            //     mStatus = 413;
+            //     return;
+            // }
+            buffer.erase(0, pos + 4);
+            mRequestLine = CONTENTS;
             return;
         }
-        mStatus = 200;
+
+        mRequestLine = FINISH;
+        mBody = buffer.erase(0, pos + 4);
     }
 }
 
@@ -239,54 +178,65 @@ bool Request::checkChunkedData(void)
 
 void Request::parseChunkedContent(std::string &buffer)
 {
-    size_t pos = 0;
+    size_t pos = buffer.find("0" CRLF CRLF);
 
-    while (1)
+    // 0\r\n\r\n 읽은다음에
+    if (pos != std::string::npos)
     {
-        if (mChunkedSize == NO_SIZE && (pos = buffer.find(CRLF)) != std::string::npos)
-        {
-            std::string value = buffer.substr(0, pos);
-            char *endptr;
-            mChunkedSize = strtol(value.c_str(), &endptr, 16);
-            if (endptr[0] != '\0')
-            {
-                mStatus = 400;
-                return;
-            }
-            if (mChunkedSize == NO_SIZE)
-            {
-                if (mBody.size() == 0)
-                {
-                    mStatus = 200;
-                    return;
-                }
-                mStatus = 200;
-                return;
-            }
-            buffer = buffer.substr(pos + 2);
-        }
-        else if (mChunkedSize != NO_SIZE && (mChunkedSize + 2) <= buffer.size())
-        {
-            if (buffer.substr(mChunkedSize, 2) != CRLF)
-            {
-                mStatus = 400;
-                return;
-            }
-            mBody += buffer.substr(0, mChunkedSize);
-            if (mBody.size() > mClientMaxBodySize)
-            {
-                mStatus = 413;
-                return;
-            }
-            buffer = buffer.substr(mChunkedSize + 2);
-            mChunkedSize = NO_SIZE;
-        }
-        else if ((mChunkedSize + 2) > buffer.size() || buffer.size() == 0 ||
-                 (mChunkedSize == 0 && (pos = buffer.find(CRLF)) == std::string::npos))
-        {
-            return;
-        }
+        // mChunkedData = buffer;
+        mRequestLine = FINISH;
+        return;
     }
+
+    while ((pos = buffer.find(CRLF)) != std::string::npos)
+    {
+    }
+    // while (1)
+    // {
+    //     if (mChunkedSize == NO_SIZE && (pos = buffer.find(CRLF)) != std::string::npos)
+    //     {
+    //         std::string value = buffer.substr(0, pos);
+    //         char *endptr;
+    //         mChunkedSize = strtol(value.c_str(), &endptr, 16);
+    //         if (endptr[0] != '\0')
+    //         {
+    //             mStatus = 400;
+    //             return;
+    //         }
+    //         if (mChunkedSize == NO_SIZE)
+    //         {
+    //             if (mBody.size() == 0)
+    //             {
+    //                 mStatus = 200;
+    //                 return;
+    //             }
+    //             mStatus = 200;
+    //             return;
+    //         }
+    //         buffer = buffer.substr(pos + 2);
+    //     }
+    //     else if (mChunkedSize != NO_SIZE && (mChunkedSize + 2) <= buffer.size())
+    //     {
+    //         if (buffer.substr(mChunkedSize, 2) != CRLF)
+    //         {
+    //             mStatus = 400;
+    //             return;
+    //         }
+    //         mBody += buffer.substr(0, mChunkedSize);
+    //         if (mBody.size() > mClientMaxBodySize)
+    //         {
+    //             mStatus = 413;
+    //             return;
+    //         }
+    //         buffer = buffer.substr(mChunkedSize + 2);
+    //         mChunkedSize = NO_SIZE;
+    //     }
+    //     else if ((mChunkedSize + 2) > buffer.size() || buffer.size() == 0 ||
+    //              (mChunkedSize == 0 && (pos = buffer.find(CRLF)) == std::string::npos))
+    //     {
+    //         return;
+    //     }
+    // }
 }
 
 void Request::parseRequestContent(std::string &buffer)
@@ -306,26 +256,22 @@ void Request::parseRequestContent(std::string &buffer)
 
 void Request::parse(std::string &buffer)
 {
-    if (mRequestLine == E_START_LINE)
+    if (mRequestLine == START_LINE)
     {
         parseStartLine(buffer);
     }
-    if (mRequestLine == E_REQUEST_HEADER)
+    if (mRequestLine == HEADER)
     {
         parseRequestHeader(buffer);
     }
-    if (mRequestLine == E_REQUEST_CONTENTS)
+    if (mRequestLine == CONTENTS)
     {
         parseRequestContent(buffer);
     }
-    if (mRequestLine == E_CHUNKED_CONTENTS)
+    if (mRequestLine == CHUNKED)
     {
         parseChunkedContent(buffer);
     }
-    // if (mStatus == 400 || mStatus == 501)
-    // {
-    //     mConnectionStatus = CONNECTION_CLOSE;
-    // }
 }
 
 int Request::getStatus() const

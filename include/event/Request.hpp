@@ -16,14 +16,6 @@ enum eHttpMethod
     E_BAD_REQUEST
 };
 
-enum eRequestLine
-{
-    E_START_LINE,
-    E_REQUEST_HEADER,
-    E_REQUEST_CONTENTS,
-    E_CHUNKED_CONTENTS
-};
-
 struct CaseInsensitiveCompare
 {
     bool operator()(const std::string &a, const std::string &b) const;
@@ -37,12 +29,22 @@ class Request
         NO_SIZE = 0
     };
 
+    enum eRequestLine
+    {
+        START_LINE,
+        HEADER,
+        CONTENTS,
+        CHUNKED,
+        FINISH,
+    };
+    typedef std::map<std::string, std::string, CaseInsensitiveCompare> HeaderMap;
+
     const Server &mServer;
-    eHttpMethod mMethod;
+    std::string mMethod;
     std::string mPath;
     std::string mVersion;
 
-    std::map<std::string, std::string, CaseInsensitiveCompare> mHeaders;
+    HeaderMap mHeaders;
     std::string mHost;
     std::string mBody;
     size_t mContentLength;
@@ -59,14 +61,14 @@ class Request
 
     std::string mRedirectPath;
 
-    int checkMethod(std::stringstream &ss);
-    int checkPath(std::stringstream &ss);
-    int checkHttpVersion(std::stringstream &ss);
+    void checkMethod(std::stringstream &ss);
+    void checkPath(std::stringstream &ss);
+    void checkHttpVersion(std::stringstream &ss);
 
     void parseStartLine(std::string &buffer);
 
-    int storeHeaderLine(const std::string &line);
-    int storeHeaderMap(std::string buffer);
+    void storeHeaderLine(const std::string &line);
+    void storeHeaderMap(std::string buffer);
 
     void parseRequestHeader(std::string &buffer);
     void parseRequestContent(std::string &buffer);
@@ -74,6 +76,7 @@ class Request
     void parseChunkedContent(std::string &buffer);
 
   public:
+    typedef HeaderMap::const_iterator MapIt;
     Request(const Server &server);
     ~Request();
     void parse(std::string &buffer);

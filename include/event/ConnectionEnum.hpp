@@ -7,4 +7,9 @@ enum eConnectionStatus
     CONNECTION_CLOSE,
 };
 
+enum eHttpStatus
+{
+    BAD_REQUEST = 400,
+};
+
 #endif
