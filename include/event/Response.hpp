@@ -1,7 +1,7 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-#include "ConnectionEnum.hpp"
+#include "HttpEnum.hpp"
 #include <iostream>
 
 class Response

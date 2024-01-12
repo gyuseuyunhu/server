@@ -1,7 +1,7 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include "ConnectionEnum.hpp"
+#include "HttpEnum.hpp"
 #include "Server.hpp"
 #include <cstdlib>
 #include <map>
@@ -46,13 +46,15 @@ class Request
     HeaderMap mHeaders;
     std::string mHost;
     std::string mBody;
+    std::string mChunkedBody;
     size_t mContentLength;
 
     eRequestLine mRequestLine;
     int mStatus;
     eConnectionStatus mConnectionStatus;
+    bool mIsChunked;
 
-    // unsigned long mChunkedSize;
+    unsigned long mChunkedSize;
 
     void checkMethod(std::stringstream &ss);
     void checkPath(std::stringstream &ss);
@@ -66,19 +68,22 @@ class Request
     void parseRequestHeader(std::string &buffer);
     void parseRequestContent(std::string &buffer);
     bool checkChunkedData(void);
-    void parseChunkedContent(std::string &buffer);
+    void storeChunkedBody(std::string &buffer);
 
   public:
     typedef HeaderMap::const_iterator MapIt;
     Request();
     ~Request();
-    void parse(std::string &buffer);
+    bool tryParse(std::string &buffer);
+    int parseChunkedBody(size_t clientMaxBodySize);
 
     int getStatus() const;
     const std::map<std::string, std::string, CaseInsensitiveCompare> &getHeaders() const;
     const std::string &getHost() const;
     const std::string &getPath() const;
     const std::string &getBody() const;
+    const std::string &getMethod() const;
+    bool isChunked() const;
     eConnectionStatus getConnectionStatus() const;
 };
 
