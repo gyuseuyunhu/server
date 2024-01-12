@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 ReadRequestEvent::ReadRequestEvent(const Server &server, int clientSocket)
-    : AEvent(server, clientSocket), mRequest(server), mFileSize(0)
+    : AEvent(server, clientSocket), mRequest(), mFileSize(0)
 {
 }
 
@@ -220,7 +220,7 @@ void ReadRequestEvent::makeResponse(int &status)
     }
     else if (status == 307)
     {
-        mResponse.addHead("location", mRequest.getRedirectionPath()); // todo
+        // mResponse.addHead("location", mRequest.ge); // todo
     }
 
     if (fd == NOT_FOUND)

@@ -21,9 +21,9 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
     return a.length() < b.length();
 }
 
-Request::Request(const Server &server)
-    : mServer(server), mMethod(""), mPath(""), mVersion(""), mHost(""), mBody(""), mContentLength(0),
-      mRequestLine(START_LINE), mStatus(0), mConnectionStatus(KEEP_ALIVE), mChunkedSize(NO_SIZE)
+Request::Request()
+    : mMethod(""), mPath(""), mVersion(""), mHost(""), mBody(""), mContentLength(0), mRequestLine(START_LINE),
+      mStatus(0), mConnectionStatus(KEEP_ALIVE)
 {
 }
 
@@ -144,7 +144,7 @@ void Request::parseRequestHeader(std::string &buffer)
             return;
         }
 
-        MapIt it = mHeaders.find("Content-Length");
+        it = mHeaders.find("Content-Length");
         if (it != mHeaders.end())
         {
             std::stringstream ss;
@@ -188,9 +188,10 @@ void Request::parseChunkedContent(std::string &buffer)
         return;
     }
 
-    while ((pos = buffer.find(CRLF)) != std::string::npos)
-    {
-    }
+    // while ((pos = buffer.find(CRLF)) != std::string::npos)
+    // {
+
+    // }
     // while (1)
     // {
     //     if (mChunkedSize == NO_SIZE && (pos = buffer.find(CRLF)) != std::string::npos)
@@ -302,9 +303,4 @@ const std::string &Request::getBody() const
 eConnectionStatus Request::getConnectionStatus() const
 {
     return mConnectionStatus;
-}
-
-const std::string &Request::getRedirectionPath() const
-{
-    return mRedirectPath;
 }

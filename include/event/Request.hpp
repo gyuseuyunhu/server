@@ -39,7 +39,6 @@ class Request
     };
     typedef std::map<std::string, std::string, CaseInsensitiveCompare> HeaderMap;
 
-    const Server &mServer;
     std::string mMethod;
     std::string mPath;
     std::string mVersion;
@@ -53,13 +52,7 @@ class Request
     int mStatus;
     eConnectionStatus mConnectionStatus;
 
-    unsigned long mChunkedSize;
-    unsigned int mClientMaxBodySize;
-    bool mIsAllowedGet;
-    bool mIsAllowedPost;
-    bool mIsAllowedDelete;
-
-    std::string mRedirectPath;
+    // unsigned long mChunkedSize;
 
     void checkMethod(std::stringstream &ss);
     void checkPath(std::stringstream &ss);
@@ -77,7 +70,7 @@ class Request
 
   public:
     typedef HeaderMap::const_iterator MapIt;
-    Request(const Server &server);
+    Request();
     ~Request();
     void parse(std::string &buffer);
 
@@ -87,7 +80,6 @@ class Request
     const std::string &getPath() const;
     const std::string &getBody() const;
     eConnectionStatus getConnectionStatus() const;
-    const std::string &getRedirectionPath() const;
 };
 
 #endif
