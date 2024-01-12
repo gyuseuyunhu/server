@@ -15,6 +15,7 @@ class ReadRequestEvent : public AEvent
     std::string mFilePrefix;
     int mFileSize;
     std::string mMimeType;
+    std::string mRedirectionPath;
     int getErrorPageFd(const LocationBlock &lb, int status);
     int getIndexFd(const LocationBlock &lb, int &stauts);
     int getFileFd(int &status);
@@ -25,6 +26,10 @@ class ReadRequestEvent : public AEvent
     void makeReadFileEvent(int fd);
 
     void makeResponse(int &status);
+    int checkRequestError(const LocationBlock &lb);
+    int checkRequestStartLine(const LocationBlock &lb);
+    int checkRequestHeader(const LocationBlock &lb);
+    int checkRequestBody(const LocationBlock &lb);
 
   public:
     ReadRequestEvent(const Server &server, int clientSocket);

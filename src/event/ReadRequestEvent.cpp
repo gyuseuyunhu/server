@@ -220,7 +220,7 @@ void ReadRequestEvent::makeResponse(int &status)
     }
     else if (status == 307)
     {
-        // mResponse.addHead("location", mRequest.ge); // todo
+        mResponse.addHead("location", mRedirectionPath); // todo
     }
 
     if (fd == NOT_FOUND)
@@ -245,12 +245,88 @@ void ReadRequestEvent::handle()
     }
 
     mStringBuffer.append(buffer, n);
-    mRequest.parse(mStringBuffer);
-    int status = mRequest.getStatus();
-    if (status >= 200)
+    if (mRequest.tryParse(mStringBuffer) == false)
     {
-        makeResponse(status);
-        Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
-        delete this;
+        return;
     }
+    int status = mRequest.getStatus();
+    const LocationBlock &lb = mServer.getLocationBlockForRequest(mRequest.getHost(), mRequest.getPath());
+    if (status != BAD_REQUEST)
+    {
+        status = checkRequestError(lb);
+    }
+    if (status == OK && mRequest.isChunked() == true)
+    {
+        status = mRequest.parseChunkedBody(lb.getClientMaxBodySize());
+    }
+
+    // cgi 처리 필요
+    makeResponse(status);
+    Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
+    delete this;
+}
+
+int ReadRequestEvent::checkRequestError(const LocationBlock &lb)
+{
+    int status;
+
+    if ((status = checkRequestStartLine(lb)) != OK)
+    {
+        return status;
+    }
+    else if ((status = checkRequestHeader(lb)) != OK)
+    {
+        return status;
+    }
+    else if ((status = checkRequestBody(lb)) != OK)
+    {
+        return status;
+    }
+    return OK;
+}
+
+int ReadRequestEvent::checkRequestStartLine(const LocationBlock &lb)
+{
+    const std::string &method = mRequest.getMethod();
+    if (method == "GET" || method == "POST" || method == "DELETE")
+    {
+        if ((method == "GET" && lb.isAllowedGet() == false) || (method == "POST" && lb.isAllowedPost() == false) ||
+            (method == "DELETE" && lb.isAllowedDelete() == false))
+        {
+            return NOT_ALLOWED;
+        }
+        return OK;
+    }
+    else if (method == "HEAD")
+    {
+        return NOT_ALLOWED;
+    }
+    else
+    {
+        return NOT_IMPLEMENT;
+    }
+}
+
+int ReadRequestEvent::checkRequestHeader(const LocationBlock &lb)
+{
+    if (!lb.getRedirectionPath().empty())
+    {
+        mRedirectionPath = lb.getRedirectionPath();
+        if (mRedirectionPath[0] == '/')
+        {
+            mRedirectionPath = "http://" + mRequest.getHost() + mRedirectionPath;
+        }
+        return TEMPORARY_REDIRECT;
+    }
+    return OK;
+}
+
+int ReadRequestEvent::checkRequestBody(const LocationBlock &lb)
+{
+    // todo cmb0일때?
+    if (mRequest.getBody().size() > lb.getClientMaxBodySize())
+    {
+        return CONTENT_TOO_LARGE;
+    }
+    return OK;
 }
