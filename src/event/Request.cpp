@@ -230,57 +230,63 @@ bool Request::checkChunkedData(void)
 {
     std::map<std::string, std::string, CaseInsensitiveCompare>::const_iterator iter =
         mHeaders.find("Transfer-Encoding");
-    if (iter != mHeaders.end())
+    if (iter != mHeaders.end() && iter->second == "chunked")
     {
-        if (iter->second == "chunked")
-        {
-            return true;
-        }
+        return true;
     }
     return false;
 }
+
 void Request::parseChunkedContent(std::string &buffer)
 {
     std::stringstream ss;
     size_t pos = 0;
 
-    if (mChunkedSize == NO_SIZE && (pos = buffer.find(CRLF)) != std::string::npos)
+    while (1)
     {
-        std::string value = buffer.substr(0, pos);
-        char *endptr;
-        mChunkedSize = strtol(value.c_str(), &endptr, 16);
-        if (endptr[0] != '\0')
+        if (mChunkedSize == NO_SIZE && (pos = buffer.find(CRLF)) != std::string::npos)
         {
-            mStatus = 400;
-            return;
-        }
-        if (mChunkedSize == NO_SIZE)
-        {
-            if (mBody.size() == 0)
+            std::string value = buffer.substr(0, pos);
+            char *endptr;
+            mChunkedSize = strtol(value.c_str(), &endptr, 16);
+            if (endptr[0] != '\0')
             {
                 mStatus = 400;
                 return;
             }
-            mStatus = 200;
-            return;
+            if (mChunkedSize == NO_SIZE)
+            {
+                if (mBody.size() == 0)
+                {
+                    mStatus = 200;
+                    return;
+                }
+                mStatus = 200;
+                return;
+            }
+            buffer = buffer.substr(pos + 2);
         }
-        buffer = buffer.substr(pos + 2);
-    }
-    else if (mChunkedSize != NO_SIZE && (mChunkedSize + 2) <= buffer.size())
-    {
-        if (buffer.substr(mChunkedSize, 2) != CRLF)
+        else if (mChunkedSize != NO_SIZE && (mChunkedSize + 2) <= buffer.size())
         {
-            mStatus = 400;
-            return;
+            if (buffer.substr(mChunkedSize, 2) != CRLF)
+            {
+                mStatus = 400;
+                return;
+            }
+            mBody += buffer.substr(0, mChunkedSize);
+            if (mBody.size() > mClientMaxBodySize)
+            {
+                mStatus = 413;
+                return;
+            }
+            buffer = buffer.substr(mChunkedSize + 2);
+            mChunkedSize = NO_SIZE;
         }
-        mBody += buffer.substr(0, mChunkedSize);
-        if (mBody.size() > mClientMaxBodySize)
+        else if ((mChunkedSize + 2) > buffer.size() || buffer.size() == 0 ||
+                 (mChunkedSize == 0 && (pos = buffer.find(CRLF)) == std::string::npos))
         {
-            mStatus = 413;
             return;
         }
-        buffer = buffer.substr(mChunkedSize + 2);
-        mChunkedSize = NO_SIZE;
     }
 }
 
