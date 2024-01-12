@@ -239,7 +239,6 @@ bool Request::checkChunkedData(void)
 
 void Request::parseChunkedContent(std::string &buffer)
 {
-    std::stringstream ss;
     size_t pos = 0;
 
     while (1)
