@@ -31,7 +31,7 @@ class BlockBuilder
     };
     enum defalutValue
     {
-        E_DEFAULT_CLIENT_BODY_SIZE = 1024 * 1024,
+        E_DEFAULT_CLIENT_BODY_SIZE = 1024 * 1024 * 1024,
         E_DEFAULT_LISTEN_PORT = 80,
     };
     static const std::string DEFAULT_ROOT;
