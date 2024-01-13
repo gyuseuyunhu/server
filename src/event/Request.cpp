@@ -23,7 +23,7 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
 
 Request::Request()
     : mMethod(""), mPath(""), mVersion(""), mHost(""), mBody(""), mContentLength(0), mRequestLine(START_LINE),
-      mStatus(0), mConnectionStatus(KEEP_ALIVE), mIsChunked(false)
+      mStatus(0), mConnectionStatus(KEEP_ALIVE), mIsChunked(false), mChunkedSize(0)
 {
 }
 
@@ -96,7 +96,7 @@ void Request::storeHeaderLine(const std::string &line)
     }
     if (headerKey == "X-Secret-Header-For-Test")
     {
-        headerKey = "HTTP" + headerKey;
+        headerKey = "HTTP_" + headerKey;
     }
     headerVal = trim(line.substr(pos + 1));
     mHeaders[headerKey] = headerVal;
@@ -165,60 +165,43 @@ bool Request::checkChunkedData(void)
     return false;
 }
 
-void Request::storeChunkedBody(std::string &buffer)
+void Request::parseChunkedBody(std::string &buffer)
 {
-    size_t pos = buffer.find("0" CRLF CRLF);
-
-    if (pos != std::string::npos)
-    {
-        mChunkedBody = buffer;
-        mRequestLine = FINISH;
-        return;
-    }
-}
-
-int Request::parseChunkedBody(size_t clientMaxBodySize)
-{
-    while (1)
+    while (mChunkedSize + 2 <= buffer.size())
     {
         if (mChunkedSize == NO_SIZE)
         {
-            size_t pos = mChunkedBody.find(CRLF);
-            assert(pos != std::string::npos);
-            std::string value = mChunkedBody.substr(0, pos);
+            size_t pos = buffer.find(CRLF);
+            if (pos == std::string::npos)
+            {
+                return;
+            }
+            std::string value = buffer.substr(0, pos);
             char *endptr;
             mChunkedSize = strtol(value.c_str(), &endptr, 16);
             if (endptr[0] != '\0')
             {
-                std::cout << "0" << std::endl;
-                return BAD_REQUEST;
+                mStatus = BAD_REQUEST;
+                return;
             }
-            if (mChunkedSize == NO_SIZE)
+            if (mChunkedSize == 0)
             {
-                return OK;
+                mRequestLine = FINISH;
+                return;
             }
-            mChunkedBody.erase(0, pos + 2);
+            buffer.erase(0, pos + 2);
         }
-        else if (mChunkedSize != NO_SIZE /* && (mChunkedSize + 2) <= buffer.size()*/)
+        else
         {
-            if (mChunkedBody.substr(mChunkedSize, 2) != CRLF)
+            if (buffer[mChunkedSize] != '\r' && buffer[mChunkedSize + 1] != '\n')
             {
-                std::cout << "hi" << std::endl;
-                return BAD_REQUEST;
+                mStatus = BAD_REQUEST;
+                return;
             }
-            mBody += mChunkedBody.substr(0, mChunkedSize);
-            if (mBody.size() > clientMaxBodySize)
-            {
-                return CONTENT_TOO_LARGE;
-            }
-            mChunkedBody.erase(0, mChunkedSize + 2);
+            mBody += buffer.substr(0, mChunkedSize);
+            buffer.erase(0, mChunkedSize + 2);
             mChunkedSize = NO_SIZE;
         }
-        // else if ((mChunkedSize + 2) > buffer.size() || buffer.size() == 0 ||
-        //          (mChunkedSize == 0 && (pos = buffer.find(CRLF)) == std::string::npos))
-        // {
-        //     return;
-        // }
     }
 }
 
@@ -228,12 +211,12 @@ void Request::parseRequestContent(std::string &buffer)
     buffer = "";
     if (mBody.size() == mContentLength)
     {
-        mStatus = 200;
+        mStatus = OK;
     }
     // ContentLength보다 더 많이 들어왔을 때
     else if (mBody.size() > mContentLength)
     {
-        mStatus = 400;
+        mStatus = BAD_REQUEST;
     }
 }
 
@@ -253,7 +236,12 @@ bool Request::tryParse(std::string &buffer)
     }
     if (mRequestLine == CHUNKED)
     {
-        storeChunkedBody(buffer);
+        parseChunkedBody(buffer);
+    }
+    if (mStatus == BAD_REQUEST)
+    {
+        mConnectionStatus = CONNECTION_CLOSE;
+        return true;
     }
     if (mRequestLine == FINISH)
     {
