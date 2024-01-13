@@ -23,9 +23,9 @@ void HttpStatusInfos::initHttpStatusInfos(char **envp)
 
 void HttpStatusInfos::initMimeType()
 {
-    mMimeType["html"] = "text/html";
-    mMimeType["png"] = "image/png";
-    mMimeType["ico"] = "image/x-icon";
+    mMimeType[".html"] = "text/html";
+    mMimeType[".png"] = "image/png";
+    mMimeType[".ico"] = "image/x-icon";
 }
 
 void HttpStatusInfos::initHttpStatusReasons()
@@ -35,6 +35,7 @@ void HttpStatusInfos::initHttpStatusReasons()
     mHttpStatusReasons[301] = "Moved Permanently";
     mHttpStatusReasons[307] = "Temporary Redirect";
     mHttpStatusReasons[400] = "Bad Request";
+    mHttpStatusReasons[403] = "Forbidden";
     mHttpStatusReasons[404] = "Not Found";
     mHttpStatusReasons[405] = "Method Not Allowed";
     mHttpStatusReasons[413] = "Content Too Large";
