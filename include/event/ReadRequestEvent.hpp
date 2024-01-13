@@ -7,10 +7,6 @@ class ReadRequestEvent : public AEvent
 {
   private:
     Request mRequest;
-    enum
-    {
-        NOT_FOUND = -1,
-    };
     std::string mStringBuffer;
     std::string mFilePrefix;
     int mFileSize;
@@ -21,7 +17,7 @@ class ReadRequestEvent : public AEvent
     int getFileFd(int &status);
     int getRequestFd(int &status);
     void setFilePrefix(const LocationBlock &lb);
-    void addMimeTypeHeader(const std::string &path);
+    std::string getFileExtension(const std::string &path);
     void makeWriteEvent(int &status);
     void makeReadFileEvent(int fd);
 
@@ -30,6 +26,8 @@ class ReadRequestEvent : public AEvent
     int checkRequestStartLine(const LocationBlock &lb);
     int checkRequestHeader(const LocationBlock &lb);
     int checkRequestBody(const LocationBlock &lb);
+
+    void makeCgiEvent(const std::string &lbCgiPath);
 
   public:
     ReadRequestEvent(const Server &server, int clientSocket);
