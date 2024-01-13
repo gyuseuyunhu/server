@@ -23,7 +23,7 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
 
 Request::Request()
     : mMethod(""), mPath(""), mVersion(""), mHost(""), mBody(""), mContentLength(0), mRequestLine(START_LINE),
-      mStatus(0), mConnectionStatus(KEEP_ALIVE), mIsChunked(false)
+      mStatus(0), mConnectionStatus(KEEP_ALIVE), mIsChunked(false), mChunkedSize(0)
 {
 }
 
@@ -96,7 +96,7 @@ void Request::storeHeaderLine(const std::string &line)
     }
     if (headerKey == "X-Secret-Header-For-Test")
     {
-        headerKey = "HTTP" + headerKey;
+        headerKey = "HTTP_" + headerKey;
     }
     headerVal = trim(line.substr(pos + 1));
     mHeaders[headerKey] = headerVal;
@@ -179,39 +179,40 @@ void Request::storeChunkedBody(std::string &buffer)
 
 int Request::parseChunkedBody(size_t clientMaxBodySize)
 {
+    size_t parseIndex = 0;
     while (1)
     {
         if (mChunkedSize == NO_SIZE)
         {
-            size_t pos = mChunkedBody.find(CRLF);
+            size_t pos = mChunkedBody.find(CRLF, parseIndex);
             assert(pos != std::string::npos);
-            std::string value = mChunkedBody.substr(0, pos);
+            std::string value = mChunkedBody.substr(parseIndex, pos - parseIndex);
             char *endptr;
             mChunkedSize = strtol(value.c_str(), &endptr, 16);
             if (endptr[0] != '\0')
             {
-                std::cout << "0" << std::endl;
                 return BAD_REQUEST;
             }
             if (mChunkedSize == NO_SIZE)
             {
                 return OK;
             }
-            mChunkedBody.erase(0, pos + 2);
+            parseIndex = pos + 2;
+            // mChunkedBody.erase(0, pos + 2);
         }
         else if (mChunkedSize != NO_SIZE /* && (mChunkedSize + 2) <= buffer.size()*/)
         {
-            if (mChunkedBody.substr(mChunkedSize, 2) != CRLF)
+            if (mChunkedBody.substr(parseIndex + mChunkedSize, 2) != CRLF)
             {
-                std::cout << "hi" << std::endl;
                 return BAD_REQUEST;
             }
-            mBody += mChunkedBody.substr(0, mChunkedSize);
+            mBody += mChunkedBody.substr(parseIndex, mChunkedSize);
             if (mBody.size() > clientMaxBodySize)
             {
                 return CONTENT_TOO_LARGE;
             }
-            mChunkedBody.erase(0, mChunkedSize + 2);
+            parseIndex += mChunkedSize + 2;
+            // mChunkedBody.erase(0, mChunkedSize + 2);
             mChunkedSize = NO_SIZE;
         }
         // else if ((mChunkedSize + 2) > buffer.size() || buffer.size() == 0 ||

@@ -4,6 +4,7 @@
 #define CRLF "\r\n"
 #include <map>
 #include <string>
+#include <vector>
 
 class HttpStatusInfos
 {

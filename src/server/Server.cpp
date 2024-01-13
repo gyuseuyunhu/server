@@ -43,7 +43,7 @@ void Server::listen()
         throw std::runtime_error("Error Server::listen(): 포트 bind 실패");
     }
     // 클라이언트 연결 대기
-    if (::listen(mSocket, 5) == -1)
+    if (::listen(mSocket, 1000) == -1)
     {
         throw std::runtime_error("Error Server::listen(): listen 실패");
     }
