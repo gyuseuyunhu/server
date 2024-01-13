@@ -1,7 +1,9 @@
 #include "ReadRequestEvent.hpp"
 #include "HttpStatusInfos.hpp"
 #include "Kqueue.hpp"
+#include "ReadCgiEvent.hpp"
 #include "ReadFileEvent.hpp"
+#include "WriteCgiEvent.hpp"
 #include "WriteEvent.hpp"
 #include "util.hpp"
 #include <sstream>
@@ -260,7 +262,84 @@ void ReadRequestEvent::handle()
         status = mRequest.parseChunkedBody(lb.getClientMaxBodySize());
     }
 
+    std::string pathExtension;
+    std::string path = mRequest.getPath();
+    size_t lastSlashPos = path.find_last_of('/');
+
+    std::string fileName;
+    std::string fileExtension;
+    if (lastSlashPos != std::string::npos)
+    {
+        fileName = path.substr(lastSlashPos + 1);
+    }
+    size_t lastDotPos = fileName.find_last_of('.');
+
+    if (lastDotPos != std::string::npos)
+    {
+        pathExtension = fileName.substr(lastDotPos);
+    }
     // cgi 처리 필요
+    // if (!pathExtension.empty())
+    //     std::cout << lb.getCgiExtension() << "$  " << pathExtension << "  " << status << std::endl;
+    if (!lb.getCgiExtension().empty() && status == 200 && lb.getCgiExtension() == pathExtension)
+    {
+        std::cout << "CGI" << std::endl;
+        int fd[4];
+        pipe(fd);     // 0번(부모의 읽기), 1번(자식의 쓰기)
+        pipe(fd + 2); // 2번(자식의 읽기), 3번(부모의 쓰기)
+
+        int pid = fork();
+        if (pid == 0)
+        {
+            close(fd[0]);
+            close(fd[3]);
+            fcntl(fd[2], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+            fcntl(fd[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+
+            std::string cgiFullPath = HttpStatusInfos::getWebservRoot() + lb.getCgiPath();
+            char *cgiPath = new char[cgiFullPath.length() + 1];
+            strcpy(cgiPath, cgiFullPath.c_str());
+            char *cmd[2];
+            cmd[0] = cgiPath;
+            cmd[1] = NULL;
+            if (dup2(fd[2], STDIN_FILENO) == -1) // 자식은 2번에서 읽는다
+            {
+                perror("dup2");
+            }
+            if (dup2(fd[1], STDOUT_FILENO) == -1) // 자식은 1번에 쓴다
+            {
+                perror("dup22");
+            }
+            close(fd[2]);
+            close(fd[1]);
+            if (execve(cgiPath, cmd, mRequest.getCgiEnvp()) == -1)
+            {
+                exit(EXIT_SUCCESS);
+            }
+            std::cout << "execve error" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        else
+        {
+            // 부모 프로세스
+            close(fd[1]);
+            close(fd[2]);
+            fcntl(fd[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+            fcntl(fd[3], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+
+            std::cout << "mRequest.getBody() : " << mRequest.getBody().size() << std::endl;
+            struct kevent newEvent;
+
+            EV_SET(&newEvent, fd[3], EVFILT_WRITE, EV_ADD, 0, 0,
+                   new WriteCgiEvent(mServer, mClientSocket, fd[3], mRequest.getBody()));
+            Kqueue::addEvent(newEvent);
+            EV_SET(&newEvent, fd[0], EVFILT_READ, EV_ADD, 0, 0, new ReadCgiEvent(mServer, mClientSocket, fd[0]));
+            Kqueue::addEvent(newEvent);
+            Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
+            delete this;
+            return;
+        }
+    }
     makeResponse(status);
     Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
     delete this;
