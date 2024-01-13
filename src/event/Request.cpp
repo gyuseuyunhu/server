@@ -205,52 +205,6 @@ void Request::parseChunkedBody(std::string &buffer)
     }
 }
 
-// int Request::parseChunkedBody(size_t clientMaxBodySize)
-// {
-//     size_t parseIndex = 0;
-//     while (1)
-//     {
-//         if (mChunkedSize == NO_SIZE)
-//         {
-//             size_t pos = mChunkedBody.find(CRLF, parseIndex);
-//             assert(pos != std::string::npos);
-//             std::string value = mChunkedBody.substr(parseIndex, pos - parseIndex);
-//             char *endptr;
-//             mChunkedSize = strtol(value.c_str(), &endptr, 16);
-//             if (endptr[0] != '\0')
-//             {
-//                 return BAD_REQUEST;
-//             }
-//             if (mChunkedSize == NO_SIZE)
-//             {
-//                 return OK;
-//             }
-//             parseIndex = pos + 2;
-//             // mChunkedBody.erase(0, pos + 2);
-//         }
-//         else if (mChunkedSize != NO_SIZE /* && (mChunkedSize + 2) <= buffer.size()*/)
-//         {
-//             if (mChunkedBody.substr(parseIndex + mChunkedSize, 2) != CRLF)
-//             {
-//                 return BAD_REQUEST;
-//             }
-//             mBody += mChunkedBody.substr(parseIndex, mChunkedSize);
-//             if (mBody.size() > clientMaxBodySize)
-//             {
-//                 return CONTENT_TOO_LARGE;
-//             }
-//             parseIndex += mChunkedSize + 2;
-//             // mChunkedBody.erase(0, mChunkedSize + 2);
-//             mChunkedSize = NO_SIZE;
-//         }
-//         // else if ((mChunkedSize + 2) > buffer.size() || buffer.size() == 0 ||
-//         //          (mChunkedSize == 0 && (pos = buffer.find(CRLF)) == std::string::npos))
-//         // {
-//         //     return;
-//         // }
-//     }
-// }
-
 void Request::parseRequestContent(std::string &buffer)
 {
     mBody += buffer;
