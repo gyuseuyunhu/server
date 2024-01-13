@@ -7,7 +7,7 @@
 
 #define EVENT_FINISH true
 #define EVENT_CONTINUE false
-#define BUFFER_SIZE 32768
+#define BUFFER_SIZE 65536
 
 class AEvent
 {

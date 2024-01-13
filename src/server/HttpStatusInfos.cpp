@@ -6,6 +6,7 @@ std::map<int, std::string> HttpStatusInfos::mHttpStatusReasons;
 std::map<int, std::string> HttpStatusInfos::mHttpErrorPages;
 std::map<std::string, std::string> HttpStatusInfos::mMimeType;
 std::string HttpStatusInfos::mWebservRoot;
+std::vector<std::string> HttpStatusInfos::mEnvp;
 
 HttpStatusInfos::HttpStatusInfos()
 {
@@ -17,6 +18,7 @@ void HttpStatusInfos::initHttpStatusInfos(char **envp)
     initHttpErrorPages();
     initMimeType();
     setWebservRoot(envp);
+    setEnvp(envp);
 }
 
 void HttpStatusInfos::initMimeType()
@@ -103,6 +105,34 @@ const std::string HttpStatusInfos::makeAutoIndexPage(const std::string &path)
 
     html += "</ul></body></html>";
     return html;
+}
+
+void HttpStatusInfos::setEnvp(char **envp)
+{
+    for (int i = 0; envp[i] != NULL; i++)
+    {
+        mEnvp.push_back(envp[i]);
+    }
+}
+
+void HttpStatusInfos::addEnv(const std::string &env)
+{
+    mEnvp.push_back(env);
+}
+
+char **HttpStatusInfos::allocateNewEnvp()
+{
+    size_t i;
+    char **envpArray = new char *[mEnvp.size() + 1];
+
+    for (i = 0; i < mEnvp.size(); ++i)
+    {
+        envpArray[i] = new char[mEnvp[i].size() + 1];
+        strcpy(envpArray[i], mEnvp[i].c_str());
+        envpArray[i][mEnvp[i].size()] = '\0';
+    }
+    envpArray[mEnvp.size()] = NULL;
+    return envpArray;
 }
 
 const std::string &HttpStatusInfos::getHttpReason(const int statusCode)

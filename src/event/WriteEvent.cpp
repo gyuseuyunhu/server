@@ -17,9 +17,10 @@ void WriteEvent::handle()
 {
     int n;
 
-    n = write(mClientSocket, mMessage.c_str(), mMessage.size() < BUFFER_SIZE ? mMessage.size() : BUFFER_SIZE);
+    n = write(mClientSocket, mMessage.c_str() + mWriteSize, mMessage.size() - mWriteSize);
     if (n == -1)
     {
+        perror("writeEvent");
         close(mClientSocket);
         delete this;
         return;
@@ -41,6 +42,4 @@ void WriteEvent::handle()
         delete this;
         return;
     }
-
-    mMessage = mMessage.substr(n);
 }

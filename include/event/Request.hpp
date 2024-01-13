@@ -1,7 +1,7 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include "ConnectionEnum.hpp"
+#include "HttpEnum.hpp"
 #include "Server.hpp"
 #include <cstdlib>
 #include <map>
@@ -14,14 +14,6 @@ enum eHttpMethod
     E_DELETE,
     E_NOT_IMPLEMENT,
     E_BAD_REQUEST
-};
-
-enum eRequestLine
-{
-    E_START_LINE,
-    E_REQUEST_HEADER,
-    E_REQUEST_CONTENTS,
-    E_CHUNKED_CONTENTS
 };
 
 struct CaseInsensitiveCompare
@@ -37,54 +29,63 @@ class Request
         NO_SIZE = 0
     };
 
-    const Server &mServer;
-    eHttpMethod mMethod;
+    enum eRequestLine
+    {
+        START_LINE,
+        HEADER,
+        CONTENTS,
+        CHUNKED,
+        FINISH,
+    };
+    typedef std::map<std::string, std::string, CaseInsensitiveCompare> HeaderMap;
+
+    std::string mMethod;
     std::string mPath;
     std::string mVersion;
 
-    std::map<std::string, std::string, CaseInsensitiveCompare> mHeaders;
+    HeaderMap mHeaders;
     std::string mHost;
     std::string mBody;
+    std::string mChunkedBody;
     size_t mContentLength;
 
     eRequestLine mRequestLine;
     int mStatus;
     eConnectionStatus mConnectionStatus;
+    bool mIsChunked;
 
     unsigned long mChunkedSize;
-    unsigned int mClientMaxBodySize;
-    bool mIsAllowedGet;
-    bool mIsAllowedPost;
-    bool mIsAllowedDelete;
 
-    std::string mRedirectPath;
-
-    int checkMethod(std::stringstream &ss);
-    int checkPath(std::stringstream &ss);
-    int checkHttpVersion(std::stringstream &ss);
+    void checkMethod(std::stringstream &ss);
+    void checkPath(std::stringstream &ss);
+    void checkHttpVersion(std::stringstream &ss);
 
     void parseStartLine(std::string &buffer);
 
-    int storeHeaderLine(const std::string &line);
-    int storeHeaderMap(std::string buffer);
+    void storeHeaderLine(const std::string &line);
+    void storeHeaderMap(std::string buffer);
 
     void parseRequestHeader(std::string &buffer);
     void parseRequestContent(std::string &buffer);
     bool checkChunkedData(void);
-    void parseChunkedContent(std::string &buffer);
+    void storeChunkedBody(std::string &buffer);
 
   public:
-    Request(const Server &server);
+    typedef HeaderMap::const_iterator MapIt;
+    Request();
     ~Request();
-    void parse(std::string &buffer);
+    bool tryParse(std::string &buffer);
+    int parseChunkedBody(size_t clientMaxBodySize);
 
+    char **getCgiEnvp() const;
     int getStatus() const;
     const std::map<std::string, std::string, CaseInsensitiveCompare> &getHeaders() const;
     const std::string &getHost() const;
     const std::string &getPath() const;
     const std::string &getBody() const;
+    const std::string &getMethod() const;
+    bool isChunked() const;
     eConnectionStatus getConnectionStatus() const;
-    const std::string &getRedirectionPath() const;
 };
 
 #endif

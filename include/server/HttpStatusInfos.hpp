@@ -12,10 +12,12 @@ class HttpStatusInfos
     static std::map<int, std::string> mHttpErrorPages;
     static std::map<std::string, std::string> mMimeType;
     static std::string mWebservRoot;
+    static std::vector<std::string> mEnvp;
     static void initHttpStatusReasons();
     static void initHttpErrorPages();
     static void initMimeType();
     static void setWebservRoot(char **envp);
+    static void setEnvp(char **envp);
     HttpStatusInfos();
 
   public:
@@ -24,8 +26,9 @@ class HttpStatusInfos
     static const std::string &getHttpErrorPage(const int statusCode);
     static const std::string &getWebservRoot();
     static const std::string &getMimeType(const std::string &type);
-
     static const std::string makeAutoIndexPage(const std::string &path);
+    static void addEnv(const std::string &env);
+    static char **allocateNewEnvp();
 };
 
 #endif
