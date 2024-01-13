@@ -257,10 +257,6 @@ void ReadRequestEvent::handle()
     {
         status = checkRequestError(lb);
     }
-    if (status == OK && mRequest.isChunked() == true)
-    {
-        status = mRequest.parseChunkedBody(lb.getClientMaxBodySize());
-    }
 
     std::string pathExtension;
     std::string path = mRequest.getPath();
@@ -283,7 +279,6 @@ void ReadRequestEvent::handle()
     //     std::cout << lb.getCgiExtension() << "$  " << pathExtension << "  " << status << std::endl;
     if (!lb.getCgiExtension().empty() && status == 200 && lb.getCgiExtension() == pathExtension)
     {
-        std::cout << "CGI" << std::endl;
         int fd[4];
         pipe(fd);     // 0번(부모의 읽기), 1번(자식의 쓰기)
         pipe(fd + 2); // 2번(자식의 읽기), 3번(부모의 쓰기)
@@ -327,7 +322,6 @@ void ReadRequestEvent::handle()
             fcntl(fd[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
             fcntl(fd[3], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 
-            std::cout << "mRequest.getBody() : " << mRequest.getBody().size() << std::endl;
             struct kevent newEvent;
 
             EV_SET(&newEvent, fd[3], EVFILT_WRITE, EV_ADD, 0, 0,

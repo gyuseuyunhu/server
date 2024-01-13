@@ -68,14 +68,14 @@ class Request
     void parseRequestHeader(std::string &buffer);
     void parseRequestContent(std::string &buffer);
     bool checkChunkedData(void);
-    void storeChunkedBody(std::string &buffer);
+    void parseChunkedBody(std::string &buffer);
 
   public:
     typedef HeaderMap::const_iterator MapIt;
     Request();
     ~Request();
     bool tryParse(std::string &buffer);
-    int parseChunkedBody(size_t clientMaxBodySize);
+    // int parseChunkedBody(size_t clientMaxBodySize);
 
     char **getCgiEnvp() const;
     int getStatus() const;
