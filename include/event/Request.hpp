@@ -77,6 +77,7 @@ class Request
     bool tryParse(std::string &buffer);
     int parseChunkedBody(size_t clientMaxBodySize);
 
+    char **getCgiEnvp() const;
     int getStatus() const;
     const std::map<std::string, std::string, CaseInsensitiveCompare> &getHeaders() const;
     const std::string &getHost() const;

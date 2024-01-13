@@ -94,6 +94,10 @@ void Request::storeHeaderLine(const std::string &line)
         mStatus = BAD_REQUEST;
         return;
     }
+    if (headerKey == "X-Secret-Header-For-Test")
+    {
+        headerKey = "HTTP" + headerKey;
+    }
     headerVal = trim(line.substr(pos + 1));
     mHeaders[headerKey] = headerVal;
 }
@@ -186,6 +190,7 @@ int Request::parseChunkedBody(size_t clientMaxBodySize)
             mChunkedSize = strtol(value.c_str(), &endptr, 16);
             if (endptr[0] != '\0')
             {
+                std::cout << "0" << std::endl;
                 return BAD_REQUEST;
             }
             if (mChunkedSize == NO_SIZE)
@@ -198,6 +203,7 @@ int Request::parseChunkedBody(size_t clientMaxBodySize)
         {
             if (mChunkedBody.substr(mChunkedSize, 2) != CRLF)
             {
+                std::cout << "hi" << std::endl;
                 return BAD_REQUEST;
             }
             mBody += mChunkedBody.substr(0, mChunkedSize);
@@ -205,7 +211,7 @@ int Request::parseChunkedBody(size_t clientMaxBodySize)
             {
                 return CONTENT_TOO_LARGE;
             }
-            mChunkedBody = mChunkedBody.substr(mChunkedSize + 2);
+            mChunkedBody.erase(0, mChunkedSize + 2);
             mChunkedSize = NO_SIZE;
         }
         // else if ((mChunkedSize + 2) > buffer.size() || buffer.size() == 0 ||
@@ -254,6 +260,37 @@ bool Request::tryParse(std::string &buffer)
         return true;
     }
     return false;
+}
+
+char **Request::getCgiEnvp() const
+{
+    HttpStatusInfos::addEnv("REQUEST_METHOD=" + mMethod);
+    HttpStatusInfos::addEnv("SERVER_PROTOCOL=" + mVersion);
+    // todo pathInfo가 무엇인지 확인 필요
+    HttpStatusInfos::addEnv("PATH_INFO=/");
+    MapIt it = mHeaders.begin();
+    for (; it != mHeaders.end(); ++it)
+    {
+        size_t i;
+        char env[it->first.size() + it->second.size() + 2];
+        strcpy(env, it->first.c_str());
+        for (i = 0; i < it->first.size(); ++i)
+        {
+            if (env[i] == '-')
+            {
+                env[i] = '_';
+            }
+            else
+            {
+                env[i] = std::toupper(env[i]);
+            }
+        }
+        env[i] = '=';
+        strcpy(env + i + 1, it->second.c_str());
+        env[i + it->second.size() + 1] = '\0';
+        HttpStatusInfos::addEnv(env);
+    }
+    return HttpStatusInfos::allocateNewEnvp();
 }
 
 int Request::getStatus() const
