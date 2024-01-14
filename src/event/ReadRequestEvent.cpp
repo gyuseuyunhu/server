@@ -146,10 +146,9 @@ void ReadRequestEvent::setFilePrefix(const LocationBlock &lb)
     mFilePrefix = HttpStatusInfos::getWebservRoot() + requestPath;
 }
 
-int ReadRequestEvent::getRequestFd(int &status)
+int ReadRequestEvent::getRequestFd(const LocationBlock &lb, int &status)
 {
-    std::string requestPath = mRequest.getPath();
-    const LocationBlock &lb = mServer.getLocationBlockForRequest(mRequest.getHost(), requestPath);
+    const std::string &requestPath = mRequest.getPath();
     setFilePrefix(lb);
 
     int fd;
@@ -212,9 +211,9 @@ void ReadRequestEvent::makeReadFileEvent(int fd)
     Kqueue::addEvent(newEvent);
 }
 
-void ReadRequestEvent::makeResponse(int &status)
+void ReadRequestEvent::makeResponse(const LocationBlock &lb, int &status)
 {
-    int fd = getRequestFd(status);
+    int fd = getRequestFd(lb, status);
     mResponse.setStartLine(status);
     if (status == MOVED_PERMANENTLY)
     {
@@ -384,7 +383,7 @@ void ReadRequestEvent::handle()
         return;
     }
 
-    makeResponse(status);
+    makeResponse(lb, status);
     Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
     delete this;
 }

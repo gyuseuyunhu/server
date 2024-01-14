@@ -15,13 +15,13 @@ class ReadRequestEvent : public AEvent
     int getErrorPageFd(const LocationBlock &lb, int status);
     int getIndexFd(const LocationBlock &lb, int &stauts);
     int getFileFd(int &status);
-    int getRequestFd(int &status);
+    int getRequestFd(const LocationBlock &lb, int &status);
     void setFilePrefix(const LocationBlock &lb);
     std::string getFileExtension(const std::string &path);
     void makeWriteEvent(int &status);
     void makeReadFileEvent(int fd);
 
-    void makeResponse(int &status);
+    void makeResponse(const LocationBlock &lb, int &status);
     int checkRequestError(const LocationBlock &lb);
     int checkRequestStartLine(const LocationBlock &lb);
     int checkRequestHeader(const LocationBlock &lb);
