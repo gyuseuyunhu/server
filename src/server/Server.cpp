@@ -88,7 +88,7 @@ const LocationBlock Server::getLocationBlockForRequest(const std::string &host, 
 
     std::vector<LocationBlock>::const_iterator locIt = targetServerInfo.getLocationBlocks().begin();
 
-    // 지금 location은 길이순으로 정렬이 되어 있는 상태
+    // location은 길이가 긴 것부터 짧은 순으로 정렬이 되어 있는 상태
     for (; locIt != targetServerInfo.getLocationBlocks().end(); ++locIt)
     {
         if (path.find(locIt->getLocationPath()) == 0)
