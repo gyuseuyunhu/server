@@ -6,6 +6,13 @@
 class ReadRequestEvent : public AEvent
 {
   private:
+    enum eCgiPipe
+    {
+        SERVER_READ = 0,
+        SERVER_WRITE = 3,
+        CGI_READ = 2,
+        CGI_WRITE = 1,
+    };
     Request mRequest;
     std::string mStringBuffer;
     std::string mFilePrefix;
@@ -27,7 +34,7 @@ class ReadRequestEvent : public AEvent
     int checkRequestHeader(const LocationBlock &lb);
     int checkRequestBody(const LocationBlock &lb);
 
-		bool checkCgiEvent(const LocationBlock &lb);
+    bool checkCgiEvent(const LocationBlock &lb);
     void makeCgiEvent(const std::string &lbCgiPath);
 
   public:

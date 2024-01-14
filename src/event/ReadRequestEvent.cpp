@@ -314,55 +314,49 @@ bool ReadRequestEvent::checkCgiEvent(const LocationBlock &lb)
 void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
 {
     int fd[4];
-    pipe(fd);     // 0번(부모의 읽기), 1번(자식의 쓰기)
-    pipe(fd + 2); // 2번(자식의 읽기), 3번(부모의 쓰기)
+    pipe(fd);
+    pipe(fd + 2);
 
     int pid = fork();
     if (pid == 0)
     {
-        close(fd[0]);
-        close(fd[3]);
-        fcntl(fd[2], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-        fcntl(fd[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+        close(fd[SERVER_READ]);
+        close(fd[SERVER_WRITE]);
+        fcntl(fd[CGI_READ], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+        fcntl(fd[CGI_WRITE], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 
-        std::string cgiFullPath = HttpStatusInfos::getWebservRoot() + lbCgiPath;
-        char *cgiPath = new char[cgiFullPath.length() + 1];
-        strcpy(cgiPath, cgiFullPath.c_str());
-        char *cmd[2];
-        cmd[0] = cgiPath;
-        cmd[1] = NULL;
-        if (dup2(fd[2], STDIN_FILENO) == -1) // 자식은 2번에서 읽는다
+        if (dup2(fd[CGI_READ], STDIN_FILENO) == -1)
         {
             perror("dup2");
         }
-        if (dup2(fd[1], STDOUT_FILENO) == -1) // 자식은 1번에 쓴다
+        if (dup2(fd[CGI_WRITE], STDOUT_FILENO) == -1)
         {
             perror("dup22");
         }
         close(fd[2]);
         close(fd[1]);
-        if (execve(cgiPath, cmd, mRequest.getCgiEnvp()) == -1)
+
+        const std::string &cgiPath = HttpStatusInfos::getWebservRoot() + lbCgiPath;
+        const char *cmd[2] = {cgiPath.c_str(), NULL};
+        if (execve(cgiPath.c_str(), const_cast<char *const *>(cmd), mRequest.getCgiEnvp()) == -1)
         {
             exit(EXIT_FAILURE);
         }
     }
     else
     {
-        // 부모 프로세스
-        close(fd[1]);
-        close(fd[2]);
-        fcntl(fd[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-        fcntl(fd[3], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+        close(fd[CGI_READ]);
+        close(fd[CGI_WRITE]);
+        fcntl(fd[SERVER_READ], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+        fcntl(fd[SERVER_WRITE], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 
         struct kevent newEvent;
-
-        EV_SET(&newEvent, fd[3], EVFILT_WRITE, EV_ADD, 0, 0,
-               new WriteCgiEvent(mServer, mClientSocket, fd[3], mRequest.getBody()));
+        EV_SET(&newEvent, fd[SERVER_WRITE], EVFILT_WRITE, EV_ADD, 0, 0,
+               new WriteCgiEvent(mServer, mClientSocket, fd[SERVER_WRITE], mRequest.getBody()));
         Kqueue::addEvent(newEvent);
-        EV_SET(&newEvent, fd[0], EVFILT_READ, EV_ADD, 0, 0, new ReadCgiEvent(mServer, mClientSocket, fd[0]));
+        EV_SET(&newEvent, fd[SERVER_READ], EVFILT_READ, EV_ADD, 0, 0,
+               new ReadCgiEvent(mServer, mClientSocket, fd[SERVER_READ]));
         Kqueue::addEvent(newEvent);
-        Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
-        delete this;
     }
 }
 
@@ -392,6 +386,8 @@ void ReadRequestEvent::handle()
     if (status == OK && checkCgiEvent(lb))
     {
         makeCgiEvent(lb.getCgiPath());
+        Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
+        delete this;
         return;
     }
 
