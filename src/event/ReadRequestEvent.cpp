@@ -377,8 +377,8 @@ void ReadRequestEvent::handle()
         status = checkRequestError(lb);
     }
 
-    const std::string &fileExtension = getFileExtension(mRequest.getPath());
-    if (status == OK && lb.getCgiExtension().empty() == false && lb.getCgiExtension() == fileExtension)
+    if (status == OK && lb.getCgiExtension().empty() == false &&
+        lb.getCgiExtension() == getFileExtension(mRequest.getPath()))
     {
         makeCgiEvent(lb.getCgiPath());
         return;
