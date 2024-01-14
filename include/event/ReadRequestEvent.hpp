@@ -27,6 +27,7 @@ class ReadRequestEvent : public AEvent
     int checkRequestHeader(const LocationBlock &lb);
     int checkRequestBody(const LocationBlock &lb);
 
+		bool checkCgiEvent(const LocationBlock &lb);
     void makeCgiEvent(const std::string &lbCgiPath);
 
   public:

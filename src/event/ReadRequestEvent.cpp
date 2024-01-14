@@ -71,7 +71,7 @@ int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
         }
     }
     // 반복문을 돌았는데 열리는 index 파일이 없을 시 autoindex 지시어가 있는 경우 파일 목록을 응답
-    if (lb.isAutoIndex() == true)
+    if (status == NOT_FOUND && lb.isAutoIndex() == true)
     {
         status = OK;
     }
@@ -214,6 +214,7 @@ void ReadRequestEvent::makeReadFileEvent(int fd)
 void ReadRequestEvent::makeResponse(const LocationBlock &lb, int &status)
 {
     int fd = getRequestFd(lb, status);
+
     mResponse.setStartLine(status);
     if (status == MOVED_PERMANENTLY)
     {
@@ -298,6 +299,18 @@ int ReadRequestEvent::checkRequestBody(const LocationBlock &lb)
     return OK;
 }
 
+bool ReadRequestEvent::checkCgiEvent(const LocationBlock &lb)
+{
+    const std::string &cgiExtension = lb.getCgiExtension();
+    if (cgiExtension.empty())
+    {
+        return false;
+    }
+
+    const std::string &requestExtension = getFileExtension(mRequest.getPath());
+    return cgiExtension == requestExtension;
+}
+
 void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
 {
     int fd[4];
@@ -376,8 +389,7 @@ void ReadRequestEvent::handle()
         status = checkRequestError(lb);
     }
 
-    if (status == OK && lb.getCgiExtension().empty() == false &&
-        lb.getCgiExtension() == getFileExtension(mRequest.getPath()))
+    if (status == OK && checkCgiEvent(lb))
     {
         makeCgiEvent(lb.getCgiPath());
         return;
