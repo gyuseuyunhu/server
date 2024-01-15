@@ -252,7 +252,7 @@ char **Request::getCgiEnvp() const
     HttpStatusInfos::addEnv("REQUEST_METHOD=" + mMethod);
     HttpStatusInfos::addEnv("SERVER_PROTOCOL=" + mVersion);
     // todo pathInfo가 무엇인지 확인 필요
-    HttpStatusInfos::addEnv("PATH_INFO=/asdf/asdf");
+    HttpStatusInfos::addEnv("PATH_INFO=/");
     MapIt it = mHeaders.begin();
     for (; it != mHeaders.end(); ++it)
     {
