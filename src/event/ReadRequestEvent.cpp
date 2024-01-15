@@ -338,7 +338,7 @@ void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
 
         const std::string &cgiPath = HttpStatusInfos::getWebservRoot() + lbCgiPath;
         const char *cmd[2] = {cgiPath.c_str(), NULL};
-        if (execve(cgiPath.c_str(), const_cast<char **const>(cmd), mRequest.getCgiEnvp()) == -1)
+        if (execve(cgiPath.c_str(), const_cast<char *const *>(cmd), mRequest.getCgiEnvp()) == -1)
         {
             exit(EXIT_FAILURE);
         }
