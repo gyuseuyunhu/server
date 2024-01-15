@@ -212,6 +212,7 @@ void Request::parseBody(std::string &buffer)
     if (mBody.size() == mContentLength)
     {
         mStatus = OK;
+        mRequestLine = FINISH;
     }
     // ContentLength보다 더 많이 들어왔을 때
     else if (mBody.size() > mContentLength)
@@ -251,7 +252,7 @@ char **Request::getCgiEnvp() const
     HttpStatusInfos::addEnv("REQUEST_METHOD=" + mMethod);
     HttpStatusInfos::addEnv("SERVER_PROTOCOL=" + mVersion);
     // todo pathInfo가 무엇인지 확인 필요
-    HttpStatusInfos::addEnv("PATH_INFO=/");
+    HttpStatusInfos::addEnv("PATH_INFO=/asdf/asdf");
     MapIt it = mHeaders.begin();
     for (; it != mHeaders.end(); ++it)
     {
