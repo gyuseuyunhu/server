@@ -243,7 +243,7 @@ int ReadRequestEvent::checkRequestError(const LocationBlock &lb)
     {
         return status;
     }
-    else if ((status = checkHeader(lb)) != OK)
+    else if ((status = checkReturnDirective(lb)) != OK)
     {
         return status;
     }
@@ -276,7 +276,7 @@ int ReadRequestEvent::checkStartLine(const LocationBlock &lb)
     }
 }
 
-int ReadRequestEvent::checkHeader(const LocationBlock &lb)
+int ReadRequestEvent::checkReturnDirective(const LocationBlock &lb)
 {
     if (!lb.getRedirectionPath().empty())
     {
@@ -338,7 +338,7 @@ void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
 
         const std::string &cgiPath = HttpStatusInfos::getWebservRoot() + lbCgiPath;
         const char *cmd[2] = {cgiPath.c_str(), NULL};
-        if (execve(cgiPath.c_str(), const_cast<char *const *>(cmd), mRequest.getCgiEnvp()) == -1)
+        if (execve(cgiPath.c_str(), const_cast<char **const>(cmd), mRequest.getCgiEnvp()) == -1)
         {
             exit(EXIT_FAILURE);
         }
