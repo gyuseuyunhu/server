@@ -249,10 +249,10 @@ bool Request::tryParse(std::string &buffer)
 
 char **Request::getCgiEnvp() const
 {
-    HttpStatusInfos::addEnv("REQUEST_METHOD=" + mMethod);
-    HttpStatusInfos::addEnv("SERVER_PROTOCOL=" + mVersion);
-    // todo pathInfo가 무엇인지 확인 필요
-    HttpStatusInfos::addEnv("PATH_INFO=/");
+    HttpStatusInfos::addCgiEnv("REQUEST_METHOD=" + mMethod);
+    HttpStatusInfos::addCgiEnv("SERVER_PROTOCOL=" + mVersion);
+    HttpStatusInfos::addCgiEnv("PATH_INFO=/");
+
     MapIt it = mHeaders.begin();
     for (; it != mHeaders.end(); ++it)
     {
@@ -273,7 +273,7 @@ char **Request::getCgiEnvp() const
         env[i] = '=';
         strcpy(env + i + 1, it->second.c_str());
         env[i + it->second.size() + 1] = '\0';
-        HttpStatusInfos::addEnv(env);
+        HttpStatusInfos::addCgiEnv(env);
     }
     return HttpStatusInfos::allocateNewEnvp();
 }
