@@ -13,6 +13,11 @@ void Response::setStartLine(int httpStatusCode)
     mStartLine = oss.str();
 }
 
+void Response::setStartLine(const std::string &startLine)
+{
+    mStartLine = "HTTP/1.1 " + startLine;
+}
+
 void Response::addHead(const std::string &key, const int value)
 {
     std::stringstream ss;
