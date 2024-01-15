@@ -34,7 +34,7 @@ class ReadRequestEvent : public AEvent
     int checkReturnDirective(const LocationBlock &lb);
     int checkBody(const LocationBlock &lb);
 
-    bool checkCgiEvent(const LocationBlock &lb);
+    bool checkCgiEvent(const LocationBlock &lb, int &status);
     void makeCgiEvent(const std::string &lbCgiPath);
 
   public:

@@ -299,7 +299,7 @@ int ReadRequestEvent::checkBody(const LocationBlock &lb)
     return OK;
 }
 
-bool ReadRequestEvent::checkCgiEvent(const LocationBlock &lb)
+bool ReadRequestEvent::checkCgiEvent(const LocationBlock &lb, int &status)
 {
     const std::string &cgiExtension = lb.getCgiExtension();
     if (cgiExtension.empty())
@@ -308,7 +308,30 @@ bool ReadRequestEvent::checkCgiEvent(const LocationBlock &lb)
     }
 
     const std::string &requestExtension = getFileExtension(mRequest.getPath());
-    return cgiExtension == requestExtension;
+    if (cgiExtension != requestExtension)
+    {
+        return false;
+    }
+    const std::string &cgiPath = lb.getCgiPath();
+    if (cgiPath.empty())
+    {
+        status = NOT_FOUND;
+        return false;
+    }
+    const std::string &cgiFullPath = HttpStatusInfos::getWebservRoot() + cgiPath;
+    if (access(cgiFullPath.c_str(), F_OK) == -1)
+    {
+        status = NOT_FOUND;
+        return false;
+    }
+
+    if (access(cgiFullPath.c_str(), X_OK) == -1)
+    {
+        status = FORBIDDEN;
+        return false;
+    }
+
+    return true;
 }
 
 void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
@@ -383,7 +406,7 @@ void ReadRequestEvent::handle()
         status = checkRequestError(lb);
     }
 
-    if (status == OK && checkCgiEvent(lb))
+    if (status == OK && checkCgiEvent(lb, status))
     {
         makeCgiEvent(lb.getCgiPath());
         Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
