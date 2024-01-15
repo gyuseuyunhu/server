@@ -55,3 +55,20 @@ void ftGetLine(std::ifstream &file, std::string &line)
     deleteComments(line);
     trimLine(line);
 }
+
+bool caseInsensitiveMatch(const std::string &str1, const std::string &str2)
+{
+    if (str1.size() != str2.size())
+    {
+        return false;
+    }
+
+    for (size_t i = 0; i < str1.size(); ++i)
+    {
+        if (std::tolower(str1[i]) != std::tolower(str2[i]))
+        {
+            return false;
+        }
+    }
+    return true;
+}
