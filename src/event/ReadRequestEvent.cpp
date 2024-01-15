@@ -243,7 +243,7 @@ int ReadRequestEvent::checkRequestError(const LocationBlock &lb)
     {
         return status;
     }
-    else if ((status = checkHeader(lb)) != OK)
+    else if ((status = checkReturnDirective(lb)) != OK)
     {
         return status;
     }
@@ -276,7 +276,7 @@ int ReadRequestEvent::checkStartLine(const LocationBlock &lb)
     }
 }
 
-int ReadRequestEvent::checkHeader(const LocationBlock &lb)
+int ReadRequestEvent::checkReturnDirective(const LocationBlock &lb)
 {
     if (!lb.getRedirectionPath().empty())
     {

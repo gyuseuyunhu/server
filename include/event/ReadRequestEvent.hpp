@@ -31,7 +31,7 @@ class ReadRequestEvent : public AEvent
     void makeResponse(const LocationBlock &lb, int &status);
     int checkRequestError(const LocationBlock &lb);
     int checkStartLine(const LocationBlock &lb);
-    int checkHeader(const LocationBlock &lb);
+    int checkReturnDirective(const LocationBlock &lb);
     int checkBody(const LocationBlock &lb);
 
     bool checkCgiEvent(const LocationBlock &lb);

@@ -152,7 +152,7 @@ const std::string &HttpStatusInfos::getHttpErrorPage(const int statusCode)
     std::map<int, std::string>::const_iterator it;
 
     it = mHttpErrorPages.find(statusCode);
-    assert(it != mHttpStatusReasons.end());
+    assert(it != mHttpErrorPages.end());
     return it->second;
 }
 
