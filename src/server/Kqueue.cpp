@@ -3,7 +3,7 @@
 
 std::vector<struct kevent> Kqueue::mNewEvents;
 int Kqueue::mKq = 0;
-struct kevent Kqueue::mHandleEvents[8];
+struct kevent Kqueue::mHandleEvents[MAX_EVENT_CNT];
 
 void Kqueue::init()
 {
@@ -24,7 +24,7 @@ void Kqueue::addEvent(const struct kevent &event)
 
 void Kqueue::handleEvents()
 {
-    int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), mHandleEvents, 8, NULL);
+    int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), mHandleEvents, MAX_EVENT_CNT, NULL);
     if (!mNewEvents.empty())
     {
         mNewEvents.clear();

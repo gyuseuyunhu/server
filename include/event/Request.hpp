@@ -33,7 +33,7 @@ class Request
     {
         START_LINE,
         HEADER,
-        CONTENTS,
+        BODY,
         CHUNKED,
         FINISH,
     };
@@ -65,8 +65,8 @@ class Request
     void storeHeaderLine(const std::string &line);
     void storeHeaderMap(std::string buffer);
 
-    void parseRequestHeader(std::string &buffer);
-    void parseRequestContent(std::string &buffer);
+    void parseHeader(std::string &buffer);
+    void parseBody(std::string &buffer);
     bool checkChunkedData(void);
     void parseChunkedBody(std::string &buffer);
 
@@ -75,7 +75,6 @@ class Request
     Request();
     ~Request();
     bool tryParse(std::string &buffer);
-    // int parseChunkedBody(size_t clientMaxBodySize);
 
     char **getCgiEnvp() const;
     int getStatus() const;

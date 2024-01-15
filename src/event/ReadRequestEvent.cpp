@@ -71,7 +71,7 @@ int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
         }
     }
     // 반복문을 돌았는데 열리는 index 파일이 없을 시 autoindex 지시어가 있는 경우 파일 목록을 응답
-    if (lb.isAutoIndex() == true)
+    if (status == NOT_FOUND && lb.isAutoIndex() == true)
     {
         status = OK;
     }
@@ -146,10 +146,9 @@ void ReadRequestEvent::setFilePrefix(const LocationBlock &lb)
     mFilePrefix = HttpStatusInfos::getWebservRoot() + requestPath;
 }
 
-int ReadRequestEvent::getRequestFd(int &status)
+int ReadRequestEvent::getRequestFd(const LocationBlock &lb, int &status)
 {
-    std::string requestPath = mRequest.getPath();
-    const LocationBlock &lb = mServer.getLocationBlockForRequest(mRequest.getHost(), requestPath);
+    const std::string &requestPath = mRequest.getPath();
     setFilePrefix(lb);
 
     int fd;
@@ -212,9 +211,10 @@ void ReadRequestEvent::makeReadFileEvent(int fd)
     Kqueue::addEvent(newEvent);
 }
 
-void ReadRequestEvent::makeResponse(int &status)
+void ReadRequestEvent::makeResponse(const LocationBlock &lb, int &status)
 {
-    int fd = getRequestFd(status);
+    int fd = getRequestFd(lb, status);
+
     mResponse.setStartLine(status);
     if (status == MOVED_PERMANENTLY)
     {
@@ -239,22 +239,22 @@ int ReadRequestEvent::checkRequestError(const LocationBlock &lb)
 {
     int status;
 
-    if ((status = checkRequestStartLine(lb)) != OK)
+    if ((status = checkStartLine(lb)) != OK)
     {
         return status;
     }
-    else if ((status = checkRequestHeader(lb)) != OK)
+    else if ((status = checkHeader(lb)) != OK)
     {
         return status;
     }
-    else if ((status = checkRequestBody(lb)) != OK)
+    else if ((status = checkBody(lb)) != OK)
     {
         return status;
     }
     return OK;
 }
 
-int ReadRequestEvent::checkRequestStartLine(const LocationBlock &lb)
+int ReadRequestEvent::checkStartLine(const LocationBlock &lb)
 {
     const std::string &method = mRequest.getMethod();
     if (method == "GET" || method == "POST" || method == "DELETE")
@@ -266,7 +266,7 @@ int ReadRequestEvent::checkRequestStartLine(const LocationBlock &lb)
         }
         return OK;
     }
-    else if (method == "HEAD")
+    else if (method == "HEAD" || method == "PUT")
     {
         return NOT_ALLOWED;
     }
@@ -276,7 +276,7 @@ int ReadRequestEvent::checkRequestStartLine(const LocationBlock &lb)
     }
 }
 
-int ReadRequestEvent::checkRequestHeader(const LocationBlock &lb)
+int ReadRequestEvent::checkHeader(const LocationBlock &lb)
 {
     if (!lb.getRedirectionPath().empty())
     {
@@ -290,7 +290,7 @@ int ReadRequestEvent::checkRequestHeader(const LocationBlock &lb)
     return OK;
 }
 
-int ReadRequestEvent::checkRequestBody(const LocationBlock &lb)
+int ReadRequestEvent::checkBody(const LocationBlock &lb)
 {
     if (mRequest.getBody().size() > lb.getClientMaxBodySize())
     {
@@ -299,58 +299,64 @@ int ReadRequestEvent::checkRequestBody(const LocationBlock &lb)
     return OK;
 }
 
+bool ReadRequestEvent::checkCgiEvent(const LocationBlock &lb)
+{
+    const std::string &cgiExtension = lb.getCgiExtension();
+    if (cgiExtension.empty())
+    {
+        return false;
+    }
+
+    const std::string &requestExtension = getFileExtension(mRequest.getPath());
+    return cgiExtension == requestExtension;
+}
+
 void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
 {
     int fd[4];
-    pipe(fd);     // 0번(부모의 읽기), 1번(자식의 쓰기)
-    pipe(fd + 2); // 2번(자식의 읽기), 3번(부모의 쓰기)
+    pipe(fd);
+    pipe(fd + 2);
 
     int pid = fork();
     if (pid == 0)
     {
-        close(fd[0]);
-        close(fd[3]);
-        fcntl(fd[2], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-        fcntl(fd[1], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+        close(fd[SERVER_READ]);
+        close(fd[SERVER_WRITE]);
+        fcntl(fd[CGI_READ], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+        fcntl(fd[CGI_WRITE], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 
-        std::string cgiFullPath = HttpStatusInfos::getWebservRoot() + lbCgiPath;
-        char *cgiPath = new char[cgiFullPath.length() + 1];
-        strcpy(cgiPath, cgiFullPath.c_str());
-        char *cmd[2];
-        cmd[0] = cgiPath;
-        cmd[1] = NULL;
-        if (dup2(fd[2], STDIN_FILENO) == -1) // 자식은 2번에서 읽는다
+        if (dup2(fd[CGI_READ], STDIN_FILENO) == -1)
         {
             perror("dup2");
         }
-        if (dup2(fd[1], STDOUT_FILENO) == -1) // 자식은 1번에 쓴다
+        if (dup2(fd[CGI_WRITE], STDOUT_FILENO) == -1)
         {
             perror("dup22");
         }
         close(fd[2]);
         close(fd[1]);
-        if (execve(cgiPath, cmd, mRequest.getCgiEnvp()) == -1)
+
+        const std::string &cgiPath = HttpStatusInfos::getWebservRoot() + lbCgiPath;
+        const char *cmd[2] = {cgiPath.c_str(), NULL};
+        if (execve(cgiPath.c_str(), const_cast<char *const *>(cmd), mRequest.getCgiEnvp()) == -1)
         {
             exit(EXIT_FAILURE);
         }
     }
     else
     {
-        // 부모 프로세스
-        close(fd[1]);
-        close(fd[2]);
-        fcntl(fd[0], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-        fcntl(fd[3], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+        close(fd[CGI_READ]);
+        close(fd[CGI_WRITE]);
+        fcntl(fd[SERVER_READ], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+        fcntl(fd[SERVER_WRITE], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 
         struct kevent newEvent;
-
-        EV_SET(&newEvent, fd[3], EVFILT_WRITE, EV_ADD, 0, 0,
-               new WriteCgiEvent(mServer, mClientSocket, fd[3], mRequest.getBody()));
+        EV_SET(&newEvent, fd[SERVER_WRITE], EVFILT_WRITE, EV_ADD, 0, 0,
+               new WriteCgiEvent(mServer, mClientSocket, fd[SERVER_WRITE], mRequest.getBody()));
         Kqueue::addEvent(newEvent);
-        EV_SET(&newEvent, fd[0], EVFILT_READ, EV_ADD, 0, 0, new ReadCgiEvent(mServer, mClientSocket, fd[0]));
+        EV_SET(&newEvent, fd[SERVER_READ], EVFILT_READ, EV_ADD, 0, 0,
+               new ReadCgiEvent(mServer, mClientSocket, fd[SERVER_READ]));
         Kqueue::addEvent(newEvent);
-        Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
-        delete this;
     }
 }
 
@@ -377,14 +383,15 @@ void ReadRequestEvent::handle()
         status = checkRequestError(lb);
     }
 
-    const std::string &fileExtension = getFileExtension(mRequest.getPath());
-    if (status == OK && lb.getCgiExtension().empty() == false && lb.getCgiExtension() == fileExtension)
+    if (status == OK && checkCgiEvent(lb))
     {
         makeCgiEvent(lb.getCgiPath());
+        Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
+        delete this;
         return;
     }
 
-    makeResponse(status);
+    makeResponse(lb, status);
     Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
     delete this;
 }

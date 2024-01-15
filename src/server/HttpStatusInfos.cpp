@@ -51,6 +51,8 @@ void HttpStatusInfos::initHttpErrorPages()
                            "<center><h1>307 Temporary Redirect</h1></center>" CRLF;
     mHttpErrorPages[400] = "<html>" CRLF "<head><title>400 Bad Request</title></head>" CRLF "<body>" CRLF
                            "<center><h1>400 Bad Request</h1></center>" CRLF;
+    mHttpErrorPages[403] = "<html>" CRLF "<head><title>403 Forbbiden</title></head>" CRLF "<body>" CRLF
+                           "<center><h1>403 Forbidden</h1></center>" CRLF;
     mHttpErrorPages[404] = "<html>" CRLF "<head><title>404 Not Found</title></head>" CRLF "<body>" CRLF
                            "<center><h1>404 Not Found</h1></center>" CRLF;
     mHttpErrorPages[405] = "<html>" CRLF "<head><title>405 Not Allowed</title></head>" CRLF "<body>" CRLF

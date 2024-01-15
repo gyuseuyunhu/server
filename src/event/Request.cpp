@@ -112,7 +112,7 @@ void Request::storeHeaderMap(std::string buffer)
     }
 }
 
-void Request::parseRequestHeader(std::string &buffer)
+void Request::parseHeader(std::string &buffer)
 {
     size_t pos = 0;
     if ((pos = buffer.find(CRLF CRLF)) != std::string::npos)
@@ -144,7 +144,7 @@ void Request::parseRequestHeader(std::string &buffer)
             ss << it->second;
             ss >> mContentLength;
             buffer.erase(0, pos + 4);
-            mRequestLine = CONTENTS;
+            mRequestLine = BODY;
             return;
         }
 
@@ -205,7 +205,7 @@ void Request::parseChunkedBody(std::string &buffer)
     }
 }
 
-void Request::parseRequestContent(std::string &buffer)
+void Request::parseBody(std::string &buffer)
 {
     mBody += buffer;
     buffer = "";
@@ -228,11 +228,11 @@ bool Request::tryParse(std::string &buffer)
     }
     if (mRequestLine == HEADER)
     {
-        parseRequestHeader(buffer);
+        parseHeader(buffer);
     }
-    if (mRequestLine == CONTENTS)
+    if (mRequestLine == BODY)
     {
-        parseRequestContent(buffer);
+        parseBody(buffer);
     }
     if (mRequestLine == CHUNKED)
     {
@@ -243,11 +243,7 @@ bool Request::tryParse(std::string &buffer)
         mConnectionStatus = CONNECTION_CLOSE;
         return true;
     }
-    if (mRequestLine == FINISH)
-    {
-        return true;
-    }
-    return false;
+    return mRequestLine == FINISH;
 }
 
 char **Request::getCgiEnvp() const
