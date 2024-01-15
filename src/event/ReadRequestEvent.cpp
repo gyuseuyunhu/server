@@ -239,22 +239,22 @@ int ReadRequestEvent::checkRequestError(const LocationBlock &lb)
 {
     int status;
 
-    if ((status = checkRequestStartLine(lb)) != OK)
+    if ((status = checkStartLine(lb)) != OK)
     {
         return status;
     }
-    else if ((status = checkRequestHeader(lb)) != OK)
+    else if ((status = checkHeader(lb)) != OK)
     {
         return status;
     }
-    else if ((status = checkRequestBody(lb)) != OK)
+    else if ((status = checkBody(lb)) != OK)
     {
         return status;
     }
     return OK;
 }
 
-int ReadRequestEvent::checkRequestStartLine(const LocationBlock &lb)
+int ReadRequestEvent::checkStartLine(const LocationBlock &lb)
 {
     const std::string &method = mRequest.getMethod();
     if (method == "GET" || method == "POST" || method == "DELETE")
@@ -266,7 +266,7 @@ int ReadRequestEvent::checkRequestStartLine(const LocationBlock &lb)
         }
         return OK;
     }
-    else if (method == "HEAD")
+    else if (method == "HEAD" || method == "PUT")
     {
         return NOT_ALLOWED;
     }
@@ -276,7 +276,7 @@ int ReadRequestEvent::checkRequestStartLine(const LocationBlock &lb)
     }
 }
 
-int ReadRequestEvent::checkRequestHeader(const LocationBlock &lb)
+int ReadRequestEvent::checkHeader(const LocationBlock &lb)
 {
     if (!lb.getRedirectionPath().empty())
     {
@@ -290,7 +290,7 @@ int ReadRequestEvent::checkRequestHeader(const LocationBlock &lb)
     return OK;
 }
 
-int ReadRequestEvent::checkRequestBody(const LocationBlock &lb)
+int ReadRequestEvent::checkBody(const LocationBlock &lb)
 {
     if (mRequest.getBody().size() > lb.getClientMaxBodySize())
     {

@@ -30,9 +30,9 @@ class ReadRequestEvent : public AEvent
 
     void makeResponse(const LocationBlock &lb, int &status);
     int checkRequestError(const LocationBlock &lb);
-    int checkRequestStartLine(const LocationBlock &lb);
-    int checkRequestHeader(const LocationBlock &lb);
-    int checkRequestBody(const LocationBlock &lb);
+    int checkStartLine(const LocationBlock &lb);
+    int checkHeader(const LocationBlock &lb);
+    int checkBody(const LocationBlock &lb);
 
     bool checkCgiEvent(const LocationBlock &lb);
     void makeCgiEvent(const std::string &lbCgiPath);
