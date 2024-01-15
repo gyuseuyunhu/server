@@ -23,9 +23,43 @@ void HttpStatusInfos::initHttpStatusInfos(char **envp)
 
 void HttpStatusInfos::initMimeType()
 {
+    // Text types
     mMimeType[".html"] = "text/html";
     mMimeType[".png"] = "image/png";
     mMimeType[".ico"] = "image/x-icon";
+
+    mMimeType[".txt"] = "text/plain";
+    mMimeType[".htm"] = "text/html";
+    mMimeType[".shtml"] = "text/html";
+    mMimeType[".json"] = "application/json";
+    mMimeType[".css"] = "text/css";
+
+    mMimeType[".xml"] = "text/xml";
+    mMimeType[".mml"] = "text/mathml";
+    mMimeType[".jad"] = "text/vnd.sun.j2me.app-descriptor";
+    mMimeType[".wml"] = "text/vnd.wap.wml";
+    mMimeType[".htc"] = "text/x-component";
+
+    // Image types
+    mMimeType[".gif"] = "image/gif";
+    mMimeType[".jpeg"] = "image/jpeg";
+    mMimeType[".jpg"] = "image/jpeg";
+    mMimeType[".avif"] = "image/avif";
+    mMimeType[".svg"] = "image/svg+xml";
+    mMimeType[".svgz"] = "image/svg+xml";
+    mMimeType[".tif"] = "image/tiff";
+    mMimeType[".tiff"] = "image/tiff";
+    mMimeType[".wbmp"] = "image/vnd.wap.wbmp";
+    mMimeType[".webp"] = "image/webp";
+    mMimeType[".jng"] = "image/x-jng";
+    mMimeType[".bmp"] = "image/x-ms-bmp";
+
+    // Font types
+    mMimeType[".woff"] = "font/woff";
+    mMimeType[".woff2"] = "font/woff2";
+
+    // Application types
+    mMimeType[".js"] = "application/javascript";
 }
 
 void HttpStatusInfos::initHttpStatusReasons()
