@@ -192,7 +192,7 @@ const std::string &HttpStatusInfos::getMimeType(const std::string &type)
 
     if (it == mMimeType.end())
     {
-        return mMimeType[".html"];
+        return mMimeType[".txt"];
     }
     return it->second;
 }
