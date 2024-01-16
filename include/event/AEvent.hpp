@@ -5,13 +5,15 @@
 #include "Response.hpp"
 #include "Server.hpp"
 
-#define EVENT_FINISH true
-#define EVENT_CONTINUE false
-#define BUFFER_SIZE 65536
-
 class AEvent
 {
   protected:
+    enum
+    {
+        ONE_SECOND = 1000000000,
+        BUFFER_SIZE = 65536,
+        TIMEOUT_SECONDS = 10,
+    };
     const Server &mServer;
     Response mResponse;
     int mClientSocket;
@@ -22,6 +24,7 @@ class AEvent
     AEvent(const Server &server, const Response &response, int clientSocket);
     virtual ~AEvent();
     virtual void handle() = 0;
+    virtual void timer();
 };
 
 #endif

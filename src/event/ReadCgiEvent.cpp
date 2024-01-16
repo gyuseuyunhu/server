@@ -5,8 +5,8 @@
 #include "util.hpp"
 #include <unistd.h>
 
-ReadCgiEvent::ReadCgiEvent(const Server &server, int clientSocket, int socket)
-    : AEvent(server, clientSocket), mSocket(socket), mIsError(false)
+ReadCgiEvent::ReadCgiEvent(const Server &server, int clientSocket, int fd)
+    : AEvent(server, clientSocket), mFd(fd), mIsError(false)
 {
 }
 
@@ -35,10 +35,10 @@ bool ReadCgiEvent::setReponse(const std::string &line)
 
 void ReadCgiEvent::handle()
 {
-    int n = read(mSocket, mBuffer, BUFFER_SIZE);
+    int n = read(mFd, mBuffer, BUFFER_SIZE);
     if (n < 0)
     {
-        close(mSocket);
+        close(mFd);
         delete this;
         return;
     }
@@ -87,8 +87,23 @@ void ReadCgiEvent::handle()
         struct kevent newEvent;
         EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
         Kqueue::addEvent(newEvent);
-        close(mSocket);
+        close(mFd);
 
         delete this;
     }
+}
+
+void ReadCgiEvent::timer()
+{
+    const std::string &errorPage = HttpStatusInfos::getHttpErrorPage(500);
+    mResponse.setStartLine(500);
+    mResponse.addHead("Content-type", "text/html");
+    mResponse.addHead("Content-Length", errorPage.size());
+    mResponse.setBody(errorPage);
+    struct kevent newEvent;
+    EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
+    Kqueue::addEvent(newEvent);
+
+    close(mFd);
+    delete this;
 }

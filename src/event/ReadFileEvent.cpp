@@ -36,3 +36,18 @@ void ReadFileEvent::handle()
         delete this;
     }
 }
+
+void ReadFileEvent::timer()
+{
+    const std::string &errorPage = HttpStatusInfos::getHttpErrorPage(500);
+    mResponse.setStartLine(500);
+    mResponse.addHead("Content-type", "text/html");
+    mResponse.addHead("Content-Length", errorPage.size());
+    mResponse.setBody(errorPage);
+    struct kevent newEvent;
+    EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
+    Kqueue::addEvent(newEvent);
+
+    close(mFileFd);
+    delete this;
+}

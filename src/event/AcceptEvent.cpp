@@ -23,6 +23,10 @@ void AcceptEvent::handle()
     }
 
     fcntl(clientSocket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-    EV_SET(&newEvent, clientSocket, EVFILT_READ, EV_ADD, 0, 0, new ReadRequestEvent(mServer, clientSocket));
+
+    AEvent *event = new ReadRequestEvent(mServer, clientSocket);
+    EV_SET(&newEvent, clientSocket, EVFILT_READ, EV_ADD, 0, 0, event);
+    Kqueue::addEvent(newEvent);
+    EV_SET(&newEvent, clientSocket, EVFILT_TIMER, EV_ADD | EV_ENABLE, NOTE_SECONDS, TIMEOUT_SECONDS, event);
     Kqueue::addEvent(newEvent);
 }

@@ -41,6 +41,7 @@ class ReadRequestEvent : public AEvent
     ReadRequestEvent(const Server &server, int clientSocket);
     virtual ~ReadRequestEvent();
     virtual void handle();
+    virtual void timer();
 };
 
 #endif

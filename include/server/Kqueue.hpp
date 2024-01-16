@@ -19,6 +19,7 @@ class Kqueue
     static void handleEvents();
     static void pushAcceptEvent(); // 뺄지 넣을지 고민중
 
+    static bool checkSameIdent(int n, int idx);
     static void deleteEvent(int fd, int filter);
     static void closeKq();
 };

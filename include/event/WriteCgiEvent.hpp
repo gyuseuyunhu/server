@@ -11,12 +11,13 @@ class WriteCgiEvent : public AEvent
     std::string mMessage;
     int mWriteSize;
     int mFileSize;
-    int mSocket;
+    int mFd;
 
   public:
-    WriteCgiEvent(const Server &server, int clientSocket, int socket, std::string message);
+    WriteCgiEvent(const Server &server, int clientSocket, int fd, std::string message);
     virtual ~WriteCgiEvent();
     virtual void handle();
+    virtual void timer();
 };
 
 #endif

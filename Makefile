@@ -57,7 +57,7 @@ OBJS_FILES = $(addprefix $(OBJ_DIR)/, $(OBJS)) \
 						 $(addprefix $(OBJ_DIR)/$(SERVER_DIR)/, $(SERVER_OBJS)) \
 
 CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 
 all : $(NAME)
 

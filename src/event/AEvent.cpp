@@ -1,4 +1,5 @@
 #include "AEvent.hpp"
+#include <unistd.h>
 
 AEvent::AEvent(const Server &server) : mServer(server)
 {
@@ -14,5 +15,9 @@ AEvent::AEvent(const Server &server, const Response &response, int clientSocket)
 }
 
 AEvent::~AEvent()
+{
+}
+
+void AEvent::timer()
 {
 }
