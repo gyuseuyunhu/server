@@ -8,7 +8,9 @@ def delete_file():
     file_info = os.environ.get('PATH_INFO', '')
     if file_info == '':
         return
-    file_path = "./www/file" + file_info
+    upload_dir = os.environ.get('UPLOAD_DIR', '/')
+    webserv_root = os.environ.get('WEBSERV_ROOT', '')
+    file_path = webserv_root + upload_dir + file_info
     if os.path.exists(file_path):
         try:
             os.remove(file_path)
@@ -23,7 +25,7 @@ def delete_file():
 
 # 파일 목록 출력
 def print_file_list():
-    upload_dir = "./www/file"
+    upload_dir = os.environ.get('WEBSERV_ROOT', '') + os.environ.get('UPLOAD_DIR', '/')
     print("<ul>")
     for filename in os.listdir(upload_dir):
         print(f'<div><a href="/file/{filename}">{filename}</a>')
@@ -44,7 +46,7 @@ def handle_file_upload():
         file_item = form['file']
         
         if file_item.filename:
-            upload_dir = "./www/file"
+            upload_dir = os.environ.get('WEBSERV_ROOT', '') + os.environ.get('UPLOAD_DIR', '/')
             os.makedirs(upload_dir, exist_ok=True)
             file_path = os.path.join(upload_dir, file_item.filename)
 
