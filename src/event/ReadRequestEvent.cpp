@@ -48,6 +48,12 @@ int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
     std::string filePath;
     struct stat fileInfo;
 
+    if (stat(mFilePrefix.c_str(), &fileInfo) == -1 || S_ISDIR(fileInfo.st_mode) == 0)
+    {
+        status = NOT_FOUND;
+        return -1;
+    }
+
     for (; indexIt != indexs.end(); ++indexIt)
     {
         filePath = mFilePrefix + *indexIt;
