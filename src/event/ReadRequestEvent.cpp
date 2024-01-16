@@ -350,11 +350,11 @@ void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
 
         if (dup2(fd[CGI_READ], STDIN_FILENO) == -1)
         {
-            throw std::runtime_error("dub2 failed");
+            perror("dup2 error");
         }
         if (dup2(fd[CGI_WRITE], STDOUT_FILENO) == -1)
         {
-            throw std::runtime_error("execve failed");
+            perror("dup2 error");
         }
         close(fd[2]);
         close(fd[1]);
