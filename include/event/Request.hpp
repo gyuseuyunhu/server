@@ -77,6 +77,7 @@ class Request
     bool tryParse(std::string &buffer);
 
     char **getCgiEnvp() const;
+    void delCgiEnvp(char **cgiEnvp);
     int getStatus() const;
     const std::map<std::string, std::string, CaseInsensitiveCompare> &getHeaders() const;
     const std::string &getHost() const;
