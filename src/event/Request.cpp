@@ -94,7 +94,7 @@ void Request::storeHeaderLine(const std::string &line)
         mStatus = BAD_REQUEST;
         return;
     }
-    if (headerKey == "X-Secret-Header-For-Test")
+    if (headerKey.find("X-") == 0)
     {
         headerKey = "HTTP_" + headerKey;
     }
