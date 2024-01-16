@@ -281,6 +281,15 @@ char **Request::getCgiEnvp(const LocationBlock &lb) const
     return HttpStatusInfos::allocateNewEnvp();
 }
 
+void Request::delCgiEnvp(char **cgiEnvp)
+{
+    for (int i = 0; cgiEnvp[i]; i++)
+    {
+        delete[] cgiEnvp[i];
+    }
+    delete[] cgiEnvp;
+}
+
 int Request::getStatus() const
 {
     return mStatus;

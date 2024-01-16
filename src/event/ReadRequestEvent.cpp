@@ -360,22 +360,24 @@ void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
 
         if (dup2(fd[CGI_READ], STDIN_FILENO) == -1)
         {
-            perror("dup2");
+            perror("dup2 error");
         }
         if (dup2(fd[CGI_WRITE], STDOUT_FILENO) == -1)
         {
-            perror("dup22");
+            perror("dup2 error");
         }
         close(fd[2]);
         close(fd[1]);
 
         const std::string &cgiPath = HttpStatusInfos::getWebservRoot() + lbCgiPath;
         const char *cmd[2] = {cgiPath.c_str(), NULL};
+
         if (execve(cgiPath.c_str(), const_cast<char *const *>(cmd),
                    mRequest.getCgiEnvp(mServer.getLocationBlockForRequest(mRequest.getHost(), mRequest.getPath()))) ==
             -1)
         {
-            exit(EXIT_FAILURE);
+            mRequest.delCgiEnvp(cgiEnvp);
+            throw std::runtime_error("execve failed");
         }
     }
     else
