@@ -55,6 +55,7 @@ class BlockBuilder
     bool mIsMethodAllowed;
     std::string mCgiPath;
     std::string mCgiExtension;
+    std::string mCgiUploadDir;
 
     HttpDirective mHttpDirective;
     ServerDirective mServerDirective;
