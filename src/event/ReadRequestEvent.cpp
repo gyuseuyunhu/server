@@ -302,16 +302,26 @@ int ReadRequestEvent::checkBody(const LocationBlock &lb)
 bool ReadRequestEvent::checkCgiEvent(const LocationBlock &lb, int &status)
 {
     const std::string &cgiExtension = lb.getCgiExtension();
+    std::string requestPath = mRequest.getPath();
+    size_t pos;
     if (cgiExtension.empty())
     {
         return false;
     }
-
-    const std::string &requestExtension = getFileExtension(mRequest.getPath());
-    if (cgiExtension != requestExtension)
+    if ((pos = requestPath.find(cgiExtension)) == std::string::npos)
     {
         return false;
     }
+    requestPath.erase(0, pos + cgiExtension.size());
+    if (requestPath.empty() == false)
+    {
+        if (requestPath[0] != '/')
+        {
+            return false;
+        }
+        mRequest.setPathInfo(requestPath);
+    }
+
     const std::string &cgiPath = lb.getCgiPath();
     if (cgiPath.empty())
     {
@@ -361,7 +371,9 @@ void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
 
         const std::string &cgiPath = HttpStatusInfos::getWebservRoot() + lbCgiPath;
         const char *cmd[2] = {cgiPath.c_str(), NULL};
-        if (execve(cgiPath.c_str(), const_cast<char *const *>(cmd), mRequest.getCgiEnvp()) == -1)
+        if (execve(cgiPath.c_str(), const_cast<char *const *>(cmd),
+                   mRequest.getCgiEnvp(mServer.getLocationBlockForRequest(mRequest.getHost(), mRequest.getPath()))) ==
+            -1)
         {
             exit(EXIT_FAILURE);
         }
