@@ -72,6 +72,7 @@ void HttpStatusInfos::initHttpStatusReasons()
     mHttpStatusReasons[404] = "Not Found";
     mHttpStatusReasons[405] = "Method Not Allowed";
     mHttpStatusReasons[413] = "Content Too Large";
+    mHttpStatusReasons[500] = "Internal Server Error";
     mHttpStatusReasons[501] = "Not Implemented";
     mHttpStatusReasons[503] = "Service Unavailable";
 }
@@ -92,6 +93,8 @@ void HttpStatusInfos::initHttpErrorPages()
                            "<center><h1>405 Not Allowed</h1></center>" CRLF;
     mHttpErrorPages[413] = "<html>" CRLF "<head><title>413 Content Too Large</title></head>" CRLF "<body>" CRLF
                            "<center><h1>413 Content Too Large</h1></center>" CRLF;
+    mHttpErrorPages[500] = "<html> " CRLF "<head><title>500 Internal Server Error</title></head>" CRLF "<body>" CRLF
+                           "<center><h1>500 Internal Server Error</h1></center>" CRLF;
     mHttpErrorPages[501] = "<html>" CRLF "<head><title>501 Not Implemented</title></head>" CRLF "<body>" CRLF
                            "<center><h1>501 Not Implemented</h1></center>" CRLF;
     mHttpErrorPages[503] = "<html>" CRLF "<head><title>503 Service Temporarily Unavailable</title></head>" CRLF

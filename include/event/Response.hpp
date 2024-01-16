@@ -15,6 +15,7 @@ class Response
   public:
     Response();
     void setStartLine(int httpStatusCode);
+    void setStartLine(const std::string &startLine);
     void addHead(const std::string &key, const int value);
     void addHead(const std::string &key, const std::string &value);
     void setBody(const std::string &body);
