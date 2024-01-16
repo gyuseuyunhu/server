@@ -119,9 +119,12 @@ document.addEventListener('DOMContentLoaded', function() {
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.onload = function() {
                 if (xhr.status === 202) {
-                    alert("파일이 성공적으로 삭제되었습니다");
+                    alert("파일이 성공적으로 삭제되었습니다 😃");
                     location.reload();
-                }
+                } else {
+										alert("파일 삭제에 실패했습니다 😢 ");
+										location.reload();
+								}
             };
             xhr.send('_method=DELETE');
         });
