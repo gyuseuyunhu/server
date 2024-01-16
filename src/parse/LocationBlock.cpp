@@ -1,14 +1,15 @@
 #include "LocationBlock.hpp"
 LocationBlock::LocationBlock(const ServerBlock &serverBlock, const std::string &locationPath, bool isAutoIndex,
                              bool isAllowedGet, bool isAllowedPost, bool isAllowedDelete, const std::string &cgiPath,
-                             const std::string &cgiExtension)
+                             const std::string &cgiExtension, const std::string &cgiUploadDir)
     : ServerBlock(serverBlock), mLocationPath(locationPath), mIsAutoIndex(isAutoIndex), mIsAllowedGet(isAllowedGet),
-      mIsAllowedPost(isAllowedPost), mIsAllowedDelete(isAllowedDelete), mCgiPath(cgiPath), mCgiExtension(cgiExtension)
+      mIsAllowedPost(isAllowedPost), mIsAllowedDelete(isAllowedDelete), mCgiPath(cgiPath), mCgiExtension(cgiExtension),
+      mCgiUploadDir(cgiUploadDir)
 {
 }
 LocationBlock::LocationBlock(const ServerBlock &serverBlock)
     : ServerBlock(serverBlock), mLocationPath(""), mIsAutoIndex(false), mIsAllowedGet(true), mIsAllowedPost(true),
-      mIsAllowedDelete(true)
+      mIsAllowedDelete(true), mCgiUploadDir("/")
 {
 }
 
@@ -32,6 +33,7 @@ LocationBlock &LocationBlock::operator=(const LocationBlock &rhs)
         mIsAllowedDelete = rhs.mIsAllowedDelete;
         mCgiPath = rhs.mCgiPath;
         mCgiExtension = rhs.mCgiExtension;
+        mCgiUploadDir = rhs.mCgiUploadDir;
     }
     return *this;
 }
@@ -70,6 +72,12 @@ const std::string &LocationBlock::getCgiExtension() const
 {
     return mCgiExtension;
 }
+
+const std::string &LocationBlock::getCgiUploadDir() const
+{
+    return mCgiUploadDir;
+}
+
 std::ostream &operator<<(std::ostream &os, const LocationBlock &locationBlock)
 {
     os << "LocationPath : " << locationBlock.mLocationPath << std::endl;
@@ -105,5 +113,6 @@ std::ostream &operator<<(std::ostream &os, const LocationBlock &locationBlock)
     os << "isAllowedDelete : " << std::boolalpha << locationBlock.mIsAllowedDelete << std::endl;
     os << "cgiPath : " << locationBlock.mCgiPath << std::endl;
     os << "cgiExtension : " << locationBlock.mCgiExtension << std::endl;
+    os << "cgiUploadDir : " << locationBlock.mCgiUploadDir << std::endl;
     return os;
 }

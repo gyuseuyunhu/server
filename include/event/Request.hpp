@@ -53,9 +53,9 @@ class Request
     int mStatus;
     eConnectionStatus mConnectionStatus;
     bool mIsChunked;
-
     unsigned long mChunkedSize;
 
+    std::string mPathInfo;
     void checkMethod(std::stringstream &ss);
     void checkPath(std::stringstream &ss);
     void checkHttpVersion(std::stringstream &ss);
@@ -76,8 +76,10 @@ class Request
     ~Request();
     bool tryParse(std::string &buffer);
 
-    char **getCgiEnvp() const;
+
+    char **getCgiEnvp(const LocationBlock &lb) const;
     void delCgiEnvp(char **cgiEnvp);
+
     int getStatus() const;
     const std::map<std::string, std::string, CaseInsensitiveCompare> &getHeaders() const;
     const std::string &getHost() const;
@@ -85,6 +87,7 @@ class Request
     const std::string &getBody() const;
     const std::string &getMethod() const;
     bool isChunked() const;
+    void setPathInfo(const std::string &pathInfo);
     eConnectionStatus getConnectionStatus() const;
 };
 
