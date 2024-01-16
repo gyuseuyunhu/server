@@ -3,13 +3,14 @@
 
 import os
 import cgi
-import cgitb  # 추가: CGI 스크립트에서 예외를 브라우저에 표시하기 위한 모듈
-
+# 파일 삭제 메소드
 def delete_file():
     file_info = os.environ.get('PATH_INFO', '')
     if file_info == '':
         return
-    file_path = "./www/file" + file_info
+    upload_dir = os.environ.get('UPLOAD_DIR', '/')
+    webserv_root = os.environ.get('WEBSERV_ROOT', '')
+    file_path = webserv_root + upload_dir + file_info
     if os.path.exists(file_path):
         try:
             os.remove(file_path)
@@ -22,16 +23,22 @@ def delete_file():
         print("<h2>파일 삭제 실패</h2>")
         print("<p>존재하지 않는 파일입니다.</p>")
 
-# 추가된 부분: 파일 목록 출력
+# 파일 목록 출력
 def print_file_list():
-    upload_dir = "./www/file"
+    upload_dir = os.environ.get('WEBSERV_ROOT', '') + os.environ.get('UPLOAD_DIR', '/')
     print("<ul>")
     for filename in os.listdir(upload_dir):
         print(f'<div><a href="/file/{filename}">{filename}</a>')
-        print(f'<input type="submit" value="삭제" onClick="location.href=\'/upload.py/{filename}\'"></div><br')
+        print(f'''
+            <form id="deleteForm" method="DELETE" action="python/upload.py/{filename}">
+                <input type="hidden" name="_method" value="DELETE">
+                <input type="submit" value="삭제">
+            </form>
+        </div>
+				''')
     print("</ul>")
 
-# 추가된 부분: 파일 업로드 함수
+# 파일 업로드 함수
 def handle_file_upload():
     form = cgi.FieldStorage()
     
@@ -39,7 +46,7 @@ def handle_file_upload():
         file_item = form['file']
         
         if file_item.filename:
-            upload_dir = "./www/file"
+            upload_dir = os.environ.get('WEBSERV_ROOT', '') + os.environ.get('UPLOAD_DIR', '/')
             os.makedirs(upload_dir, exist_ok=True)
             file_path = os.path.join(upload_dir, file_item.filename)
 
@@ -61,7 +68,9 @@ def handle_file_upload():
         print("<p>파일이 선택되지 않았습니다.</p>")
 
 # 폼과 파일 목록 출력
-print('Status: 200 OK', end="\r\n")
+status = 200
+code = "OK"
+print(f'Status: {status} {code}', end="\r\n")
 print('Content-type: text/html', end="\r\n\r\n")
 
 print('''
@@ -97,7 +106,33 @@ if os.environ['REQUEST_METHOD'] == 'DELETE':
     delete_file()
 
 # 파일 목록 출력
-print_file_list()
+if os.environ['REQUEST_METHOD'] == 'GET':
+		print_file_list()
+
+# 파일 삭제 메소드
+print('''
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var deleteForms = document.querySelectorAll('#deleteForm');
+    deleteForms.forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            var xhr = new XMLHttpRequest();
+            xhr.open('DELETE', form.action, true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    // 성공적으로 삭제되면 페이지를 다시 로드
+										alert("파일이 성공적으로 삭제되었습니다")
+                    location.reload();
+                }
+            };
+            xhr.send('_method=DELETE');
+        });
+    });
+});
+</script>
+''')
     
 print('''</body>
 </html>''')
