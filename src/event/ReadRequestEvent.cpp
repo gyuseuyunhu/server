@@ -344,7 +344,7 @@ bool ReadRequestEvent::checkCgiEvent(const LocationBlock &lb, int &status)
     return true;
 }
 
-void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
+void ReadRequestEvent::makeCgiEvent(const LocationBlock &lb)
 {
     int fd[4];
     pipe(fd);
@@ -369,12 +369,10 @@ void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
         close(fd[2]);
         close(fd[1]);
 
-        const std::string &cgiPath = HttpStatusInfos::getWebservRoot() + lbCgiPath;
+        const std::string &cgiPath = HttpStatusInfos::getWebservRoot() + lb.getCgiPath();
         const char *cmd[2] = {cgiPath.c_str(), NULL};
-
-        if (execve(cgiPath.c_str(), const_cast<char *const *>(cmd),
-                   mRequest.getCgiEnvp(mServer.getLocationBlockForRequest(mRequest.getHost(), mRequest.getPath()))) ==
-            -1)
+        char **cgiEnvp = mRequest.getCgiEnvp(lb);
+        if (execve(cgiPath.c_str(), const_cast<char *const *>(cmd), cgiEnvp) == -1)
         {
             mRequest.delCgiEnvp(cgiEnvp);
             throw std::runtime_error("execve failed");
@@ -422,7 +420,7 @@ void ReadRequestEvent::handle()
 
     if (status == OK && checkCgiEvent(lb, status))
     {
-        makeCgiEvent(lb.getCgiPath());
+        makeCgiEvent(lb);
         Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
         delete this;
         return;
