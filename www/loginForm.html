@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Login Form</title>
+		<link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Stylish&display=swap" rel="stylesheet">
+		<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"> -->
+    <style>
+			body {
+						font-family: "Stylish", sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #loginForm {
+						display: none;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        label {
+						font-family: "Stylish", sans-serif;
+						font-size: 50px;
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        input {
+					font-family: "Stylish", sans-serif;
+            width: 100%;
+						height: 100px;
+						font-size: 50px;
+            padding: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+						text-align: center;
+        }
+
+        button {
+					font-family: "Stylish", sans-serif;
+            background-color: #4caf50;
+						font-size: 50px;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            color: #333;
+            font-size: 100px;
+            margin: 0;
+        }
+
+    </style>
+</head>
+<body>
+
+<form id="loginForm">
+    <label for="nicknameInput">너 누구야?</label>
+    <input type="text" id="nicknameInput" name="nickname" placeholder="이름을 말해" maxlength="10">
+    <button id="submitBtn" type="button">나야</button>
+</form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 쿠키 가져오기
+        var existingCookie = getCookie("yourCookieName");
+
+        // 서버로 로그인 체크 요청 보내기
+        makePostRequest("/login/login.py", "cookie=" + existingCookie, function(response) {
+            if (response.trim() === 'non-exist') {
+                // 로그인이 필요한 경우
+                showLoginForm();
+            } else {
+                // 이미 로그인되어 있음
+                showWelcomeMessage(response.trim());
+            }
+        });
+
+        // 버튼 클릭 이벤트 설정
+        document.getElementById("submitBtn").addEventListener("click", function() {
+            // 사용자가 입력한 닉네임 가져오기
+            var nickname = document.getElementById("nicknameInput").value;
+
+            // 서버로 회원가입 요청 보내기
+            makePostRequest("/sign/signup.py", `nickname=${nickname}&cookie=${existingCookie}`, function(response) {
+                // 회원가입 후 환영 메시지 표시
+                showWelcomeMessage(nickname);
+            });
+        });
+    });
+
+    // 로그인이 필요한 경우의 Form 표시
+    function showLoginForm() {
+        // 폼을 보이게 변경
+        document.getElementById("loginForm").style.display = "block";
+    }
+
+    // 환영 메시지 표시
+    function showWelcomeMessage(nickname) {
+        document.body.innerHTML = "<p>환영합니다, " + nickname + "!</p>";
+    }
+
+    // 쿠키 가져오기 함수
+    function getCookie(cookieName) {
+        var name = cookieName + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var cookieArray = decodedCookie.split(';');
+        for (var i = 0; i < cookieArray.length; i++) {
+            var cookie = cookieArray[i];
+            while (cookie.charAt(0) == ' ') {
+                cookie = cookie.substring(1);
+            }
+            if (cookie.indexOf(name) == 0) {
+                return cookie.substring(name.length, cookie.length);
+            }
+        }
+        return "";
+    }
+
+    // 서버에 POST 요청 보내기 함수
+    function makePostRequest(url, data, callback) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                callback(xhr.responseText);
+            }
+        };
+        xhr.send(data);
+    }
+</script>
+
+</body>
+</html>

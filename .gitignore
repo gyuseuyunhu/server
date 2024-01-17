@@ -114,3 +114,6 @@ tags
 [._]*.un~
 
 # End of https://www.toptal.com/developers/gitignore/api/c,macos,vim
+
+## 추가
+*.json
