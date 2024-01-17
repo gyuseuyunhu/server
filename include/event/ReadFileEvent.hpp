@@ -16,6 +16,7 @@ class ReadFileEvent : public AEvent
     ReadFileEvent(const Server &server, const Response &response, int clientSocket, int fileFd, int fileSize);
     virtual ~ReadFileEvent();
     virtual void handle();
+    virtual void timer();
 };
 
 #endif

@@ -5,15 +5,16 @@
 class ReadCgiEvent : public AEvent
 {
   private:
-    int mSocket;
-		bool mIsError;
+    int mFd;
+    bool mIsError;
     std::string mStringBuffer;
     char mBuffer[BUFFER_SIZE];
 
   public:
-    ReadCgiEvent(const Server &server, int clientSocket, int socket);
+    ReadCgiEvent(const Server &server, int clientSocket, int fd);
     bool setReponse(const std::string &line);
     virtual void handle();
+    virtual void timer();
 };
 
 #endif
