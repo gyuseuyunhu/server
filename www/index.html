@@ -1,18 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-<title>Welcome to webserv!</title>
-<style>
-html { color-scheme: light dark; }
-body { width: 35em; margin: 0 auto;
-font-family: Tahoma, Verdana, Arial, sans-serif; }
-</style>
+    <meta charset="UTF-8">
+    <title>Welcome to webserv!</title>
+    <style>
+        html { color-scheme: light dark; }
+        body {
+            width: 35em;
+            margin: 0 auto;
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #ddd; 
+            line-height: 1.8; 
+        }
+        h1 {
+            font-size: 3em; 
+            margin-bottom: 30px; 
+        }
+        .cgi-text {
+            font-size: 1.5em; 
+            margin-bottom: 15px; 
+						white-space: nowrap; 
+        }
+        a {
+            display: block; 
+            text-decoration: none; 
+            color: #6fd056; 
+            font-size: 1.5em; 
+            margin-bottom: 15px; 
+            white-space: nowrap; 
+        }
+        a:hover {
+            color: #8cc885; 
+        }
+        p {
+            margin-top: 30px;
+						font-size: 1.5em;
+						white-space: nowrap; 
+        }
+				footer {
+            position: absolute; 
+            bottom: 10; 
+            left: 50%; 
+            transform: translateX(-30%); 
+            margin-top: 20px; 
+        }
+    </style>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-<h1>Welcome to webserv!</h1>
-<p>If you see this page, the webserv web server is successfully installed and
-working. Further configuration is required.</p>
+    <h1>Welcome to webserv!</h1>
+    <a href="/">webserv is a web server.</a> 
+    <a href="/autoIndex">What is a autoindex?</a>
+    <a href="/new-year">Happy New Year 🐲</a>
+		<div class="cgi-text">⬇️ These are CGI ⬇️ Have you heard of CGI? </div>
+    <a href="/megaphone">📢 * LOUD AND UNBEARABLE FEEDBACK NOISE * 📢</a>
+    <a href="/python/upload.py">Give me a file 💾</a>
+    <a href="/perl/upload.pl">Make your own page ☃️</a>
+    <a href="/loginForm.html">What is a cookie? 🍪</a>
+    <p><em>Thank you for using our webserv!</em></p>
+		<p><em>🌈 I hope you enjoy it 🌈</em></p>
 
-<p><em>Thank you for using webserv.</em></p>
+		<footer>
+			<p style="font-size: 15px;">© gyuseuyunhu. <a href="https://github.com/gyuseuyunhu/server" target="_blank" style="display: inline;color: #ddd; font-size: 15px;"><i class="fab fa-github"></i></a></p>
+	</footer>
 </body>
 </html>
