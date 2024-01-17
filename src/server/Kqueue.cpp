@@ -22,19 +22,6 @@ void Kqueue::addEvent(const struct kevent &event)
     mNewEvents.push_back(event);
 }
 
-void Kqueue::handleEvents()
-{
-    int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), mHandleEvents, MAX_EVENT_CNT, NULL);
-    if (!mNewEvents.empty())
-    {
-        mNewEvents.clear();
-    }
-    for (int i = 0; i < n; ++i)
-    {
-        reinterpret_cast<AEvent *>(mHandleEvents[i].udata)->handle();
-    }
-}
-
 void Kqueue::pushAcceptEvent()
 {
     int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), NULL, 0, NULL);
@@ -59,4 +46,44 @@ void Kqueue::deleteEvent(int fd, int filter)
 void Kqueue::closeKq()
 {
     close(mKq);
+}
+
+bool Kqueue::checkSameIdent(int n, int idx)
+{
+    for (int i = 0; i < n; ++i)
+    {
+        if (i == idx)
+        {
+            continue;
+        }
+        if (mHandleEvents[idx].ident == mHandleEvents[i].ident)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Kqueue::handleEvents()
+{
+    int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), mHandleEvents, MAX_EVENT_CNT, NULL);
+    if (!mNewEvents.empty())
+    {
+        mNewEvents.clear();
+    }
+    for (int i = 0; i < n; ++i)
+    {
+        if (mHandleEvents[i].filter == EVFILT_TIMER)
+        {
+            if (checkSameIdent(n, i))
+            {
+                continue;
+            }
+            reinterpret_cast<AEvent *>(mHandleEvents[i].udata)->timer();
+        }
+        else
+        {
+            reinterpret_cast<AEvent *>(mHandleEvents[i].udata)->handle();
+        }
+    }
 }

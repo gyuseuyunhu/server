@@ -212,8 +212,10 @@ void ReadRequestEvent::makeReadFileEvent(int fd)
     {
         mResponse.setConnectionClose();
     }
-    EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0,
-           new ReadFileEvent(mServer, mResponse, mClientSocket, fd, mFileSize));
+    AEvent *event = new ReadFileEvent(mServer, mResponse, mClientSocket, fd, mFileSize);
+    EV_SET(&newEvent, fd, EVFILT_READ, EV_ADD, 0, 0, event);
+    Kqueue::addEvent(newEvent);
+    EV_SET(&newEvent, fd, EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
     Kqueue::addEvent(newEvent);
 }
 
@@ -392,11 +394,16 @@ void ReadRequestEvent::makeCgiEvent(const LocationBlock &lb)
         fcntl(fd[SERVER_WRITE], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 
         struct kevent newEvent;
-        EV_SET(&newEvent, fd[SERVER_WRITE], EVFILT_WRITE, EV_ADD, 0, 0,
-               new WriteCgiEvent(mServer, mClientSocket, fd[SERVER_WRITE], mRequest.getBody()));
+        AEvent *event = new WriteCgiEvent(mServer, mClientSocket, fd[SERVER_WRITE], mRequest.getBody());
+        EV_SET(&newEvent, fd[SERVER_WRITE], EVFILT_WRITE, EV_ADD, 0, 0, event);
         Kqueue::addEvent(newEvent);
-        EV_SET(&newEvent, fd[SERVER_READ], EVFILT_READ, EV_ADD, 0, 0,
-               new ReadCgiEvent(mServer, mClientSocket, fd[SERVER_READ]));
+        EV_SET(&newEvent, fd[SERVER_WRITE], EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
+        Kqueue::addEvent(newEvent);
+
+        event = new ReadCgiEvent(mServer, mClientSocket, fd[SERVER_READ]);
+        EV_SET(&newEvent, fd[SERVER_READ], EVFILT_READ, EV_ADD, 0, 0, event);
+        Kqueue::addEvent(newEvent);
+        EV_SET(&newEvent, fd[SERVER_READ], EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
         Kqueue::addEvent(newEvent);
     }
 }
@@ -407,6 +414,7 @@ void ReadRequestEvent::handle()
     int n = read(mClientSocket, buffer, BUFFER_SIZE);
     if (n <= 0)
     {
+        Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
         close(mClientSocket);
         delete this;
         return;
@@ -428,11 +436,20 @@ void ReadRequestEvent::handle()
     {
         makeCgiEvent(lb);
         Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
+        Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
         delete this;
         return;
     }
 
     makeResponse(lb, status);
     Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
+    Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
+    delete this;
+}
+
+void ReadRequestEvent::timer()
+{
+    Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
+    close(mClientSocket);
     delete this;
 }

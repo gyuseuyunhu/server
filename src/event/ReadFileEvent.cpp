@@ -19,6 +19,7 @@ void ReadFileEvent::handle()
 
     if (n < 0)
     {
+        Kqueue::deleteEvent(mFileFd, EVFILT_TIMER);
         close(mFileFd);
         delete this;
         return;
@@ -27,6 +28,7 @@ void ReadFileEvent::handle()
     mBody.append(mBuffer, n);
     if (mReadSize == mFileSize)
     {
+        Kqueue::deleteEvent(mFileFd, EVFILT_TIMER);
         close(mFileFd);
         mResponse.setBody(mBody);
 
@@ -35,4 +37,20 @@ void ReadFileEvent::handle()
         Kqueue::addEvent(newEvent);
         delete this;
     }
+}
+
+void ReadFileEvent::timer()
+{
+    const std::string &errorPage = HttpStatusInfos::getHttpErrorPage(408);
+    mResponse.setStartLine(408);
+    mResponse.addHead("Content-type", "text/html");
+    mResponse.addHead("Content-Length", errorPage.size());
+    mResponse.setBody(errorPage);
+    struct kevent newEvent;
+    EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
+    Kqueue::addEvent(newEvent);
+
+    Kqueue::deleteEvent(mFileFd, EVFILT_TIMER);
+    close(mFileFd);
+    delete this;
 }

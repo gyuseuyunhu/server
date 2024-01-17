@@ -71,6 +71,7 @@ void HttpStatusInfos::initHttpStatusReasons()
     mHttpStatusReasons[403] = "Forbidden";
     mHttpStatusReasons[404] = "Not Found";
     mHttpStatusReasons[405] = "Method Not Allowed";
+    mHttpStatusReasons[408] = "Request Timeout";
     mHttpStatusReasons[413] = "Content Too Large";
     mHttpStatusReasons[500] = "Internal Server Error";
     mHttpStatusReasons[501] = "Not Implemented";
@@ -91,6 +92,8 @@ void HttpStatusInfos::initHttpErrorPages()
                            "<center><h1>404 Not Found</h1></center>" CRLF;
     mHttpErrorPages[405] = "<html>" CRLF "<head><title>405 Not Allowed</title></head>" CRLF "<body>" CRLF
                            "<center><h1>405 Not Allowed</h1></center>" CRLF;
+    mHttpErrorPages[408] = "<html>" CRLF "<head><title>408 Request Time-out</title></head>" CRLF "<body>" CRLF
+                           "<center><h1>408 Request Time-out</h1></center>" CRLF;
     mHttpErrorPages[413] = "<html>" CRLF "<head><title>413 Content Too Large</title></head>" CRLF "<body>" CRLF
                            "<center><h1>413 Content Too Large</h1></center>" CRLF;
     mHttpErrorPages[500] = "<html> " CRLF "<head><title>500 Internal Server Error</title></head>" CRLF "<body>" CRLF
