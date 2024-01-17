@@ -23,7 +23,7 @@ bool CaseInsensitiveCompare::operator()(const std::string &a, const std::string 
 
 Request::Request()
     : mMethod(""), mPath(""), mVersion(""), mHost(""), mBody(""), mContentLength(0), mRequestLine(START_LINE),
-      mStatus(0), mConnectionStatus(KEEP_ALIVE), mIsChunked(false), mChunkedSize(0)
+      mStatus(0), mConnectionStatus(KEEP_ALIVE), mIsChunked(false), mChunkedSize(0), mPathInfo("/")
 {
 }
 
@@ -94,7 +94,7 @@ void Request::storeHeaderLine(const std::string &line)
         mStatus = BAD_REQUEST;
         return;
     }
-    if (headerKey == "X-Secret-Header-For-Test")
+    if (headerKey.find("X-") == 0)
     {
         headerKey = "HTTP_" + headerKey;
     }
@@ -247,11 +247,14 @@ bool Request::tryParse(std::string &buffer)
     return mRequestLine == FINISH;
 }
 
-char **Request::getCgiEnvp() const
+char **Request::getCgiEnvp(const LocationBlock &lb) const
 {
+    const std::string &uploadDir = lb.getCgiUploadDir();
     HttpStatusInfos::addCgiEnv("REQUEST_METHOD=" + mMethod);
     HttpStatusInfos::addCgiEnv("SERVER_PROTOCOL=" + mVersion);
-    HttpStatusInfos::addCgiEnv("PATH_INFO=/");
+    HttpStatusInfos::addCgiEnv("UPLOAD_DIR=" + uploadDir);
+    HttpStatusInfos::addCgiEnv("WEBSERV_ROOT=" + HttpStatusInfos::getWebservRoot());
+    HttpStatusInfos::addCgiEnv("PATH_INFO=" + mPathInfo);
 
     MapIt it = mHeaders.begin();
     for (; it != mHeaders.end(); ++it)
@@ -276,6 +279,15 @@ char **Request::getCgiEnvp() const
         HttpStatusInfos::addCgiEnv(env);
     }
     return HttpStatusInfos::allocateNewEnvp();
+}
+
+void Request::delCgiEnvp(char **cgiEnvp)
+{
+    for (int i = 0; cgiEnvp[i]; i++)
+    {
+        delete[] cgiEnvp[i];
+    }
+    delete[] cgiEnvp;
 }
 
 int Request::getStatus() const
@@ -315,4 +327,9 @@ bool Request::isChunked() const
 eConnectionStatus Request::getConnectionStatus() const
 {
     return mConnectionStatus;
+}
+
+void Request::setPathInfo(const std::string &pathInfo)
+{
+    mPathInfo = pathInfo;
 }

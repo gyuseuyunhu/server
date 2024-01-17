@@ -48,6 +48,12 @@ int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
     std::string filePath;
     struct stat fileInfo;
 
+    if (stat(mFilePrefix.c_str(), &fileInfo) == -1 || S_ISDIR(fileInfo.st_mode) == 0)
+    {
+        status = NOT_FOUND;
+        return -1;
+    }
+
     for (; indexIt != indexs.end(); ++indexIt)
     {
         filePath = mFilePrefix + *indexIt;
@@ -304,16 +310,26 @@ int ReadRequestEvent::checkBody(const LocationBlock &lb)
 bool ReadRequestEvent::checkCgiEvent(const LocationBlock &lb, int &status)
 {
     const std::string &cgiExtension = lb.getCgiExtension();
+    std::string requestPath = mRequest.getPath();
+    size_t pos;
     if (cgiExtension.empty())
     {
         return false;
     }
-
-    const std::string &requestExtension = getFileExtension(mRequest.getPath());
-    if (cgiExtension != requestExtension)
+    if ((pos = requestPath.find(cgiExtension)) == std::string::npos)
     {
         return false;
     }
+    requestPath.erase(0, pos + cgiExtension.size());
+    if (requestPath.empty() == false)
+    {
+        if (requestPath[0] != '/')
+        {
+            return false;
+        }
+        mRequest.setPathInfo(requestPath);
+    }
+
     const std::string &cgiPath = lb.getCgiPath();
     if (cgiPath.empty())
     {
@@ -336,7 +352,7 @@ bool ReadRequestEvent::checkCgiEvent(const LocationBlock &lb, int &status)
     return true;
 }
 
-void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
+void ReadRequestEvent::makeCgiEvent(const LocationBlock &lb)
 {
     int fd[4];
     pipe(fd);
@@ -352,20 +368,22 @@ void ReadRequestEvent::makeCgiEvent(const std::string &lbCgiPath)
 
         if (dup2(fd[CGI_READ], STDIN_FILENO) == -1)
         {
-            perror("dup2");
+            perror("dup2 error");
         }
         if (dup2(fd[CGI_WRITE], STDOUT_FILENO) == -1)
         {
-            perror("dup2");
+            perror("dup2 error");
         }
         close(fd[2]);
         close(fd[1]);
 
-        const std::string &cgiPath = HttpStatusInfos::getWebservRoot() + lbCgiPath;
+        const std::string &cgiPath = HttpStatusInfos::getWebservRoot() + lb.getCgiPath();
         const char *cmd[2] = {cgiPath.c_str(), NULL};
-        if (execve(cgiPath.c_str(), const_cast<char *const *>(cmd), mRequest.getCgiEnvp()) == -1)
+        char **cgiEnvp = mRequest.getCgiEnvp(lb);
+        if (execve(cgiPath.c_str(), const_cast<char *const *>(cmd), cgiEnvp) == -1)
         {
-            exit(EXIT_FAILURE);
+            mRequest.delCgiEnvp(cgiEnvp);
+            throw std::runtime_error("execve failed");
         }
     }
     else
@@ -416,7 +434,7 @@ void ReadRequestEvent::handle()
 
     if (status == OK && checkCgiEvent(lb, status))
     {
-        makeCgiEvent(lb.getCgiPath());
+        makeCgiEvent(lb);
         Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
         Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
         delete this;
