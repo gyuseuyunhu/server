@@ -41,8 +41,8 @@ void ReadFileEvent::handle()
 
 void ReadFileEvent::timer()
 {
-    const std::string &errorPage = HttpStatusInfos::getHttpErrorPage(500);
-    mResponse.setStartLine(500);
+    const std::string &errorPage = HttpStatusInfos::getHttpErrorPage(408);
+    mResponse.setStartLine(408);
     mResponse.addHead("Content-type", "text/html");
     mResponse.addHead("Content-Length", errorPage.size());
     mResponse.setBody(errorPage);
