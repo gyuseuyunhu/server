@@ -4,14 +4,17 @@ import os
 import cgi
 
 # 딕셔너리 파일 경로
-dictionary_file_path = os.environ.get('WEBSERV_ROOT', '') + os.environ.get('UPLOAD_DIR', '/') + "member.json"
+directory = os.environ.get('WEBSERV_ROOT', '') + os.environ.get('UPLOAD_DIR', '/')
+dictionary_file_path = directory + "member.json"
 
 def load_dictionary():
-    try:
-        with open(dictionary_file_path, 'r') as file:
-            return json.load(file)
-    except (IOError, ValueError):
-        return {}
+		if not os.path.exists(directory):
+			os.makedirs(directory)
+		try:
+			with open(dictionary_file_path, 'r') as file:
+				return json.load(file)
+		except (IOError, ValueError):
+				return {}
 
 # 딕셔너리 파일 로드
 nickname_dictionary = load_dictionary()
