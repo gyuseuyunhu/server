@@ -205,6 +205,10 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     else if (key == "path")
     {
         mLocationPath = value;
+        if (mLocationPath[0] != '/')
+        {
+            mLocationPath = '/' + mLocationPath;
+        }
     }
     else if (key == "autoindex")
     {
