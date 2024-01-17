@@ -10,9 +10,8 @@ class AEvent
   protected:
     enum
     {
-        ONE_SECOND = 1000000000,
         BUFFER_SIZE = 65536,
-        TIMEOUT_SECONDS = 10,
+        TIMEOUT_SECONDS = 30,
     };
     const Server &mServer;
     Response mResponse;
