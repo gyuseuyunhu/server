@@ -18,4 +18,5 @@ void LocationDirective::initDirectiveMap()
     mDirective["limit_except"] = std::numeric_limits<int>::max();
     mDirective["cgi_extension"] = 1;
     mDirective["cgi_path"] = 1;
+    mDirective["cgi_upload_dir"] = 1;
 }

@@ -10,7 +10,7 @@ const std::string BlockBuilder::DEFAULT_SERVER_NAME = "";
 BlockBuilder::BlockBuilder()
     : mRoot(DEFAULT_ROOT), mClientMaxBodySize(E_DEFAULT_CLIENT_BODY_SIZE), mPort(E_DEFAULT_LISTEN_PORT),
       mServerName(DEFAULT_SERVER_NAME), mIsAutoIndex(false), mIsAllowedGet(true), mIsAllowedPost(true),
-      mIsAllowedDelete(true)
+      mIsAllowedDelete(true), mCgiUploadDir("/")
 {
 }
 
@@ -222,6 +222,10 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     {
         mCgiExtension = value;
     }
+    else if (key == "cgi_upload_dir")
+    {
+        mCgiUploadDir = value;
+    }
     else
     {
         assert(false);
@@ -253,6 +257,7 @@ void BlockBuilder::resetLocationBlockConfig(const ServerBlock &serverBlock)
     mIsAllowedGet = true;
     mIsAllowedPost = true;
     mIsAllowedDelete = true;
+    mCgiUploadDir = "/";
     mErrorCodes.clear();
 }
 
@@ -401,5 +406,5 @@ ServerBlock BlockBuilder::buildServerBlock() const
 LocationBlock BlockBuilder::buildLocationBlock() const
 {
     return LocationBlock(buildServerBlock(), mLocationPath, mIsAutoIndex, mIsAllowedGet, mIsAllowedPost,
-                         mIsAllowedDelete, mCgiPath, mCgiExtension);
+                         mIsAllowedDelete, mCgiPath, mCgiExtension, mCgiUploadDir);
 }

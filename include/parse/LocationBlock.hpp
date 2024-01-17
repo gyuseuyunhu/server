@@ -14,11 +14,12 @@ class LocationBlock : public ServerBlock
     bool mIsAllowedDelete;
     std::string mCgiPath;
     std::string mCgiExtension;
+    std::string mCgiUploadDir;
 
   public:
     LocationBlock(const ServerBlock &serverBlock, const std::string &locationPath, bool isAutoIndex, bool isAllowedGet,
-                  bool isAllowedPost, bool isAllowedDelete, const std::string &cgiPath,
-                  const std::string &cgiExtension);
+                  bool isAllowedPost, bool isAllowedDelete, const std::string &cgiPath, const std::string &cgiExtension,
+                  const std::string &cgiUploadDir);
     LocationBlock(const ServerBlock &serverBlock);
     LocationBlock &operator=(const LocationBlock &rhs);
     const std::string &getLocationPath() const;
@@ -28,6 +29,7 @@ class LocationBlock : public ServerBlock
     bool isAllowedDelete() const;
     const std::string &getCgiPath() const;
     const std::string &getCgiExtension() const;
+    const std::string &getCgiUploadDir() const;
     friend std::ostream &operator<<(std::ostream &os, const LocationBlock &locationBlock);
 };
 
