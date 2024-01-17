@@ -199,7 +199,7 @@ print <<HTML;
         <input type="color" id="endColor" name="endColor" value="#090a0f">
         <br><br>
         <label for="emojiInput" >이모지 입력:</label>
-        <input type="text" id="emojiInput" name="emojiInput" size="2" value="❄️" maxLength="2">
+        <input type="text" id="emojiInput" name="emojiInput" size="2" value="❄️">
         <br><br>
         <input type="submit" value="페이지 만들기">
     </form>
