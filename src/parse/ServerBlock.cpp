@@ -6,7 +6,6 @@ ServerBlock::ServerBlock(const HttpBlock &httpBlock, unsigned int port, const st
 {
 }
 
-// todo 이게 맞는지 확인 필요
 ServerBlock::ServerBlock(const ServerBlock &other) : HttpBlock(other)
 {
     if (this != &other)
