@@ -134,6 +134,7 @@ print <<HTML;
 
         h1 {
             color: #99CCFF; /* 헤더 제목 색상 */
+						text-align: center; /* 헤더 제목 가운데 정렬 */
         }
 
         form {
@@ -170,7 +171,7 @@ print <<HTML;
 						height: 40px;
 						border: none; /* 제출 버튼 테두리 없음 */
 						border-radius: 5px; /* 제출 버튼 테두리 둥글게 */
-
+						text-align: center; /* 제출 버튼 텍스트 가운데 정렬 */
             background-color: #99CCFF; /* 제출 버튼 배경색 */
             color: #fff; /* 제출 버튼 텍스트 색상 */
             cursor: pointer; /* 포인터 형태로 변경하여 사용자에게 클릭 가능한 요소임을 알림 */
@@ -188,17 +189,17 @@ print <<HTML;
         <label for="title">페이지 글귀: </label>
         <input type="text" id="title" name="title" size="50" value="Let it Snow ☃️ Let it Snow ☃️">
         <br><br>
-        <label for="emojiInput" >이모지 입력:</label>
-        <input type="text" id="emojiInput" name="emojiInput" size="2" value="❄️">
-        <br><br>
         <label for="textColor">글자 색: </label>
         <input type="color" id="textColor" name="textColor" value="#99ccff">
-        <br><br>
+        &nbsp;&nbsp;
         <label for="beginColor">배경 시작 색:</label>
         <input type="color" id="beginColor" name="beginColor" value="#172c43">
-        <br><br>
+        &nbsp;&nbsp;
         <label for="endColor">배경 끝 색: </label>
         <input type="color" id="endColor" name="endColor" value="#090a0f">
+        <br><br>
+        <label for="emojiInput" >이모지 입력:</label>
+        <input type="text" id="emojiInput" name="emojiInput" size="2" value="❄️" maxLength="2">
         <br><br>
         <input type="submit" value="페이지 만들기">
     </form>
