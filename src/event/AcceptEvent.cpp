@@ -27,6 +27,6 @@ void AcceptEvent::handle()
     AEvent *event = new ReadRequestEvent(mServer, clientSocket);
     EV_SET(&newEvent, clientSocket, EVFILT_READ, EV_ADD, 0, 0, event);
     Kqueue::addEvent(newEvent);
-    EV_SET(&newEvent, clientSocket, EVFILT_TIMER, EV_ADD | EV_ENABLE, NOTE_SECONDS, TIMEOUT_SECONDS, event);
+    EV_SET(&newEvent, clientSocket, EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
     Kqueue::addEvent(newEvent);
 }

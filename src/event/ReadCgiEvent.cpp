@@ -38,6 +38,7 @@ void ReadCgiEvent::handle()
     int n = read(mFd, mBuffer, BUFFER_SIZE);
     if (n < 0)
     {
+        Kqueue::deleteEvent(mFd, EVFILT_TIMER);
         close(mFd);
         delete this;
         return;
@@ -87,6 +88,7 @@ void ReadCgiEvent::handle()
         struct kevent newEvent;
         EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
         Kqueue::addEvent(newEvent);
+        Kqueue::deleteEvent(mFd, EVFILT_TIMER);
         close(mFd);
 
         delete this;
@@ -104,6 +106,7 @@ void ReadCgiEvent::timer()
     EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
     Kqueue::addEvent(newEvent);
 
+    Kqueue::deleteEvent(mFd, EVFILT_TIMER);
     close(mFd);
     delete this;
 }

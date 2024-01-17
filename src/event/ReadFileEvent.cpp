@@ -19,6 +19,7 @@ void ReadFileEvent::handle()
 
     if (n < 0)
     {
+        Kqueue::deleteEvent(mFileFd, EVFILT_TIMER);
         close(mFileFd);
         delete this;
         return;
@@ -27,6 +28,7 @@ void ReadFileEvent::handle()
     mBody.append(mBuffer, n);
     if (mReadSize == mFileSize)
     {
+        Kqueue::deleteEvent(mFileFd, EVFILT_TIMER);
         close(mFileFd);
         mResponse.setBody(mBody);
 
@@ -48,6 +50,7 @@ void ReadFileEvent::timer()
     EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
     Kqueue::addEvent(newEvent);
 
+    Kqueue::deleteEvent(mFileFd, EVFILT_TIMER);
     close(mFileFd);
     delete this;
 }

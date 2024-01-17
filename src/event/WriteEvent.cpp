@@ -40,7 +40,7 @@ void WriteEvent::handle()
         AEvent *event = new ReadRequestEvent(mServer, mClientSocket);
         EV_SET(&newEvent, mClientSocket, EVFILT_READ, EV_ADD, 0, 0, event);
         Kqueue::addEvent(newEvent);
-        EV_SET(&newEvent, mClientSocket, EVFILT_TIMER, EV_ADD | EV_ENABLE, NOTE_SECONDS, TIMEOUT_SECONDS, event);
+        EV_SET(&newEvent, mClientSocket, EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
         Kqueue::addEvent(newEvent);
         delete this;
         return;
