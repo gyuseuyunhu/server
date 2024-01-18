@@ -30,7 +30,7 @@ std::string ReadRequestEvent::getFileExtension(const std::string &path)
     }
     else
     {
-        assert(false);
+        return "";
     }
     size_t lastDotPos = fileName.find_last_of('.');
 
@@ -76,7 +76,6 @@ int ReadRequestEvent::getIndexFd(const LocationBlock &lb, int &status)
             status = NOT_FOUND;
         }
     }
-    // 반복문을 돌았는데 열리는 index 파일이 없을 시 autoindex 지시어가 있는 경우 파일 목록을 응답
     if (status == NOT_FOUND && lb.isAutoIndex() == true)
     {
         status = OK;
@@ -147,8 +146,6 @@ void ReadRequestEvent::setFilePrefix(const LocationBlock &lb)
 {
     std::string requestPath = mRequest.getPath();
     requestPath.replace(0, lb.getLocationPath().length(), lb.getRoot());
-
-    // // 환경변수로 저장된 웹서브 root를 요청된 path 앞에 삽입
     mFilePrefix = HttpStatusInfos::getWebservRoot() + requestPath;
 }
 
@@ -160,18 +157,15 @@ int ReadRequestEvent::getRequestFd(const LocationBlock &lb, int &status)
     int fd;
     if (status == OK)
     {
-        // 요청이 폴더로 들어온 경우
         if (requestPath[requestPath.size() - 1] == '/')
         {
             fd = getIndexFd(lb, status);
         }
-        // 요청이 파일로 들어온 경우
         else
         {
             fd = getFileFd(status);
         }
     }
-    // 위에서 status가 바뀔수 있음
     if (status != OK)
     {
         return getErrorPageFd(lb, status);
@@ -197,7 +191,6 @@ void ReadRequestEvent::makeWriteEvent(int &status)
     {
         mResponse.setConnectionClose();
     }
-    assert(responseBody.size() != 0);
     mResponse.setBody(responseBody);
     EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
     Kqueue::addEvent(newEvent);

@@ -37,8 +37,6 @@ void Response::setBody(const std::string &body)
 
 const std::string Response::toStr() const
 {
-    assert(mStartLine.size() != 0);
-    assert(mHead.size() != 0);
     return mStartLine + CRLF + mHead + CRLF + mBody;
 }
 
