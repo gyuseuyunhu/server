@@ -9,7 +9,7 @@ LocationBlock::LocationBlock(const ServerBlock &serverBlock, const std::string &
 }
 LocationBlock::LocationBlock(const ServerBlock &serverBlock)
     : ServerBlock(serverBlock), mLocationPath(""), mIsAutoIndex(false), mIsAllowedGet(true), mIsAllowedPost(true),
-      mIsAllowedDelete(true), mCgiUploadDir("/")
+      mIsAllowedDelete(false), mCgiUploadDir("/")
 {
 }
 
