@@ -1,19 +1,11 @@
 #include "Config.hpp"
 
-Config *Config::mInstance = NULL;             // Definition of mInstance
-std::vector<ServerInfo> Config::mServerInfos; // Definition of ServerBlockGroups
+Config *Config::mInstance = NULL;
+std::vector<ServerInfo> Config::mServerInfos;
 
 Config::Config(std::vector<ServerInfo> serverInfos)
 {
     mServerInfos = serverInfos;
-    // 디버그용 프린트
-    // std::vector<ServerInfo>::const_iterator it = mServerInfos.begin();
-    // for (; it != mServerInfos.end(); ++it)
-    // {
-    //     std::cout << "*------------*" << std::endl;
-    //     std::cout << *it << std::endl;
-    //     std::cout << "*------------*" << std::endl;
-    // }
 }
 
 void Config::createInstance(const std::string &httpString, const std::vector<ServerInfoStr> &serverInfoStrs)

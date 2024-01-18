@@ -141,7 +141,6 @@ const std::string HttpStatusInfos::makeAutoIndexPage(const std::string &path)
     }
     else
     {
-        // 디렉토리를 열 수 없을 경우
         html += "<p>Cannot open directory.</p>";
     }
 
@@ -174,7 +173,10 @@ const std::string &HttpStatusInfos::getHttpReason(const int statusCode)
     std::map<int, std::string>::const_iterator it;
 
     it = mHttpStatusReasons.find(statusCode);
-    assert(it != mHttpStatusReasons.end());
+    if (it == mHttpStatusReasons.end())
+    {
+        return mHttpStatusReasons.find(403)->second;
+    }
     return it->second;
 }
 
@@ -183,7 +185,10 @@ const std::string &HttpStatusInfos::getHttpErrorPage(const int statusCode)
     std::map<int, std::string>::const_iterator it;
 
     it = mHttpErrorPages.find(statusCode);
-    assert(it != mHttpErrorPages.end());
+    if (it == mHttpErrorPages.end())
+    {
+        return mHttpErrorPages.find(403)->second;
+    }
     return it->second;
 }
 

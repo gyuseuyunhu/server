@@ -44,34 +44,3 @@ const std::string &ServerBlock::getRedirectionPath() const
 {
     return mRedirectionPath;
 }
-
-std::ostream &operator<<(std::ostream &os, const ServerBlock &serverBlock)
-{
-    os << "root : " << serverBlock.mRoot << std::endl;
-
-    std::vector<std::string>::const_iterator it = serverBlock.mIndexs.begin();
-
-    os << "index : ";
-    for (; it != serverBlock.mIndexs.end(); ++it)
-    {
-        os << *it << " ";
-    }
-    os << std::endl;
-
-    os << "errorPages : ";
-    std::map<int, std::string>::const_iterator it2 = serverBlock.mErrorPages.begin();
-    for (; it2 != serverBlock.mErrorPages.end(); ++it2)
-    {
-        os << it2->first << " ";
-        os << it2->second << " ";
-    }
-    os << std::endl;
-
-    os << "clientMaxBodySize : " << serverBlock.mClientMaxBodySize << std::endl;
-
-    os << "port : " << serverBlock.mPort << std::endl;
-    os << "serverName : " << serverBlock.mServerName << std::endl;
-    os << "redirectionPath : " << serverBlock.mRedirectionPath << std::endl;
-
-    return os;
-}

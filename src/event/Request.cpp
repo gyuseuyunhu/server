@@ -214,7 +214,6 @@ void Request::parseBody(std::string &buffer)
         mStatus = OK;
         mRequestLine = FINISH;
     }
-    // ContentLength보다 더 많이 들어왔을 때
     else if (mBody.size() > mContentLength)
     {
         mStatus = BAD_REQUEST;

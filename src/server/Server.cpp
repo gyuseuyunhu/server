@@ -28,21 +28,20 @@ void Server::listen()
     int yes = 1;
     if (setsockopt(mSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
     {
-        assert(false);
+        throw std::runtime_error("Error Server::Server(): setsockopt() 실패");
     }
 
     fcntl(mSocket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
-    // 서버 주소 설정
+
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(mPort);
 
-    // 서버 소켓에 주소 바인딩
     if (bind(mSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
     {
         throw std::runtime_error("Error Server::listen(): 포트 bind 실패");
     }
-    // 클라이언트 연결 대기
+
     if (::listen(mSocket, 1000) == -1)
     {
         throw std::runtime_error("Error Server::listen(): listen 실패");
@@ -100,23 +99,6 @@ const LocationBlock Server::getLocationBlockForRequest(const std::string &host, 
         }
     }
     return LocationBlock(targetServerInfo.getServerBlock());
-}
-
-// Debugging TODO - 추후 삭제
-std::ostream &operator<<(std::ostream &os, const Server &serverb)
-{
-    os << "[Server] mSocket : " << serverb.mSocket << std::endl;
-    os << "[Server] mPort : " << serverb.mPort << std::endl;
-
-    std::vector<ServerInfo>::const_iterator it = serverb.mServerInfos.begin();
-
-    os << "[Server] mServerInfosDivPort : " << std::endl;
-    for (; it != serverb.mServerInfos.end(); ++it)
-    {
-        os << *it << " ";
-    }
-    os << std::endl;
-    return os;
 }
 
 const std::vector<ServerInfo> &Server::getServerInfos() const

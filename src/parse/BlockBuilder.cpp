@@ -230,10 +230,6 @@ void BlockBuilder::updateConfig(const std::string &key, const std::string &value
     {
         mCgiUploadDir = value;
     }
-    else
-    {
-        assert(false);
-    }
 }
 
 void BlockBuilder::resetServerBlockConfig(const HttpBlock &httpBlock)

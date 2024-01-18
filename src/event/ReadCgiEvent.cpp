@@ -66,12 +66,10 @@ void ReadCgiEvent::handle()
             }
             if (mIsError == false)
             {
-                // \r\n\r\n 삭제
                 mStringBuffer.erase(0, pos + 2);
             }
         }
-        // cgi가 보내준 것 분석했는데 startLine이 없는경우
-        // 500 에러 처리
+
         if (mIsError == true || mResponse.getStartLine().empty())
         {
             const std::string &errorPage = HttpStatusInfos::getHttpErrorPage(500);

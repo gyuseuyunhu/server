@@ -19,7 +19,6 @@ class ServerBlock : public HttpBlock
     unsigned int getPort() const;
     const std::string &getServerName() const;
     const std::string &getRedirectionPath() const;
-    friend std::ostream &operator<<(std::ostream &os, const ServerBlock &serverBlock);
 };
 
 #endif

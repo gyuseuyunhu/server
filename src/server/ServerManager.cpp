@@ -1,18 +1,6 @@
 #include "ServerManager.hpp"
 #include "Kqueue.hpp"
 
-// 서버 매니저의 역할
-// 서버를 생성
-// kqueue 언제 listenSocket을 넣어줄지
-
-// 서버 매니저 생성자에서 서버를 생성하는데 동일 포트면 소켓을 열지 않고
-// 서버
-// 에러 체크도 해줘 -> 같은 포트에 같은 서버이름이면 중복에러
-
-// run에서 해줄지
-
-// Kevent::handleEvents() 호출
-
 ServerManager::ServerManager(const std::vector<ServerInfo> &serverInfos)
 {
     for (size_t i = 0; i < serverInfos.size(); ++i)
@@ -27,7 +15,6 @@ ServerManager::ServerManager(const std::vector<ServerInfo> &serverInfos)
     Kqueue::pushAcceptEvent();
 }
 
-// 포트 번호 체크 및 결과값 반환
 void ServerManager::pushServerInfo(const ServerInfo &serverInfo)
 {
     unsigned int checkPort = serverInfo.getServerBlock().getPort();

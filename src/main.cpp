@@ -15,10 +15,11 @@ int main(int ac, char **argv, char **envp)
     try
     {
         signal(SIGCHLD, SIG_IGN);
-        Parse a(ac == 2 ? argv[1] : "www/a.conf");
+        Parse parse(ac == 2 ? argv[1] : "www/a.conf");
         HttpStatusInfos::initHttpStatusInfos(envp);
-        Config::createInstance(a.getHttpStr(), a.getServerInfoStrs());
+        Config::createInstance(parse.getHttpStr(), parse.getServerInfoStrs());
         ServerManager sm(Config::getServerInfos());
+        Config::deleteInstance();
         sm.run();
     }
     catch (std::exception &e)

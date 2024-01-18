@@ -14,7 +14,5 @@ class ServerInfo
     ServerInfo(const ServerBlock &serverBlock, const std::vector<LocationBlock> &locationBlocks);
     const ServerBlock &getServerBlock() const;
     const std::vector<LocationBlock> &getLocationBlocks() const;
-
-    friend std::ostream &operator<<(std::ostream &os, const ServerInfo &serverInfo);
 };
 #endif

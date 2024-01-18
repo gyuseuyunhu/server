@@ -46,30 +46,3 @@ unsigned int HttpBlock::getClientMaxBodySize() const
 {
     return mClientMaxBodySize;
 }
-
-std::ostream &operator<<(std::ostream &os, const HttpBlock &httpBlock)
-{
-    os << "root : " << httpBlock.mRoot << std::endl;
-
-    std::vector<std::string>::const_iterator it = httpBlock.mIndexs.begin();
-
-    os << "index : ";
-    for (; it != httpBlock.mIndexs.end(); ++it)
-    {
-        os << *it << " ";
-    }
-    os << std::endl;
-
-    os << "errorPages : ";
-    std::map<int, std::string>::const_iterator it2 = httpBlock.mErrorPages.begin();
-    for (; it2 != httpBlock.mErrorPages.end(); ++it2)
-    {
-        os << it2->first << " ";
-        os << it2->second << " ";
-    }
-    os << std::endl;
-
-    os << "clientMaxBodySize : " << httpBlock.mClientMaxBodySize << std::endl;
-
-    return os;
-}
