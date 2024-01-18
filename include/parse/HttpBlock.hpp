@@ -24,8 +24,6 @@ class HttpBlock
     const std::vector<std::string> &getIndexs() const;
     const std::map<int, std::string> &getErrorPages() const;
     unsigned int getClientMaxBodySize() const;
-    // todo : friend 없애야함
-    friend std::ostream &operator<<(std::ostream &os, const HttpBlock &httpBlock);
 };
 
 #endif

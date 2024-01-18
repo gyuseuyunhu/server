@@ -7,7 +7,6 @@
 #include "ServerBlock.hpp"
 #include "ServerInfo.hpp"
 #include "ServerInfoStr.hpp"
-#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -27,7 +26,7 @@ class Config
   public:
     static void createInstance(const std::string &httpString, const std::vector<ServerInfoStr> &serverInfoStrs);
     static const Config &getInstance();
-    static void deleteInstance(); // 새로운 config를 만들고 싶을때?
+    static void deleteInstance();
     static const std::vector<ServerInfo> &getServerInfos();
 };
 #endif

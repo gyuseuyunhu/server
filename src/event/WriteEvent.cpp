@@ -2,7 +2,6 @@
 #include "Kqueue.hpp"
 #include "ReadRequestEvent.hpp"
 
-// mResponseSize(response.toStr().size()) 로 한 이유는 소켓에 write() 할 string의 길이가 필요하기 때문
 WriteEvent::WriteEvent(const Server &server, const Response &response, int clientSocket)
     : AEvent(server, response, clientSocket), mMessage(response.toStr()), mWriteSize(0),
       mResponseSize(response.toStr().size())

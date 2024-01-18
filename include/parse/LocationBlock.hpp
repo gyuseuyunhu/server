@@ -30,7 +30,6 @@ class LocationBlock : public ServerBlock
     const std::string &getCgiPath() const;
     const std::string &getCgiExtension() const;
     const std::string &getCgiUploadDir() const;
-    friend std::ostream &operator<<(std::ostream &os, const LocationBlock &locationBlock);
 };
 
 #endif

@@ -12,7 +12,6 @@ class WriteEvent : public AEvent
     int mResponseSize;
 
   public:
-    // WriteEvent(const Server &server, int clientSocket, std::string message, int status);
     WriteEvent(const Server &server, const Response &response, int clientSocket);
     virtual ~WriteEvent();
     virtual void handle();
