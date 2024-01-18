@@ -10,7 +10,7 @@ const std::string BlockBuilder::DEFAULT_SERVER_NAME = "";
 BlockBuilder::BlockBuilder()
     : mRoot(DEFAULT_ROOT), mClientMaxBodySize(E_DEFAULT_CLIENT_BODY_SIZE), mPort(E_DEFAULT_LISTEN_PORT),
       mServerName(DEFAULT_SERVER_NAME), mIsAutoIndex(false), mIsAllowedGet(true), mIsAllowedPost(true),
-      mIsAllowedDelete(true), mCgiUploadDir("/")
+      mIsAllowedDelete(false), mCgiUploadDir("/")
 {
 }
 
@@ -256,7 +256,7 @@ void BlockBuilder::resetLocationBlockConfig(const ServerBlock &serverBlock)
     mIsAutoIndex = false;
     mIsAllowedGet = true;
     mIsAllowedPost = true;
-    mIsAllowedDelete = true;
+    mIsAllowedDelete = false;
     mCgiUploadDir = "/";
     mErrorCodes.clear();
 }

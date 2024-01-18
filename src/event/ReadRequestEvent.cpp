@@ -205,11 +205,20 @@ void ReadRequestEvent::makeReadFileEvent(int fd)
     {
         mResponse.setConnectionClose();
     }
-    AEvent *event = new ReadFileEvent(mServer, mResponse, mClientSocket, fd, mFileSize);
-    EV_SET(&newEvent, fd, EVFILT_READ, EV_ADD, 0, 0, event);
-    Kqueue::addEvent(newEvent);
-    EV_SET(&newEvent, fd, EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
-    Kqueue::addEvent(newEvent);
+    if (mFileSize == 0)
+    {
+        close(fd);
+        EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
+        Kqueue::addEvent(newEvent);
+    }
+    else
+    {
+        AEvent *event = new ReadFileEvent(mServer, mResponse, mClientSocket, fd, mFileSize);
+        EV_SET(&newEvent, fd, EVFILT_READ, EV_ADD, 0, 0, event);
+        Kqueue::addEvent(newEvent);
+        EV_SET(&newEvent, fd, EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
+        Kqueue::addEvent(newEvent);
+    }
 }
 
 void ReadRequestEvent::makeResponse(const LocationBlock &lb, int &status)
