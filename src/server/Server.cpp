@@ -89,10 +89,11 @@ const LocationBlock Server::getLocationBlockForRequest(const std::string &host, 
     std::vector<LocationBlock>::const_iterator locIt = targetServerInfo.getLocationBlocks().begin();
     for (; locIt != targetServerInfo.getLocationBlocks().end(); ++locIt)
     {
-        if (path.find(locIt->getLocationPath()) == 0)
+        const std::string &locPath = locIt->getLocationPath();
+        if (path.find(locPath) == 0)
         {
-            if (locIt->getLocationPath().size() == 1 || locIt->getLocationPath().size() == path.size() ||
-                path[locIt->getLocationPath().size()] == '/')
+            if (locPath.size() == 1 || locPath == path || path[locPath.size() - 1] == '/' ||
+                path[locPath.size()] == '/')
             {
                 return *locIt;
             }
