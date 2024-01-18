@@ -73,6 +73,87 @@ def print_html_head():
 							<head>
 								<meta charset="UTF-8"/>
 								<title>파일 저장소</title>
+        <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            padding: 20px;
+            background-color: #fff;
+            margin: 0;
+        }
+
+        form {
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-size: 18px;
+            color: #333;
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input[type="submit"] {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 20px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        div {
+            background-color: #fff;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        a {
+            font-size: 16px;
+            color: #333;
+            text-decoration: none;
+        }
+
+        form[id^="deleteForm"] {
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        form[id^="deleteForm"] input[type="submit"] {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+    </style>
 							</head>
 							<body>
 								<h1>파일 저장소</h1>

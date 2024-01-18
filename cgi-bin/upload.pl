@@ -81,7 +81,7 @@ print <<HTML;
         top: 30%;
         width: 100%;
       }
-      @media screen and (max-width: 600px) {
+      \@media screen and (max-width: 600px) {
         .title {
           font-family: "Stylish", sans-serif;
           font-size: 35px;

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Upper</title>
+    <style>
+        * {
+            font-family: monospace; /* 터미널과 비슷한 폰트 설정 */
+        }
+
+        h1 {
+            font-size: 50px;
+            font-weight: bold;
+            color: #00ff00;
+            text-align: center; /* 텍스트 가운데 정렬 */
+            margin-top: 100px; /* 상단 여백 추가 */
+						display: inline;
+        }
+
+        form {
+					 	margin-top: 100px;
+						margin-left: 30px;
+						width: 300px;
+						display: inline;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            text-align: center;
+            color: #ffffff; /* 텍스트 색상 설정 */
+        }
+
+        input[type="text"] {
+            width: 300px;
+            height: 30px;
+            font-size: 20px;
+            padding: 5px;
+        }
+
+        input[type="submit"] {
+            width: 100px;
+            height: 40px;
+            font-size: 20px;
+            padding: 5px;
+        }
+
+        span.result {
+            display: block;
+            margin-top: 20px; /* 결과 텍스트와 상단 간격 추가 */
+            font-size: 160px; /* 결과 텍스트 크기 키우기 */
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>./megaphone</h1>
+    <form class="report" method="post">
+        <input type="text" name="text" placeholder="argv" value="shhhhh... I think the students are asleep...">
+        <input type="submit" value="실행">
+    </form>
+    <div>
+        <span class="result"></span>
+		</div>
+	<script>
+		document.querySelector('form').addEventListener('submit', (event) => {
+			event.preventDefault();
+			megaphone();
+		});
+
+		function megaphone() {
+			fetch('/directory/youpi.bla', {
+				method: 'POST',
+				headers: {
+            'Content-Type': 'text/plain'
+        },
+				body: document.querySelector('input[name="text"]').value
+			}).then(function(response) {
+				console.log(response);
+				return response.text();
+			}).then(function(text) {
+				console.log(text);
+				document.querySelector('.result').innerHTML = text;
+			});
+		};
+
+		</script>
+	</body>
+</html>
