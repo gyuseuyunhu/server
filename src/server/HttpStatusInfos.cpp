@@ -23,17 +23,17 @@ void HttpStatusInfos::initHttpStatusInfos(char **envp)
 void HttpStatusInfos::initMimeType()
 {
     // Text types
-    mMimeType[".html"] = "text/html";
+    mMimeType[".html"] = "text/html; charset=UTF-8";
     mMimeType[".png"] = "image/png";
     mMimeType[".ico"] = "image/x-icon";
 
-    mMimeType[".txt"] = "text/plain";
-    mMimeType[".htm"] = "text/html";
-    mMimeType[".shtml"] = "text/html";
-    mMimeType[".json"] = "application/json";
-    mMimeType[".css"] = "text/css";
+    mMimeType[".txt"] = "text/plain; charset=UTF-8";
+    mMimeType[".htm"] = "text/html; charset=UTF-8";
+    mMimeType[".shtml"] = "text/html; charset=UTF-8";
+    mMimeType[".json"] = "application/json; charset=UTF-8";
+    mMimeType[".css"] = "text/css; charset=UTF-8";
 
-    mMimeType[".xml"] = "text/xml";
+    mMimeType[".xml"] = "text/xml; charset=UTF-8";
     mMimeType[".mml"] = "text/mathml";
     mMimeType[".jad"] = "text/vnd.sun.j2me.app-descriptor";
     mMimeType[".wml"] = "text/vnd.wap.wml";
@@ -58,7 +58,7 @@ void HttpStatusInfos::initMimeType()
     mMimeType[".woff2"] = "font/woff2";
 
     // Application types
-    mMimeType[".js"] = "application/javascript";
+    mMimeType[".js"] = "application/javascript; charset=UTF-8";
 }
 
 void HttpStatusInfos::initHttpStatusReasons()
