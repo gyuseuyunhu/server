@@ -12,7 +12,7 @@ class ReadCgiEvent : public AEvent
 
   public:
     ReadCgiEvent(const Server &server, int clientSocket, int fd);
-    bool setReponse(const std::string &line);
+    bool setResponse(const std::string &line);
     virtual void handle();
     virtual void timer();
 };
