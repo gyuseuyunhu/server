@@ -10,7 +10,7 @@ ReadCgiEvent::ReadCgiEvent(const Server &server, int clientSocket, int fd)
 {
 }
 
-bool ReadCgiEvent::setReponse(const std::string &line)
+bool ReadCgiEvent::setResponse(const std::string &line)
 {
     std::string headerKey;
     std::string headerVal;
@@ -51,7 +51,7 @@ void ReadCgiEvent::handle()
         {
             while (pos != 0)
             {
-                if (setReponse(mStringBuffer.substr(0, pos)) == false)
+                if (setResponse(mStringBuffer.substr(0, pos)) == false)
                 {
                     mIsError = true;
                     break;
