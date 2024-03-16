@@ -175,7 +175,6 @@ int ReadRequestEvent::getRequestFd(const LocationBlock &lb, int &status)
 
 void ReadRequestEvent::makeWriteEvent(int &status)
 {
-    struct kevent newEvent;
     std::string responseBody;
     if (status != OK)
     {
@@ -192,15 +191,13 @@ void ReadRequestEvent::makeWriteEvent(int &status)
         mResponse.setConnectionClose();
     }
     mResponse.setBody(responseBody);
-    EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
-    Kqueue::addEvent(newEvent);
+    Kqueue::addEvent(new WriteEvent(mServer, mResponse, mClientSocket), EVFILT_WRITE);
 }
 
 void ReadRequestEvent::makeReadFileEvent(int fd)
 {
-    struct kevent newEvent;
-
     mResponse.addHead("Content-length", mFileSize);
+    std::cout << mRequest.getPath() << " " << mFileSize << std::endl;
     if (mRequest.getConnectionStatus() == CONNECTION_CLOSE)
     {
         mResponse.setConnectionClose();
@@ -208,16 +205,13 @@ void ReadRequestEvent::makeReadFileEvent(int fd)
     if (mFileSize == 0)
     {
         close(fd);
-        EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
-        Kqueue::addEvent(newEvent);
+        Kqueue::addEvent(new WriteEvent(mServer, mResponse, mClientSocket), EVFILT_WRITE);
     }
     else
     {
         AEvent *event = new ReadFileEvent(mServer, mResponse, mClientSocket, fd, mFileSize);
-        EV_SET(&newEvent, fd, EVFILT_READ, EV_ADD, 0, 0, event);
-        Kqueue::addEvent(newEvent);
-        EV_SET(&newEvent, fd, EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
-        Kqueue::addEvent(newEvent);
+        Kqueue::addEvent(event, EVFILT_READ);
+        Kqueue::addEvent(event, EVFILT_TIMER);
     }
 }
 
@@ -395,28 +389,24 @@ void ReadRequestEvent::makeCgiEvent(const LocationBlock &lb)
         fcntl(fd[SERVER_READ], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
         fcntl(fd[SERVER_WRITE], F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 
-        struct kevent newEvent;
         AEvent *event = new WriteCgiEvent(mServer, mClientSocket, fd[SERVER_WRITE], mRequest.getBody());
-        EV_SET(&newEvent, fd[SERVER_WRITE], EVFILT_WRITE, EV_ADD, 0, 0, event);
-        Kqueue::addEvent(newEvent);
-        EV_SET(&newEvent, fd[SERVER_WRITE], EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
-        Kqueue::addEvent(newEvent);
+        Kqueue::addEvent(event, EVFILT_WRITE);
+        Kqueue::addEvent(event, EVFILT_TIMER);
 
         event = new ReadCgiEvent(mServer, mClientSocket, fd[SERVER_READ]);
-        EV_SET(&newEvent, fd[SERVER_READ], EVFILT_READ, EV_ADD, 0, 0, event);
-        Kqueue::addEvent(newEvent);
-        EV_SET(&newEvent, fd[SERVER_READ], EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
-        Kqueue::addEvent(newEvent);
+        Kqueue::addEvent(event, EVFILT_READ);
+        Kqueue::addEvent(event, EVFILT_TIMER);
     }
 }
 
 void ReadRequestEvent::handle()
 {
+    std::cout << "ReadRequestEvent::handle()" << std::endl;
     char buffer[BUFFER_SIZE];
     int n = read(mClientSocket, buffer, BUFFER_SIZE);
     if (n <= 0)
     {
-        Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
+        Kqueue::deleteEvent(this, EVFILT_TIMER);
         close(mClientSocket);
         delete this;
         return;
@@ -427,6 +417,7 @@ void ReadRequestEvent::handle()
     {
         return;
     }
+    std::cout << "ReadRequestEvent::handle() method: " << mRequest.getPath() << std::endl;
     int status = mRequest.getStatus();
     const LocationBlock &lb = mServer.getLocationBlockForRequest(mRequest.getHost(), mRequest.getPath());
     if (status != BAD_REQUEST)
@@ -437,21 +428,26 @@ void ReadRequestEvent::handle()
     if (status == OK && checkCgiEvent(lb, status))
     {
         makeCgiEvent(lb);
-        Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
-        Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
+        Kqueue::deleteEvent(this, EVFILT_READ);
+        Kqueue::deleteEvent(this, EVFILT_TIMER);
         delete this;
         return;
     }
 
     makeResponse(lb, status);
-    Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
-    Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
+    Kqueue::deleteEvent(this, EVFILT_READ);
+    Kqueue::deleteEvent(this, EVFILT_TIMER);
     delete this;
 }
 
 void ReadRequestEvent::timer()
 {
-    Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
+    Kqueue::deleteEvent(this, EVFILT_TIMER);
     close(mClientSocket);
     delete this;
+}
+
+int ReadRequestEvent::getFd() const
+{
+    return mClientSocket;
 }

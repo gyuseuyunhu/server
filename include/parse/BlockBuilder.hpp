@@ -7,6 +7,7 @@
 #include "LocationDirective.hpp"
 #include "ServerBlock.hpp"
 #include "ServerDirective.hpp"
+#include <cstdlib>
 #include <map>
 #include <string>
 #include <vector>

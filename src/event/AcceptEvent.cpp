@@ -13,7 +13,7 @@ AcceptEvent::~AcceptEvent()
 
 void AcceptEvent::handle()
 {
-    struct kevent newEvent;
+    std::cout << "AcceptEvent::handle()" << std::endl;
     struct sockaddr_in clientAddr;
     socklen_t clientAddrSize = sizeof(clientAddr);
     int clientSocket = accept(mServer.getSocket(), (struct sockaddr *)&clientAddr, &clientAddrSize);
@@ -25,8 +25,11 @@ void AcceptEvent::handle()
     fcntl(clientSocket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 
     AEvent *event = new ReadRequestEvent(mServer, clientSocket);
-    EV_SET(&newEvent, clientSocket, EVFILT_READ, EV_ADD, 0, 0, event);
-    Kqueue::addEvent(newEvent);
-    EV_SET(&newEvent, clientSocket, EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
-    Kqueue::addEvent(newEvent);
+    Kqueue::addEvent(event, EVFILT_READ);
+    Kqueue::addEvent(event, EVFILT_TIMER);
+}
+
+int AcceptEvent::getFd() const
+{
+    return mServer.getSocket();
 }

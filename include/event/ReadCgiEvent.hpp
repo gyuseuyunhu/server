@@ -15,6 +15,7 @@ class ReadCgiEvent : public AEvent
     bool setResponse(const std::string &line);
     virtual void handle();
     virtual void timer();
+    virtual int getFd() const;
 };
 
 #endif

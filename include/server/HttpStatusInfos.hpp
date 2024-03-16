@@ -2,6 +2,7 @@
 #define HTTPSTATUSINFOS_HPP
 
 #define CRLF "\r\n"
+#include <cstring>
 #include <map>
 #include <string>
 #include <vector>

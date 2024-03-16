@@ -43,6 +43,7 @@ class ReadRequestEvent : public AEvent
     virtual ~ReadRequestEvent();
     virtual void handle();
     virtual void timer();
+    virtual int getFd() const;
 };
 
 #endif

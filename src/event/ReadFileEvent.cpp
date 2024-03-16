@@ -2,7 +2,6 @@
 #include "HttpStatusInfos.hpp"
 #include "Kqueue.hpp"
 #include "WriteEvent.hpp"
-#include <sys/event.h>
 #include <unistd.h>
 
 ReadFileEvent::ReadFileEvent(const Server &server, const Response &response, int clientSocket, int fileFd, int fileSize)
@@ -15,11 +14,12 @@ ReadFileEvent::~ReadFileEvent()
 
 void ReadFileEvent::handle()
 {
+    std::cout << "ReadFileEvent::handle()" << std::endl;
     int n = read(mFileFd, mBuffer, BUFFER_SIZE);
 
     if (n < 0)
     {
-        Kqueue::deleteEvent(mFileFd, EVFILT_TIMER);
+        Kqueue::deleteEvent(this, EVFILT_TIMER);
         close(mFileFd);
         delete this;
         return;
@@ -28,13 +28,10 @@ void ReadFileEvent::handle()
     mBody.append(mBuffer, n);
     if (mReadSize == mFileSize)
     {
-        Kqueue::deleteEvent(mFileFd, EVFILT_TIMER);
+        Kqueue::deleteEvent(this, EVFILT_TIMER);
         close(mFileFd);
         mResponse.setBody(mBody);
-
-        struct kevent newEvent;
-        EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
-        Kqueue::addEvent(newEvent);
+        Kqueue::addEvent(new WriteEvent(mServer, mResponse, mClientSocket), EVFILT_WRITE);
         delete this;
     }
 }
@@ -46,11 +43,14 @@ void ReadFileEvent::timer()
     mResponse.addHead("Content-type", "text/html");
     mResponse.addHead("Content-Length", errorPage.size());
     mResponse.setBody(errorPage);
-    struct kevent newEvent;
-    EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
-    Kqueue::addEvent(newEvent);
+    Kqueue::addEvent(new WriteEvent(mServer, mResponse, mClientSocket), EVFILT_WRITE);
 
-    Kqueue::deleteEvent(mFileFd, EVFILT_TIMER);
+    Kqueue::deleteEvent(this, EVFILT_TIMER);
     close(mFileFd);
     delete this;
+}
+
+int ReadFileEvent::getFd() const
+{
+    return mFileFd;
 }

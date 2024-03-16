@@ -38,7 +38,7 @@ void ReadCgiEvent::handle()
     int n = read(mFd, mBuffer, BUFFER_SIZE);
     if (n < 0)
     {
-        Kqueue::deleteEvent(mFd, EVFILT_TIMER);
+        Kqueue::deleteEvent(this, EVFILT_TIMER);
         close(mFd);
         delete this;
         return;
@@ -83,10 +83,8 @@ void ReadCgiEvent::handle()
             mResponse.addHead("Content-Length", mStringBuffer.size());
             mResponse.setBody(mStringBuffer);
         }
-        struct kevent newEvent;
-        EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
-        Kqueue::addEvent(newEvent);
-        Kqueue::deleteEvent(mFd, EVFILT_TIMER);
+        Kqueue::addEvent(new WriteEvent(mServer, mResponse, mClientSocket), EVFILT_WRITE);
+        Kqueue::deleteEvent(this, EVFILT_TIMER);
         close(mFd);
 
         delete this;
@@ -100,11 +98,14 @@ void ReadCgiEvent::timer()
     mResponse.addHead("Content-type", "text/html");
     mResponse.addHead("Content-Length", errorPage.size());
     mResponse.setBody(errorPage);
-    struct kevent newEvent;
-    EV_SET(&newEvent, mClientSocket, EVFILT_WRITE, EV_ADD, 0, 0, new WriteEvent(mServer, mResponse, mClientSocket));
-    Kqueue::addEvent(newEvent);
+    Kqueue::addEvent(new WriteEvent(mServer, mResponse, mClientSocket), EVFILT_WRITE);
 
-    Kqueue::deleteEvent(mFd, EVFILT_TIMER);
+    Kqueue::deleteEvent(this, EVFILT_TIMER);
     close(mFd);
     delete this;
+}
+
+int ReadCgiEvent::getFd() const
+{
+    return mFd;
 }

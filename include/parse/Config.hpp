@@ -7,6 +7,7 @@
 #include "ServerBlock.hpp"
 #include "ServerInfo.hpp"
 #include "ServerInfoStr.hpp"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <map>

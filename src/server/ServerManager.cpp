@@ -12,7 +12,6 @@ ServerManager::ServerManager(const std::vector<ServerInfo> &serverInfos)
     {
         mServers[i].listen();
     }
-    Kqueue::pushAcceptEvent();
 }
 
 void ServerManager::pushServerInfo(const ServerInfo &serverInfo)

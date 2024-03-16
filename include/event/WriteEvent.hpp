@@ -15,6 +15,7 @@ class WriteEvent : public AEvent
     WriteEvent(const Server &server, const Response &response, int clientSocket);
     virtual ~WriteEvent();
     virtual void handle();
+    virtual int getFd() const;
 };
 
 #endif

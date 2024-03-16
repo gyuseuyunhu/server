@@ -1,5 +1,6 @@
 #include "Parse.hpp"
 #include "util.hpp"
+#include <cstring>
 
 void Parse::skipBeforeHttp(std::string &line)
 {

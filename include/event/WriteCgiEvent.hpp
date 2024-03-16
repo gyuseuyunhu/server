@@ -18,6 +18,7 @@ class WriteCgiEvent : public AEvent
     virtual ~WriteCgiEvent();
     virtual void handle();
     virtual void timer();
+    virtual int getFd() const;
 };
 
 #endif

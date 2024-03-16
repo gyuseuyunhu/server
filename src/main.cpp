@@ -5,6 +5,7 @@
 #include "Parse.hpp"
 #include "Server.hpp"
 #include "ServerManager.hpp"
+#include <csignal>
 
 int main(int ac, char **argv, char **envp)
 {
@@ -15,7 +16,7 @@ int main(int ac, char **argv, char **envp)
     try
     {
         signal(SIGCHLD, SIG_IGN);
-        Parse parse(ac == 2 ? argv[1] : "www/a.conf");
+        Parse parse(ac == 2 ? argv[1] : "www/default.conf");
         HttpStatusInfos::initHttpStatusInfos(envp);
         Config::createInstance(parse.getHttpStr(), parse.getServerInfoStrs());
         ServerManager sm(Config::getServerInfos());

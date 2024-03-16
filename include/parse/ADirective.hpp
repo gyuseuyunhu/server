@@ -1,8 +1,11 @@
 #ifndef ADIRECTIVE_HPP
 #define ADIRECTIVE_HPP
 
+#include <limits>
 #include <map>
+#include <stdexcept>
 #include <string>
+
 class ADirective
 {
   protected:

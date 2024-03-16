@@ -17,6 +17,7 @@ class ReadFileEvent : public AEvent
     virtual ~ReadFileEvent();
     virtual void handle();
     virtual void timer();
+    virtual int getFd() const;
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include "HttpEnum.hpp"
 #include "Server.hpp"
 #include <cstdlib>
+#include <cstring>
 #include <map>
 #include <string>
 
@@ -75,7 +76,6 @@ class Request
     Request();
     ~Request();
     bool tryParse(std::string &buffer);
-
 
     char **getCgiEnvp(const LocationBlock &lb) const;
     void delCgiEnvp(char **cgiEnvp);

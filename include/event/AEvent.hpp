@@ -1,6 +1,8 @@
 #ifndef AEVENT_HPP
 #define AEVENT_HPP
 
+#include <cstdio>
+
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Server.hpp"
@@ -11,7 +13,6 @@ class AEvent
     enum
     {
         BUFFER_SIZE = 65536,
-        TIMEOUT_SECONDS = 30,
     };
     const Server &mServer;
     Response mResponse;
@@ -24,6 +25,7 @@ class AEvent
     virtual ~AEvent();
     virtual void handle() = 0;
     virtual void timer();
+    virtual int getFd() const = 0;
 };
 
 #endif

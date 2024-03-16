@@ -34,14 +34,16 @@ void WriteEvent::handle()
             delete this;
             return;
         }
-        Kqueue::deleteEvent(mClientSocket, EVFILT_WRITE);
-        struct kevent newEvent;
+        Kqueue::deleteEvent(this, EVFILT_WRITE);
         AEvent *event = new ReadRequestEvent(mServer, mClientSocket);
-        EV_SET(&newEvent, mClientSocket, EVFILT_READ, EV_ADD, 0, 0, event);
-        Kqueue::addEvent(newEvent);
-        EV_SET(&newEvent, mClientSocket, EVFILT_TIMER, EV_ADD, NOTE_SECONDS, TIMEOUT_SECONDS, event);
-        Kqueue::addEvent(newEvent);
+        Kqueue::addEvent(event, EVFILT_READ);
+        Kqueue::addEvent(event, EVFILT_TIMER);
         delete this;
         return;
     }
+}
+
+int WriteEvent::getFd() const
+{
+    return mClientSocket;
 }

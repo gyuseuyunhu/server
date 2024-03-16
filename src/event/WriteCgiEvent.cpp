@@ -16,7 +16,7 @@ void WriteCgiEvent::handle()
     int n = write(mFd, mMessage.c_str() + mWriteSize, mMessage.size() - mWriteSize);
     if (n == -1)
     {
-        Kqueue::deleteEvent(mFd, EVFILT_TIMER);
+        Kqueue::deleteEvent(this, EVFILT_TIMER);
         close(mFd);
         perror("write fail");
         delete this;
@@ -26,7 +26,7 @@ void WriteCgiEvent::handle()
     mWriteSize += n;
     if (mWriteSize == mFileSize)
     {
-        Kqueue::deleteEvent(mFd, EVFILT_TIMER);
+        Kqueue::deleteEvent(this, EVFILT_TIMER);
         close(mFd);
         delete this;
         return;
@@ -35,7 +35,12 @@ void WriteCgiEvent::handle()
 
 void WriteCgiEvent::timer()
 {
-    Kqueue::deleteEvent(mFd, EVFILT_TIMER);
+    Kqueue::deleteEvent(this, EVFILT_TIMER);
     close(mFd);
     delete this;
+}
+
+int WriteCgiEvent::getFd() const
+{
+    return mFd;
 }

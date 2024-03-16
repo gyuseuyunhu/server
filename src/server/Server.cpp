@@ -46,10 +46,7 @@ void Server::listen()
     {
         throw std::runtime_error("Error Server::listen(): listen 실패");
     }
-
-    struct kevent newEvent;
-    EV_SET(&newEvent, mSocket, EVFILT_READ, EV_ADD, 0, 0, new AcceptEvent(*this));
-    Kqueue::addEvent(newEvent);
+    Kqueue::addEvent(new AcceptEvent(*this), EVFILT_READ);
 }
 
 int Server::getSocket() const
