@@ -36,3 +36,8 @@ make
 export WEBSERV_ROOT=$PWD
 ./webserv [Config File]
 ```
+
+## Flow
+<img width="1052" alt="flow" src="https://github.com/gyuseuyunhu/server/assets/114281631/50c9bbc0-903e-4e12-a969-29f1a98b8d3d">
+
+
