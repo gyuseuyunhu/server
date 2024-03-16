@@ -41,3 +41,18 @@ export WEBSERV_ROOT=$PWD
 <img width="1052" alt="flow" src="https://github.com/gyuseuyunhu/server/assets/114281631/50c9bbc0-903e-4e12-a969-29f1a98b8d3d">
 
 
+## Detail
+### 설정 파일
+#### 가상 호스팅
+- 하나의 웹서버에서 여러 도메인 이름을 호스팅하는 방법입니다.
+- 크게 이름 기반(name-based), IP 기반(IP-based) 가상 호스팅으로 나뉩니다.
+- 이름 기반 가상 호스팅은 동일한 IP 주소에 대해 여러 호스트 이름을 사용하며, 더 구체적으로 말하면 HTTP/1.1에서 필수인 Host HTTP 헤더를 설정해서 사용하는것을 의미합니다.
+- IP 기반 가상 호스팅은 각 웹사이트마다 다른 IP 주소 또는 Port를 가지는 방식입니다.
+- 이 프로젝트의 경우 이름 기반 가상 호스팅을 사용했으며, nginx랑 유사하게 서버블록 내의 server_name을 다르게 함으로써 작동합니다.
+
+
+
+
+## 참고자료
+- [가상 호스팅](https://en.wikipedia.org/wiki/Virtual_hosting)
+
