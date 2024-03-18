@@ -61,15 +61,50 @@ export WEBSERV_ROOT=$PWD
 - 크게 이름 기반(name-based), IP 기반(IP-based) 가상 호스팅으로 나뉩니다.
 - 이름 기반 가상 호스팅에서는 동일한 IP 주소에 대해 여러 호스트 이름을 사용할 수 있고, 클라이언트는 요청메세지에 Host 헤더를 명시해야 합니다.
 - IP 기반 가상 호스팅은 각 웹사이트마다 다른 IP 주소 또는 Port를 가지는 방식입니다.
-- 이 프로젝트는 이름 기반 가상 호스팅을 지원하며, nginx랑 유사하게 서버블록 내의 server_name을 다르게 함으로써 작동합니다.
+- 이 프로젝트는 이름 기반 가상 호스팅을 지원하며, nginx랑 유사하게 server block 내의 server_name을 다르게 함으로써 작동합니다.
 #### URI 매칭 및 처리
-- URI 요청 수신: 요청이 들어오면 이름 기반 호스팅에 따라 적절한 서버 블록(server block)을 찾습니다.
-- location block 매칭: 요청된 URI와 부분 일치되는 서버 블록 내의 location block URI를 찾습니다.
+- URI 요청 수신: 요청이 들어오면 이름 기반 호스팅에 따라 적절한 server block을 찾습니다.
+- location block 매칭: 요청된 URI와 부분 일치되는 server block 내의 location block URI를 찾습니다.
 - URI 처리: 찾은 location block의 지시어에 따라 요청된 URI를 처리합니다.
 - 301 redirection 처리: 특정 조건에 따라 요청된 URI에 대해 301 redirection을 처리할 수 있습니다. 1. return 지시어가 있는 경우 2. 같은 URI에 대한 요청이 '/' 없이 들어온 경우, '/'가 추가된 URI로 처리됩니다.
-- 기본 서버 블록 처리: 적절한 서버 블록을 찾지 못한 경우 첫 번째 서버 블록으로 처리됩니다.
-- 기본 location block 처리: 적절한 location block을 찾지 못한 경우 해당 서버 블록의 지시어에 따라 처리됩니다.
-- 정규식 지원: 정규식을 사용한 URI 매칭을 지원하지 않습니다.
+- 기본 server block 처리: 적절한 server block을 찾지 못한 경우 첫 번째 server block으로 처리됩니다.
+- 기본 location block 처리: 적절한 location block을 찾지 못한 경우 해당 server block의 지시어에 따라 처리됩니다.
+- 정규식 지원 여부: 정규식을 사용한 URI 매칭을 지원하지 않습니다.
+#### 지시어(directive)
+구성파일 내에 다음의 지시어들을 지원합니다.
+- listen: 서버가 클라이언트의 요청을 수신할 포트 번호를 지정합니다. 예: listen 80;
+- server_name: 서버의 도메인 이름을 지정합니다. 예: server_name example.com;
+- root: nginx의 root보다는 alias에 가깝습니다. 대체할 경로를 지정합니다.
+- 예: location /i/ { root /data/w3/images/; } 인 경우 “/i/top. gif”는 "/data/w3/images/top. gif"가 됩니다.
+- index: 서버에 요청이 들어왔을 때 제공할 기본 파일을 제공합니다. 기본값은 index.html입니다. 예: index test.html;
+- error_page: 특정 HTTP 에러 코드에 대해 사용자에게 제공할 페이지를 지정합니다.
+- error_page 지시어가 없거나 에러 페이지를 open 하는데 에러가 나면 하드 코딩된 기본 에러 페이지를 제공합니다. 예: error_page 404. html
+- client_max_body_size: 클라이언트 요청의 max body 크기를 제한합니다. 최대 크기는 2GB입니다. M, K, G 유닛을 지원합니다. 예: client_max_body_size 8M;
+- return: 요청에 대한 응답으로 301 redirection 합니다. return www.example.com;
+- autoindex: 폴더를 요청했을 때 디렉터리 내용을 나열할 건지 결정합니다. 기본값은 off입니다. 예: autoindex on;
+- limit_except: 특정 HTTP 메서드를 허용하거나 금지합니다. 기본값은 get, post 허용입니다. 예: limit_except deny POST;
+- cgi_extension: 처리할 CGI 파일의 확장자를 지정합니다. 예: cgi_extension .cgi;
+- cgi_path: 처리할 CGI 파일 위치를 지정합니다. 기본값은 '/' 입니다. 예: /cgi-bin/login.py;
+- cgi_upload_dir: 파일 업로드 할 폴더를 지정합니다. 예: /www/member/;
+  
+- 각 블록 유형(HTTP, server, location)에 따라 사용할 수 있는 지시어가 다르며, 하위 블록에 같은 이름의 지시어가 선언되면, 해당 지시어는 상위 블록의 설정을 덮어쓰고 새로운 값을 적용합니다
+  
+| 지시어                | HTTP_BLOCK | SERVER_BLOCK | LOCATION_BLOCK | 중복 허용 여부 |
+|----------------------|------------|--------------|----------------|---------------|
+| root                 | O          | O            | O              | X             |
+| index                | O          | O            | O              | O             |
+| error_page           | O          | O            | O              | O             |
+| client_max_body_size | O          | O            | O              | X             |
+| listen               | X          | O            | X              | X             |
+| server_name          | X          | O            | X              | O             |
+| return               | X          | O            | O              | X             |
+| autoindex            | X          | X            | O              | X             |
+| limit_except         | X          | X            | O              | O             |
+| cgi_extension        | X          | X            | O              | X             |
+| cgi_path             | X          | X            | O              | X             |
+| cgi_upload_dir       | X          | X            | O              | X             |
+- 이 표에서 "O"는 해당 블록에서 지시어가 허용됨을, "X"는 허용되지 않음을 나타냅니다.
+- "중복 허용 여부" 은행당 지시어가 같은 블록 내에서 여러 번 선언될 수 있는지를 나타냅니다.
 
 ### HTTP 메세지
 - HTTP 메세지는 요청 메세지와 응답 메세지 두 종류로 분류할 수 있습니다.
@@ -96,4 +131,5 @@ Content-length: 2134
 ## 참고자료
 - [가상 호스팅](https://en.wikipedia.org/wiki/Virtual_hosting)
 - [HTTP 메세지](https://developer.mozilla.org/ko/docs/Web/HTTP/Messages)
-
+- [URI 매칭 및 처리](https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
+- [지시어](https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
