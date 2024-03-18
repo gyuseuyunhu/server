@@ -47,6 +47,12 @@ export WEBSERV_ROOT=$PWD
 ## Flow
 <img width="1052" alt="flow" src="https://github.com/gyuseuyunhu/server/assets/114281631/50c9bbc0-903e-4e12-a969-29f1a98b8d3d">
 
+- 설정 파일을 파싱해서 port, host, location 등 설정대로 웹서브가 동작합니다.
+- 클라이언트가 연결을 요청할 때 요청을 수락하고 연결을 맺습니다.
+- 그 후 클라이언트의 메세지를 해석하고 클라이언트의 요청 url이 일반 파일인지 CGI인지 확인합니다.
+- 일반 파일에 대한 요청이면 파일을 읽은 후 읽은 파일을 응답 메세지에 담아 클라이언트에게 전송합니다.
+- CGI 요청이면 CGI 프로세스를 동작시킨 후 CGI 프로세스와 통신하여 응답 메세지를 생성하고 클라이언트에게 전송합니다.
+- 클라이언트에게 메세지를 전송한 뒤 다시 클라이언트의 요청을 기다립니다(keep-alive).
 
 ## Detail
 ### 설정 파일
