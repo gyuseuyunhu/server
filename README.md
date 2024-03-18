@@ -96,7 +96,7 @@ export WEBSERV_ROOT=$PWD
 | error_page           | O          | O            | O              | O             |
 | client_max_body_size | O          | O            | O              | X             |
 | listen               | X          | O            | X              | X             |
-| server_name          | X          | O            | X              | O             |
+| server_name          | X          | O            | X              | X             |
 | return               | X          | O            | O              | X             |
 | autoindex            | X          | X            | O              | X             |
 | limit_except         | X          | X            | O              | O             |
