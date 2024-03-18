@@ -61,11 +61,32 @@ export WEBSERV_ROOT=$PWD
 - 크게 이름 기반(name-based), IP 기반(IP-based) 가상 호스팅으로 나뉩니다.
 - 이름 기반 가상 호스팅에서는 동일한 IP 주소에 대해 여러 호스트 이름을 사용할 수 있고, 클라이언트는 요청메세지에 Host 헤더를 명시해야 합니다.
 - IP 기반 가상 호스팅은 각 웹사이트마다 다른 IP 주소 또는 Port를 가지는 방식입니다.
-- 이 프로젝트의 경우 이름 기반 가상 호스팅을 지원하며, nginx랑 유사하게 서버블록 내의 server_name을 다르게 함으로써 작동합니다.
+- 이 프로젝트는 이름 기반 가상 호스팅을 지원하며, nginx랑 유사하게 서버블록 내의 server_name을 다르게 함으로써 작동합니다.
 
+#### HTTP 메세지
+- HTTP 메세지는 요청 메세지와 응답 메세지 두 종류로 분류할 수 있습니다.
+```
+// 요청 메세지
+GET / HTTP/1.1
+Host: localhost
 
+// 응답 메세지
+HTTP/1.1 200 OK
+Content-type: text/html; charset=UTF-8
+Content-length: 2134
 
+(바디 생략)
+```
+- HTTP 메세지는 시작줄 헤더 본문으로 나누어 해석합니다.
+- HTTP 요청 메세지의 시작줄은 메소드, 경로, 프로토콜로 구성되어 있습니다.
+- 이 프로젝트는 GET, POST, DELETE 메소드를 지원하며, HTTP/1.1에 따라 응답을 보낸 뒤에도 소켓 연결을 지속합니다.
+- 헤더의 Host와 시작줄의 경로를 확인하고, 요청에 따른 응답 메세지를 시작줄 헤더 본문으로 구성해서 소켓을 통해 전송합니다.
+- Host 헤더는 필수 필드로 요청 메세지 Host 헤더가 없을 시 400 Bad Request를 응답합니다.
+- Content-length로 전달된 길이만큼 본문을 읽습니다.
+- 응답도 시작줄, 헤더, 본문으로 구성되어 있습니다.
+- 시작줄의 상태코드로 요청이 성공적으로 완료되었는지 확인할 수 있고, 이 프로젝트는 200번대부터 500번대까지 다양한 상태코드를 지원합니다.
 
 ## 참고자료
 - [가상 호스팅](https://en.wikipedia.org/wiki/Virtual_hosting)
+- [HTTP 메세지](https://developer.mozilla.org/ko/docs/Web/HTTP/Messages)
 
