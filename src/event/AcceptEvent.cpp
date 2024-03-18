@@ -21,7 +21,7 @@ void AcceptEvent::handle()
     {
         return;
     }
-
+    std::cout << "Accept new client\n" << std::endl;
     fcntl(clientSocket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 
     AEvent *event = new ReadRequestEvent(mServer, clientSocket);

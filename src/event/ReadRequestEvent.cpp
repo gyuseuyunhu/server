@@ -439,6 +439,7 @@ void ReadRequestEvent::handle()
         makeCgiEvent(lb);
         Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
         Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
+        printLog(status);
         delete this;
         return;
     }
@@ -446,6 +447,7 @@ void ReadRequestEvent::handle()
     makeResponse(lb, status);
     Kqueue::deleteEvent(mClientSocket, EVFILT_READ);
     Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
+    printLog(status);
     delete this;
 }
 
@@ -454,4 +456,23 @@ void ReadRequestEvent::timer()
     Kqueue::deleteEvent(mClientSocket, EVFILT_TIMER);
     close(mClientSocket);
     delete this;
+}
+
+void ReadRequestEvent::printLog(int status)
+{
+    std::cout << mRequest.getMethod();
+    if (status < 300)
+    {
+        std::cout << " \033[32m";
+    }
+    else if (status < 400)
+    {
+        std::cout << " \033[33m";
+    }
+    else
+    {
+        std::cout << " \033[31m";
+    }
+    std::cout << status << " " << HttpStatusInfos::getHttpReason(status) << "\033[0m http://" << mRequest.getHost()
+              << mRequest.getPath() << std::endl;
 }

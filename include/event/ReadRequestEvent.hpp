@@ -38,6 +38,8 @@ class ReadRequestEvent : public AEvent
 
     void makeCgiEvent(const LocationBlock &lb);
 
+    void printLog(int status);
+
   public:
     ReadRequestEvent(const Server &server, int clientSocket);
     virtual ~ReadRequestEvent();

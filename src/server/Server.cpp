@@ -48,6 +48,9 @@ void Server::listen()
     }
 
     struct kevent newEvent;
+    std::cout << "\n\033[34mServer listen: \033[0m"
+              << "http://localhost:" << mPort << '\n'
+              << std::endl;
     EV_SET(&newEvent, mSocket, EVFILT_READ, EV_ADD, 0, 0, new AcceptEvent(*this));
     Kqueue::addEvent(newEvent);
 }
