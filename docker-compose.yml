@@ -2,6 +2,7 @@ services:
   webserv:
     container_name: webserv
     image: webserv
+    platform: linux/x86_64
     pull_policy: never
     build: .
     ports:
