@@ -1,0 +1,8 @@
+services:
+  webserv:
+    container_name: webserv
+    image: webserv
+    pull_policy: never
+    build: .
+    ports:
+      - 80:80
