@@ -1,4 +1,4 @@
-FROM alpine:3.12
+FROM frolvlad/alpine-glibc
 
 RUN apk update && apk upgrade && apk add --no-cache dumb-init g++ make python3 perl perl-cgi
 
