@@ -14,9 +14,31 @@ ReadFileEvent::~ReadFileEvent()
 
 void ReadFileEvent::handle()
 {
-    std::cout << "ReadFileEvent::handle()" << std::endl;
+#ifdef __linux__
+    while (true)
+    {
+        int n = read(mFileFd, mBuffer, BUFFER_SIZE);
+        if (n < 0)
+        {
+            Kqueue::deleteEvent(this, EVFILT_TIMER);
+            close(mFileFd);
+            delete this;
+            return;
+        }
+        mReadSize += n;
+        mBody.append(mBuffer, n);
+        if (mReadSize == mFileSize)
+        {
+            Kqueue::deleteEvent(this, EVFILT_TIMER);
+            close(mFileFd);
+            mResponse.setBody(mBody);
+            Kqueue::addEvent(new WriteEvent(mServer, mResponse, mClientSocket), EVFILT_WRITE);
+            delete this;
+            return;
+        }
+    }
+#endif
     int n = read(mFileFd, mBuffer, BUFFER_SIZE);
-
     if (n < 0)
     {
         Kqueue::deleteEvent(this, EVFILT_TIMER);
@@ -26,6 +48,7 @@ void ReadFileEvent::handle()
     }
     mReadSize += n;
     mBody.append(mBuffer, n);
+
     if (mReadSize == mFileSize)
     {
         Kqueue::deleteEvent(this, EVFILT_TIMER);

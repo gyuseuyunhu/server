@@ -13,7 +13,6 @@ AcceptEvent::~AcceptEvent()
 
 void AcceptEvent::handle()
 {
-    std::cout << "AcceptEvent::handle()" << std::endl;
     struct sockaddr_in clientAddr;
     socklen_t clientAddrSize = sizeof(clientAddr);
     int clientSocket = accept(mServer.getSocket(), (struct sockaddr *)&clientAddr, &clientAddrSize);

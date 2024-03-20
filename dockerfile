@@ -1,6 +1,6 @@
 FROM alpine:3.12
 
-RUN apk update && apk upgrade && apk add --no-cache dumb-init g++ make
+RUN apk update && apk upgrade && apk add --no-cache dumb-init g++ make python3 perl perl-cgi
 
 WORKDIR /webserv
 
@@ -16,10 +16,10 @@ COPY ./cgi-bin ./cgi-bin
 
 COPY ./Makefile ./Makefile
 
-RUN make && make clean
+RUN make && make clean && rm ./cgi-bin/cgi_tester && mv ./cgi-bin/ubuntu_cgi_tester ./cgi-bin/cgi_tester
 
 ENV WEBSERV_ROOT=/webserv
 
 EXPOSE 80
 
-ENTRYPOINT ["dumb-init", "--", "tail", "-f", "/dev/null"] 
+ENTRYPOINT ["dumb-init", "--", "./webserv"] 

@@ -17,6 +17,7 @@ void WriteCgiEvent::handle()
     if (n == -1)
     {
         Kqueue::deleteEvent(this, EVFILT_TIMER);
+        Kqueue::deleteEvent(this, EVFILT_WRITE);
         close(mFd);
         perror("write fail");
         delete this;
@@ -27,6 +28,7 @@ void WriteCgiEvent::handle()
     if (mWriteSize == mFileSize)
     {
         Kqueue::deleteEvent(this, EVFILT_TIMER);
+        Kqueue::deleteEvent(this, EVFILT_WRITE);
         close(mFd);
         delete this;
         return;

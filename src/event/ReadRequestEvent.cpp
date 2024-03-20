@@ -197,7 +197,6 @@ void ReadRequestEvent::makeWriteEvent(int &status)
 void ReadRequestEvent::makeReadFileEvent(int fd)
 {
     mResponse.addHead("Content-length", mFileSize);
-    std::cout << mRequest.getPath() << " " << mFileSize << std::endl;
     if (mRequest.getConnectionStatus() == CONNECTION_CLOSE)
     {
         mResponse.setConnectionClose();
@@ -210,8 +209,12 @@ void ReadRequestEvent::makeReadFileEvent(int fd)
     else
     {
         AEvent *event = new ReadFileEvent(mServer, mResponse, mClientSocket, fd, mFileSize);
+#ifdef __linux__
+        event->handle();
+#elif __APPLE__
         Kqueue::addEvent(event, EVFILT_READ);
         Kqueue::addEvent(event, EVFILT_TIMER);
+#endif
     }
 }
 
@@ -401,7 +404,6 @@ void ReadRequestEvent::makeCgiEvent(const LocationBlock &lb)
 
 void ReadRequestEvent::handle()
 {
-    std::cout << "ReadRequestEvent::handle()" << std::endl;
     char buffer[BUFFER_SIZE];
     int n = read(mClientSocket, buffer, BUFFER_SIZE);
     if (n <= 0)
@@ -417,7 +419,6 @@ void ReadRequestEvent::handle()
     {
         return;
     }
-    std::cout << "ReadRequestEvent::handle() method: " << mRequest.getPath() << std::endl;
     int status = mRequest.getStatus();
     const LocationBlock &lb = mServer.getLocationBlockForRequest(mRequest.getHost(), mRequest.getPath());
     if (status != BAD_REQUEST)
@@ -425,18 +426,15 @@ void ReadRequestEvent::handle()
         status = checkRequestError(lb);
     }
 
+    Kqueue::deleteEvent(this, EVFILT_READ);
+    Kqueue::deleteEvent(this, EVFILT_TIMER);
     if (status == OK && checkCgiEvent(lb, status))
     {
         makeCgiEvent(lb);
-        Kqueue::deleteEvent(this, EVFILT_READ);
-        Kqueue::deleteEvent(this, EVFILT_TIMER);
         delete this;
         return;
     }
-
     makeResponse(lb, status);
-    Kqueue::deleteEvent(this, EVFILT_READ);
-    Kqueue::deleteEvent(this, EVFILT_TIMER);
     delete this;
 }
 

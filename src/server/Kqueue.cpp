@@ -26,14 +26,11 @@ void Kqueue::addEvent(AEvent *event, int filter)
     {
         return;
     }
-    std::cout << "Kqueue::addEvent() event->getFd(): " << event->getFd() << std::endl;
     newEvent.events = filter;
-    std::cout << EPOLLIN << " " << filter << std::endl;
     newEvent.data.ptr = event;
     if (epoll_ctl(mEpollFd, EPOLL_CTL_ADD, event->getFd(), &newEvent) < 0)
     {
         perror("epoll_ctl");
-        std::cout << event->getFd() << std::endl;
     }
 }
 
