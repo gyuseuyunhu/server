@@ -117,15 +117,17 @@ docker compose up -d
 - I/O Multiplexing은 커널에서 fd를 감시하고 fd에 처리할 데이터가 발생했을 때 유저 프로세스에게 callback 신호가 오고 이를 처리하는 방식입니다.
 - 데이터를 처리할 수 있을 만큼만 처리하기 때문에 여러 요청을 동시적으로 다룰 수 있습니다.
 ```
-int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), mHandleEvents,
-MAX_EVENT_CNT, NULL);
+mKq = kqueue();
+
+int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), mHandleEvents, MAX_EVENT_CNT, NULL);
 
 for (int i = 0; i < n; ++i)
 {
     reinterpret_cast<AEvent *>(mHandleEvents[i].udata)->handle();
 }
 ```
-- kevent 함수에서 mNewEvents로 감시해야 하는 이벤트를 커널에 등록시키고, mHandleEvents로 데이터가 발생한 요청을 반환받아 반환된 요청을 처리합니다.
+- kqueue 함수는 event를 저장할 새로운 queue를 커널에 요청하는 함수입니다. 해당 큐의 파일 디스크립터를 반환합니다.
+- kevent 함수에서 mNewEvents로 감시해야 하는 이벤트를 커널 큐에 등록시키고, mHandleEvents로 데이터가 발생한 요청을 반환받아 반환된 요청을 처리합니다.
 
 ### HTTP 메세지
 - HTTP 메세지는 요청 메세지와 응답 메세지 두 종류로 분류할 수 있습니다.
