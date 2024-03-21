@@ -122,10 +122,10 @@ mKq = kqueue();
 - kqueue 함수는 event를 저장할 새로운 queue를 커널에 요청하는 함수입니다. 해당 큐의 파일 디스크립터를 반환합니다.
 
 ```
-int n = kevent(mKq, &amp;mNewEvents[0], mNewEvents.size(), mHandleEvents, MAX_EVENT_CNT, NULL);
-for (int i = 0; i &amp;lt; n; ++i)
+int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), mHandleEvents, MAX_EVENT_CNT, NULL);
+for (int i = 0; i < n; ++i)
 {
-    reinterpret_cast&amp;lt;AEvent *&gt;(mHandleEvents[i].udata)-&gt;handle();
+    reinterpret_cast<AEvent *>(mHandleEvents[i].udata)->handle();
 }
 ```
 - kevent 함수에서 mNewEvents로 감시해야 하는 이벤트를 커널 큐에 등록시키고, mHandleEvents로 데이터가 발생한 요청을 반환받아 반환된 요청을 처리합니다.
