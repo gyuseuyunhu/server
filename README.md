@@ -43,6 +43,12 @@ make
 export WEBSERV_ROOT=$PWD
 ./webserv [Config File]
 ```
+docker를 이용해서 윈도우나 리눅스 환경에서도 테스트 가능합니다.
+```
+git switch docker // 도커 브랜치로 이동해야 합니다.
+docker compose up -d
+```
+웹 브라우저로 127.0.0.1(포트 80)으로 접속하여 테스트 할 수 있습니다.
 
 ## Flow
 <img width="1052" alt="flow" src="https://github.com/gyuseuyunhu/server/assets/114281631/50c9bbc0-903e-4e12-a969-29f1a98b8d3d">
@@ -106,6 +112,21 @@ export WEBSERV_ROOT=$PWD
 - 이 표에서 "O"는 해당 블록에서 지시어가 허용됨을, "X"는 허용되지 않음을 나타냅니다.
 - "중복 허용 여부"는 해당 지시어가 같은 블록 내에서 여러 번 선언될 수 있는지를 나타냅니다.
 
+### I/O Multiplexing
+- I/O Multiplexing으로 여러 클라이언트의 요청을 동시에 처리합니다.
+- I/O Multiplexing은 커널에서 fd를 감시하고 fd에 처리할 데이터가 발생했을 때 유저 프로세스에게 callback 신호가 오고 이를 처리하는 방식입니다.
+- 데이터를 처리할 수 있을 만큼만 처리하기 때문에 여러 요청을 동시적으로 다룰 수 있습니다.
+```
+int n = kevent(mKq, &mNewEvents[0], mNewEvents.size(), mHandleEvents,
+MAX_EVENT_CNT, NULL);
+
+for (int i = 0; i < n; ++i)
+{
+    reinterpret_cast<AEvent *>(mHandleEvents[i].udata)->handle();
+}
+```
+- kevent 함수에서 mNewEvents로 감시해야 하는 이벤트를 커널에 등록시키고, mHandleEvents로 데이터가 발생한 요청을 반환받아 반환된 요청을 처리합니다.
+
 ### HTTP 메세지
 - HTTP 메세지는 요청 메세지와 응답 메세지 두 종류로 분류할 수 있습니다.
 ```
@@ -128,8 +149,18 @@ Content-length: 2134
 - Content-length로 전달된 길이만큼 본문을 읽습니다.
 - 응답 메세지의 시작줄 상태코드로 요청이 성공적으로 완료되었는지 확인할 수 있고, 이 프로젝트는 200번대부터 500번대까지 다양한 상태코드를 지원합니다.
 
+### CGI
+- 웹서버가 요청마다 동적인 페이지를 생성해주기 위해 CGI를 사용했습니다.
+- 유저가 CGI에 해당하는 url을 전송했을 때 CGI에 해당하는 디렉토리일 경우 파일을 읽어 전송하는 것이 아니라 프로그램을 실행되고 프로그램의 출력이 클라이언트에게 전달됩니다.
+- HTTP 헤더 내용은 환경변수로 변환되어 CGI 프로세스에 전달되고 요청 본문(BODY)은 표준입력을 통해 CGI 프로세스에 전달됩니다.
+- 동적으로 상호작용하는 POST나 DELETE 같은 메소드는 CGI로 처리한 다음 결과를 웹서버가 클라이언트에게 반환합니다.
+- CGI 프로세스는 다양한 언어로 개발될 수 있고 이 프로젝트는 python과 perl을 사용했습니다.
+
 ## 참고자료
 - [가상 호스팅](https://en.wikipedia.org/wiki/Virtual_hosting)
 - [HTTP 메세지](https://developer.mozilla.org/ko/docs/Web/HTTP/Messages)
 - [URI 매칭 및 처리](https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
 - [지시어](https://nginx.org/en/docs/http/ngx_http_core_module.html#location)
+- [I/O Multiplexing](https://blog.naver.com/n_cloudplatform/222189669084)
+- [kqueue](https://blog.naver.com/n_cloudplatform/222255261317)
+- [CGI](https://electricalfundablog.com/common-gateway-interface-cgi/)
